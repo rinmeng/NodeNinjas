@@ -12,8 +12,7 @@
 
 ### Install Dependencies (all node libraries/modules) on the frontend and backend
 
-```bash
-current directory: ctms
+```shell
 ctms> cd server
 ctms\server> npm install
 ctms\server> cd ..
@@ -25,12 +24,12 @@ ctms\client> npm install
 
 ### 1. `cd` into the `server` directory and run the following commands
 
-```bash
+```shell
 ctms\server> docker build -t ctms .
 ctms\server> docker-compose up
 ```
 
-Now your whole backend is running on [localhost:5000](http://localhost:5000)
+This script builds the Dockerfile's image, and composes the image into a backend server. Our whole backend whill be running on [http://localhost:5000](http://localhost:5000)
 
 ### Warning: Do not close the terminal window where you ran the `docker-compose up` command. If you do, the backend will stop running, instead, open a new terminal window
 
@@ -38,11 +37,37 @@ Now your whole backend is running on [localhost:5000](http://localhost:5000)
 
 ### 1. `cd` into the `client` directory and run the following commands
 
-```bash
+```shell
 ctms\client> npm run dev
 ```
 
-Now your whole frontend is running on [localhost:3000](http://localhost:3000)
+This command runs both the start script (to start react-app for front-end) and the css development stream (real-time css changes with TailwindCSS). Your whole frontend will be running on [http://localhost:3000](http://localhost:3000)
+
+## How do you know what commands run what?
+
+The `package.json` file in the `client` and `server` directories contain the scripts that are run when you run `npm run <script-name>`, some scripts are predefined by npm, and some are custom scripts defined by me to make it easier for us to run the project.
+
+For example, in the `client` directory, you will see the following scripts:
+
+```json
+    "css": "npx tailwindcss -i ./src/css/input.css -o ./src/css/output.css --watch",
+    "dev": "concurrently \"npm run start\" \"npm run css\""
+```
+
+under the `scripts` key was added by me. The `css` script runs the tailwindcss compiler in watch mode, and the `dev` script runs both the start script and the css script concurrently.
+
+And in the `server` directory, you will see the following scripts:
+
+```json
+    "start": "node server",
+    "dev": "nodemon server"
+```
+
+was also added by me. The `start` script runs the server, and the `dev` script runs the server in watch mode using nodemon.
+
+## What is watch mode?
+
+Watch mode is a mode that watches for changes in the files and automatically recompiles the files when changes are detected. This is useful for development because you don't have to manually recompile the files every time you make a change.
 
 ## How do you test the backend?
 
@@ -62,7 +87,7 @@ Then you can run the next call `GET http://localhost:15000/` to get the list of 
 
 Now you can test inserts by running
 
-```rest
+```json
 POST http://localhost:15000/
 Content-Type: application/json
 
@@ -89,10 +114,14 @@ Content-Type: application/json
   "location": "Australia"
 }
 ###
-``` 
+```
 
 Now you can run the `GET http://localhost:15000/` again to see the list of schools
 
 Then check your front-end to see the changes (refresh the page).
 
 To reset, simply visit setup again [http://localhost:15000/setup](http://localhost:15000/setup)
+
+## What area will be used the most during development?
+
+Until further notices, we will find a way to organize each "pages" into "routes" so it is easy to manage and navigate
