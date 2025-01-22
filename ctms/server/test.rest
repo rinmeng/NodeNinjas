@@ -1,0 +1,31 @@
+###
+GET http://localhost:15000/setup
+###
+GET http://localhost:15000/
+###
+POST http://localhost:15000/
+Content-Type: application/json
+
+{
+  "name": "hi",
+  "location": "Canada"
+}
+###
+POST http://localhost:15000/
+Content-Type: application/json
+
+{
+  "id": 2,
+  "name": "hello",
+  "location": "USA"
+}
+###
+POST http://localhost:15000/
+Content-Type: application/json
+
+{
+  "id": 3,
+  "name": "greetings",
+  "location": "Australia"
+}
+###
