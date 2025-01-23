@@ -20,28 +20,25 @@ ctms> cd client
 ctms\client> npm install
 ```
 
-## Backend
+## Backend & Frontend Setups
 
 ### 1. `cd` into the `server` directory and run the following commands
 
 ```shell
-ctms\server> docker build -t ctms .
-ctms\server> docker-compose up
+ctms\server> docker-compose up --build
 ```
 
-This script builds the Dockerfile's image, and composes the image into a backend server. Our whole backend whill be running on [http://localhost:5000](http://localhost:5000)
+This script builds the Dockerfile's image, and composes the image into a backend server. Our whole backend whill be running on [http://localhost:15000](http://localhost:15000). I have edited the code to include the whole frontend, which will be running on [http://localhost:13000](http://localhost:13000)
 
-### Warning: Do not close the terminal window where you ran the `docker-compose up` command. If you do, the backend will stop running, instead, open a new terminal window
+## NOTE: All error logs will be displayed in the Docker app, under the server container, where
 
-## Frontend
+- If there is a backend error, it will be displayed under `server-1`
 
-### 1. `cd` into the `client` directory and run the following commands
+- If there is a frontend error, it will be displayed under `client-1`
 
-```shell
-ctms\client> npm run dev
-```
+- If there is a request (DB query) error, it will be displayed under `db-1`
 
-This command runs both the start script (to start react-app for front-end) and the css development stream (real-time css changes with TailwindCSS). Your whole frontend will be running on [http://localhost:3000](http://localhost:3000)
+### As long as the `server` image is running, everything is accessible
 
 ## How do you know what commands run what?
 
@@ -69,7 +66,8 @@ was also added by me. The `start` script runs the server, and the `dev` script r
 
 Watch mode is a mode that watches for changes in the files and automatically recompiles the files when changes are detected. This is useful for development because you don't have to manually recompile the files every time you make a change.
 
-## How do you test the backend?
+## How do you test the backend & frontend?
+### Backend
 
 Under the `server` directory, you will see a `test.rest` file. You need to install the REST Client extension in Visual Studio Code. Then you can run the tests by clicking on the `Send Request` link, or you can utilize Postman to test the backend
 
@@ -118,9 +116,11 @@ Content-Type: application/json
 
 Now you can run the `GET http://localhost:15000/` again to see the list of schools
 
-Then check your front-end to see the changes (refresh the page).
+### Frontend
 
-To reset, simply visit setup again [http://localhost:15000/setup](http://localhost:15000/setup)
+Then check your front-end, visit [http://localhost:13000](http://localhost:13000) to see the front-end
+
+To reset the table, simply visit setup again [http://localhost:15000/setup](http://localhost:15000/setup)
 
 ## What area will be used the most during development?
 
