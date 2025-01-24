@@ -27,6 +27,72 @@ function Test() {
       });
   };
 
+  const resetTableData = () => {
+    fetch("http://localhost:15000/setup/reset")
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.error || "Reset failed");
+          });
+        }
+        return res.json();
+      })
+      .then(() => {
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error("Reset error:", error);
+        setErrorMessage(error.message);
+      });
+  };
+
+  const deleteTableData = () => {
+    fetch("http://localhost:15000/setup/delete")
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.error || "Delete failed");
+          });
+        }
+        return res.json();
+      })
+      .then(() => {
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error("Delete error:", error);
+        setErrorMessage(error.message);
+      });
+  };
+
+  const testAdd = () => {
+    fetch("http://localhost:15000/", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        name: "Test School",
+        location: "Test Location",
+      }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.error || "Add failed");
+          });
+        }
+        return res.json();
+      })
+      .then(() => {
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error("Add error:", error);
+        setErrorMessage(error.message);
+      });
+  };
+
   const setupDatabase = () => {
     fetch("http://localhost:15000/setup")
       .then((res) => {
@@ -51,14 +117,14 @@ function Test() {
   }, []);
 
   return (
-    <div className="text-center mp5">
+    <div className="text-center mp5 space-y-4">
       <h1 className="title">React App + ExpressJS!</h1>
       {loading ? (
         <p className="text-lg">Loading...</p>
       ) : errorMessage ? (
         <div>
           <p className="text-lg text-red-500">Error: {errorMessage}</p>
-          <button onClick={setupDatabase} className="btn">
+          <button onClick={setupDatabase} className="btn-green">
             Load database
           </button>
         </div>
@@ -87,6 +153,17 @@ function Test() {
           </div>
         </div>
       )}
+      <div className="space-x-4">
+        <button onClick={testAdd} className="btn">
+          Add School
+        </button>
+        <button onClick={resetTableData} className="btn-grey">
+          Reset Table
+        </button>
+        <button onClick={deleteTableData} className="btn-red">
+          Delete Table
+        </button>
+      </div>
     </div>
   );
 }

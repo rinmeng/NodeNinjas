@@ -17,4 +17,16 @@
   .t200e {
     @apply transition-all duration-200 ease-in-out;
   }
+
+  .btn-red {
+    @apply px-6 py-3 bg-red-600 text-white font-extrabold rounded-xl hover:bg-red-700 t200e;
+  }
+
+  .btn-green {
+    @apply px-6 py-3 bg-green-600 text-white font-extrabold rounded-xl hover:bg-green-700 t200e;
+  }
+
+  .btn-grey {
+    @apply px-6 py-3 bg-gray-400 text-white font-extrabold rounded-xl hover:bg-gray-700 t200e;
+  }
 }
