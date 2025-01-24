@@ -32,11 +32,11 @@ This script builds the Dockerfile's image, and composes the image into a backend
 
 ## NOTE: All error logs will be displayed in the Docker app, under the server container, where
 
-- If there is a backend error, it will be displayed under `server-1`
+- If there is a backend error, it will be displayed under `postgres-db`
 
-- If there is a frontend error, it will be displayed under `client-1`
+- If there is a frontend error, it will be displayed under `frontend`
 
-- If there is a request (DB query) error, it will be displayed under `db-1`
+- If there is a request (DB query) error, it will be displayed under `backend`
 
 ### As long as the `server` image is running, everything is accessible
 
