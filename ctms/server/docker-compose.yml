@@ -2,6 +2,7 @@ version: '3.8'
 services:
   db:
     image: postgres
+    container_name: NodeNinjas_db
     environment:
       POSTGRES_PASSWORD: rootpw
       POSTGRES_USER: root
