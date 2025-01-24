@@ -25,7 +25,7 @@ ctms\client> npm install
 ### 1. `cd` into the `server` directory and run the following commands
 
 ```shell
-ctms\server> docker-compose up --build
+ctms\server> docker-compose up -d --build
 ```
 
 This script builds the Dockerfile's image, and composes the image into a backend server. Our whole backend whill be running on [http://localhost:15000](http://localhost:15000). I have edited the code to include the whole frontend, which will be running on [http://localhost:13000](http://localhost:13000)
