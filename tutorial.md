@@ -28,7 +28,7 @@ ctms\client> npm install
 ctms> docker-compose up -d --build
 ```
 
-This script builds the Dockerfile's image, and composes the image into a backend server. Our whole backend whill be running on [http://localhost:15000](http://localhost:15000). I have edited the code to include the whole frontend, which will be running on [http://localhost:13000](http://localhost:13000)
+Our whole backend whill be running on [http://localhost:15000](http://localhost:15000). I have edited the code to include the whole frontend, which will be running on [http://localhost:13000](http://localhost:13000),
 
 ## NOTE: All error logs will be displayed in the Docker app, under the server container, where
 
@@ -93,10 +93,16 @@ Now you can run the `GET http://localhost:15000/` again to see the list of schoo
 
 ### Frontend
 
-Then check your front-end, visit [http://localhost:13000](http://localhost:13000) to see the front-end
+Then check your front-end, visit [http://localhost:13000](http://localhost:13000) to see the front-end.
+
+so that you can see the changes you made in the front-end, otherwise it will only show the changes you made in the backend
 
 To reset the table, simply visit setup again [http://localhost:15000/setup](http://localhost:15000/setup)
 
 ## What area will be used the most during development?
 
-Until further notices, we will find a way to organize each "pages" into "routes" so it is easy to manage and navigate
+- The `server/routes` directory will be used the most for the backend
+
+- The `client/src` directory will be used the most for the frontend
+
+

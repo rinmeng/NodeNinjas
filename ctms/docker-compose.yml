@@ -13,15 +13,29 @@ services:
     build: 
       context: ./server
     ports:
-      - 15000:5000
+      - "15000:5000"
     depends_on:
       - db
+    volumes:
+      - ./server:/usr/src/app          # Mount the server code
+      - /usr/src/app/node_modules      # Prevent overwriting node_modules
+    stdin_open: true                   # Enable hot-reloading support
+    tty: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true       # Ensure file watching works in Docker
 
   client:
     container_name: frontend
     build:
       context: ./client
     ports:
-      - 13000:3000
+      - "13000:3000"                   # Expose frontend dev server
     depends_on:
       - server
+    volumes:
+      - ./client:/usr/src/app          # Mount the client code
+      - /usr/src/app/node_modules      # Prevent overwriting node_modules
+    stdin_open: true                   # Enable hot-reloading support
+    tty: true
+    environment:
+      - CHOKIDAR_USEPOLLING=true       # Ensure file watching works in Docker
