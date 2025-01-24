@@ -2,8 +2,8 @@ import React from "react";
 
 const Contact = () => {
   return (
-    <div>
-      <h1>Contact Page</h1>
+    <div className="mp5 text-center">
+      <h1 className="title">Contact Page</h1>
       <p>Get in touch with us here.</p>
     </div>
   );
