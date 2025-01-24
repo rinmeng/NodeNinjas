@@ -16,7 +16,7 @@ router.get('/', async (req, res) => {
         res.status(200).send({ message: "Table created successfully" });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ error: 'Internal Server Error: Is database setup yet? http://localhost:15000/setup' });
+        res.status(500).send({ error: 'Internal Server Error' });
     }
 });
 

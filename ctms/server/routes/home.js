@@ -8,7 +8,7 @@ router.get('/', async (req, res) => {
         res.status(200).json(data.rows);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ error: 'Internal Server Error. Is database setup properly?' });
+        res.status(500).send({ error: 'Internal Server Error: Is database setup yet? http://localhost:15000/setup' });
     }
 });
 
