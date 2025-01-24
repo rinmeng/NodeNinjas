@@ -95,8 +95,6 @@ Now you can run the `GET http://localhost:15000/` again to see the list of schoo
 
 Then check your front-end, visit [http://localhost:13000](http://localhost:13000) to see the front-end.
 
-so that you can see the changes you made in the front-end, otherwise it will only show the changes you made in the backend
-
 To reset the table, simply visit setup again [http://localhost:15000/setup](http://localhost:15000/setup)
 
 ## What area will be used the most during development?

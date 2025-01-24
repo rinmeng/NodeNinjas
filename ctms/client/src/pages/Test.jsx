@@ -2,15 +2,14 @@ import React, { useEffect, useState } from "react";
 import "../css/output.css";
 
 function Test() {
-  const [backendData, setBackendData] = useState(null); // To store backend data
+  const [backendData, setBackendData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState(""); // To store error messages
+  const [errorMessage, setErrorMessage] = useState("");
 
-  useEffect(() => {
+  const fetchData = () => {
     fetch("http://localhost:15000/")
       .then((res) => {
         if (!res.ok) {
-          // If response status is not OK (e.g., 500 or 404), throw an error
           return res.json().then((error) => {
             throw new Error(error.error || "Unknown error occurred");
           });
@@ -18,14 +17,37 @@ function Test() {
         return res.json();
       })
       .then((data) => {
-        setBackendData(data); // Store backend data in state
-        setLoading(false); // Set loading to false after data is fetched
+        setBackendData(data);
+        setLoading(false);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setErrorMessage(error.message); // Set the error message from the response or generic message
-        setLoading(false); // Stop loading even if there's an error
+        setErrorMessage(error.message);
+        setLoading(false);
       });
+  };
+
+  const setupDatabase = () => {
+    fetch("http://localhost:15000/setup")
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.error || "Setup failed");
+          });
+        }
+        return res.json();
+      })
+      .then(() => {
+        window.location.reload();
+      })
+      .catch((error) => {
+        console.error("Setup error:", error);
+        setErrorMessage(error.message);
+      });
+  };
+
+  useEffect(() => {
+    fetchData();
   }, []);
 
   return (
@@ -34,11 +56,14 @@ function Test() {
       {loading ? (
         <p className="text-lg">Loading...</p>
       ) : errorMessage ? (
-        <p className="text-lg text-red-500">
-          Error: {errorMessage} {/* Display the error message */}
-        </p>
+        <div>
+          <p className="text-lg text-red-500">Error: {errorMessage}</p>
+          <button onClick={setupDatabase} className="btn">
+            Load database
+          </button>
+        </div>
       ) : backendData && backendData.length === 0 ? (
-        <p className="text-lg">No data found.</p>
+        <p className="text-lg">Database found, but no data was in it.</p>
       ) : (
         <div>
           <div>Data loaded!</div>
