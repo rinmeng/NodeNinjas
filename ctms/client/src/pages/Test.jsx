@@ -2,19 +2,28 @@ import React, { useEffect, useState } from "react";
 import "../css/output.css";
 
 function Test() {
-  const [backendData, setBackendData] = useState(null); // Initialize as null instead of an empty array
+  const [backendData, setBackendData] = useState(null); // To store backend data
   const [loading, setLoading] = useState(true);
+  const [errorMessage, setErrorMessage] = useState(""); // To store error messages
 
   useEffect(() => {
     fetch("http://localhost:15000/")
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          // If response status is not OK (e.g., 500 or 404), throw an error
+          return res.json().then((error) => {
+            throw new Error(error.error || "Unknown error occurred");
+          });
+        }
+        return res.json();
+      })
       .then((data) => {
         setBackendData(data); // Store backend data in state
         setLoading(false); // Set loading to false after data is fetched
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setBackendData([]); // Set an empty array in case of error, to avoid null value
+        setErrorMessage(error.message); // Set the error message from the response or generic message
         setLoading(false); // Stop loading even if there's an error
       });
   }, []);
@@ -24,11 +33,11 @@ function Test() {
       <h1 className="title">React App + ExpressJS!</h1>
       {loading ? (
         <p className="text-lg">Loading...</p>
-      ) : backendData === null ? (
+      ) : errorMessage ? (
         <p className="text-lg text-red-500">
-          Error fetching data. Please try again later.
+          Error: {errorMessage} {/* Display the error message */}
         </p>
-      ) : backendData.length === 0 ? (
+      ) : backendData && backendData.length === 0 ? (
         <p className="text-lg">No data found.</p>
       ) : (
         <div>
