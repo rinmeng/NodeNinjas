@@ -2,23 +2,25 @@ version: '3.8'
 services:
   db:
     image: postgres
-    container_name: NodeNinjas_db
+    container_name: postgres-db
     environment:
       POSTGRES_PASSWORD: rootpw
       POSTGRES_USER: root
       POSTGRES_DB: ctms
 
   server:
+    container_name: backend
     build: 
-      context: ../server
+      context: ./server
     ports:
       - 15000:5000
     depends_on:
       - db
 
   client:
+    container_name: frontend
     build:
-      context: ../client
+      context: ./client
     ports:
       - 13000:3000
     depends_on:

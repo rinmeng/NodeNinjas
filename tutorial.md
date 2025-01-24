@@ -22,10 +22,10 @@ ctms\client> npm install
 
 ## Backend & Frontend Setups
 
-### 1. `cd` into the `server` directory and run the following commands
+### 1. `cd` into the `ctms` directory (or where the docker-compose.yml is located) and run the following commands
 
 ```shell
-ctms\server> docker-compose up -d --build
+ctms> docker-compose up -d --build
 ```
 
 This script builds the Dockerfile's image, and composes the image into a backend server. Our whole backend whill be running on [http://localhost:15000](http://localhost:15000). I have edited the code to include the whole frontend, which will be running on [http://localhost:13000](http://localhost:13000)
@@ -40,38 +40,13 @@ This script builds the Dockerfile's image, and composes the image into a backend
 
 ### As long as the `server` image is running, everything is accessible
 
-## How do you know what commands run what?
-
-The `package.json` file in the `client` and `server` directories contain the scripts that are run when you run `npm run <script-name>`, some scripts are predefined by npm, and some are custom scripts defined by me to make it easier for us to run the project.
-
-For example, in the `client` directory, you will see the following scripts:
-
-```json
-    "css": "npx tailwindcss -i ./src/css/input.css -o ./src/css/output.css --watch",
-    "dev": "concurrently \"npm run start\" \"npm run css\""
-```
-
-under the `scripts` key was added by me. The `css` script runs the tailwindcss compiler in watch mode, and the `dev` script runs both the start script and the css script concurrently.
-
-And in the `server` directory, you will see the following scripts:
-
-```json
-    "start": "node server",
-    "dev": "nodemon server"
-```
-
-was also added by me. The `start` script runs the server, and the `dev` script runs the server in watch mode using nodemon.
-
-## What is watch mode?
-
-Watch mode is a mode that watches for changes in the files and automatically recompiles the files when changes are detected. This is useful for development because you don't have to manually recompile the files every time you make a change.
-
 ## How do you test the backend & frontend?
+
 ### Backend
 
 Under the `server` directory, you will see a `test.rest` file. You need to install the REST Client extension in Visual Studio Code. Then you can run the tests by clicking on the `Send Request` link, or you can utilize Postman to test the backend
 
-A first, it will not work unless you run the first api call `GET http://localhost:15000/setup` to get the setup working. You can click send request on the first api call or visit [http://localhost:15000/setup](http://localhost:15000/setup) (Note that we are not actually using port 5000 for the api calls because docker is running the backend, mapped to port 15000 as defined in the `docker-compose.yml` file)
+A first, it will not work unless you run the first api call in the `test.rest` file, `GET http://localhost:15000/setup` to get the setup working. You can click send request on the first api call or visit [http://localhost:15000/setup](http://localhost:15000/setup) (Note that we are not actually using port 5000 for the api calls because docker is running the backend, mapped to port 15000 as defined in the `docker-compose.yml` file)
 
 When it is successfull, you will see a json file containing 
 
