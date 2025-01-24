@@ -119,40 +119,6 @@ function Test() {
   return (
     <div className="text-center mp5 space-y-4">
       <h1 className="title">React App + ExpressJS!</h1>
-      {loading ? (
-        <p className="text-lg">Loading...</p>
-      ) : errorMessage ? (
-        <div>
-          <p className="text-lg text-red-500">Error: {errorMessage}</p>
-          <button onClick={setupDatabase} className="btn-green">
-            Load database
-          </button>
-        </div>
-      ) : backendData && backendData.length === 0 ? (
-        <p className="text-lg">Database found, but no data was in it.</p>
-      ) : (
-        <div>
-          <div>Data loaded!</div>
-          <div className="grid grid-cols-2 gap-4 bg-slate-800 rounded-xl mp5">
-            <div className="font-bold p-2 text-center border-b-2 border-gray-600">
-              Name
-            </div>
-            <div className="font-bold p-2 text-center border-b-2 border-gray-600">
-              Location
-            </div>
-            {backendData.map((school, index) => (
-              <React.Fragment key={index}>
-                <div className="p-2 text-center border-b border-gray-700">
-                  {school.name}
-                </div>
-                <div className="p-2 text-center border-b border-gray-700">
-                  {school.location}
-                </div>
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      )}
       <div className="space-x-4">
         <button onClick={testAdd} className="btn">
           Add School
@@ -164,6 +130,49 @@ function Test() {
           Delete Table
         </button>
       </div>
+      {loading ? (
+        <p className="text-lg">Loading...</p>
+      ) : errorMessage ? (
+        <div>
+          <p className="text-lg text-red-500 my-4">Error: {errorMessage}</p>
+          <button onClick={setupDatabase} className="btn-green">
+            Load database
+          </button>
+        </div>
+      ) : (
+        <div>
+          <div className="grid grid-cols-3 gap-4 bg-slate-800 rounded-xl mp5 max-w-3xl mx-auto">
+            {backendData && backendData.length === 0 ? (
+              <p className="text-lg col-span-3">
+                Database found, but no data was in it.
+              </p>
+            ) : null}
+            <div className="font-bold p-2 text-center border-b-2 border-gray-600">
+              ID
+            </div>
+            <div className="font-bold p-2 text-center border-b-2 border-gray-600">
+              Name
+            </div>
+            <div className="font-bold p-2 text-center border-b-2 border-gray-600">
+              Location
+            </div>
+
+            {backendData.map((school, index) => (
+              <React.Fragment key={index}>
+                <div className="p-2 text-center border-b border-gray-700">
+                  {school.id}
+                </div>
+                <div className="p-2 text-center border-b border-gray-700">
+                  {school.name}
+                </div>
+                <div className="p-2 text-center border-b border-gray-700">
+                  {school.location}
+                </div>
+              </React.Fragment>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -103,4 +103,20 @@ To reset the table, simply visit setup again [http://localhost:15000/setup](http
 
 - The `client/src` directory will be used the most for the frontend
 
+## Use the Postgres database real-time
 
+- You can use the Postgres database real-time by running the following command
+in the same directory where the `docker-compose.yml` file is located
+
+```shell
+docker exec -it postgres-db psql -U root -d ctms
+```
+
+- You can run any SQL command in the terminal that appears for example, `\dt` to see the tables
+
+```sql
+ctms=# \dt
+ctms=# SELECT * FROM schools;
+```
+
+- To exit the terminal, type `\q` and press enter
