@@ -1,13 +1,16 @@
 import React, { useEffect, useState } from "react";
 import "../css/output.css";
 
+const proxy = "http://localhost:15000/";
+
 function Test() {
   const [backendData, setBackendData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState("");
+  const [deleteUserId, setDeleteUserId] = useState(""); // Add state for the user ID input
 
   const fetchData = () => {
-    fetch("http://localhost:15000/")
+    fetch(proxy)
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -28,7 +31,7 @@ function Test() {
   };
 
   const resetTableData = () => {
-    fetch("http://localhost:15000/setup/reset")
+    fetch(proxy + "setup/reset")
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -47,7 +50,7 @@ function Test() {
   };
 
   const deleteTableData = () => {
-    fetch("http://localhost:15000/setup/delete")
+    fetch(proxy + "setup/delete")
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -66,14 +69,14 @@ function Test() {
   };
 
   const testAdd = () => {
-    fetch("http://localhost:15000/", {
+    fetch(proxy + "user/add", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        name: "Test School",
-        location: "Test Location",
+        username: "test",
+        email: "test@email.test",
       }),
     })
       .then((res) => {
@@ -93,8 +96,34 @@ function Test() {
       });
   };
 
+  const testDelete = () => {
+    if (!deleteUserId) {
+      setErrorMessage("Please enter a valid user ID to delete");
+      return;
+    }
+
+    fetch(proxy + `user/delete/${deleteUserId}`, {
+      method: "DELETE", // Send a DELETE request
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.error || "Delete failed");
+          });
+        }
+        return res.json();
+      })
+      .then(() => {
+        window.location.reload(); // Reload to reflect the changes
+      })
+      .catch((error) => {
+        console.error("Delete error:", error);
+        setErrorMessage(error.message);
+      });
+  };
+
   const setupDatabase = () => {
-    fetch("http://localhost:15000/setup")
+    fetch(proxy + "setup")
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -119,10 +148,23 @@ function Test() {
   return (
     <div className="text-center mp5 space-y-4">
       <h1 className="title">React App + ExpressJS!</h1>
-      <div className="space-x-4">
+      <div className="space-y-4 flex flex-col justify-center w-1/6 m-auto">
         <button onClick={testAdd} className="btn">
-          Add School
+          Add Test User
         </button>
+        <form className="space-y-2 w-full">
+          <button type="button" onClick={testDelete} className="btn w-full">
+            Delete User
+          </button>
+          {/* Input field to enter the user ID for deletion */}
+          <input
+            className="forms"
+            type="text"
+            value={deleteUserId}
+            onChange={(e) => setDeleteUserId(e.target.value)} // Update the state when user types
+            placeholder="Enter User ID"
+          />
+        </form>
         <button onClick={resetTableData} className="btn-grey">
           Reset Table
         </button>
@@ -154,19 +196,19 @@ function Test() {
               Name
             </div>
             <div className="font-bold p-2 text-center border-b-2 border-gray-600">
-              Location
+              Email
             </div>
 
-            {backendData.map((school, index) => (
+            {backendData.map((user, index) => (
               <React.Fragment key={index}>
                 <div className="p-2 text-center border-b border-gray-700">
-                  {school.id}
+                  {user.id}
                 </div>
                 <div className="p-2 text-center border-b border-gray-700">
-                  {school.name}
+                  {user.username}
                 </div>
                 <div className="p-2 text-center border-b border-gray-700">
-                  {school.location}
+                  {user.email}
                 </div>
               </React.Fragment>
             ))}

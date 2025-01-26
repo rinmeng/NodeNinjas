@@ -2,16 +2,17 @@ const express = require('express');
 const pool = require('../db'); // Access the database connection
 const router = express.Router();
 
+
 // GET /setup
 router.get('/', async (req, res) => {
     try {
         await pool.query(`
-            DROP TABLE IF EXISTS schools;
-            CREATE TABLE schools (
+            DROP TABLE IF EXISTS users;
+            CREATE TABLE users (
                 id SERIAL PRIMARY KEY,
-                name VARCHAR(255),
-                location VARCHAR(255)
-            )
+                username VARCHAR(50),
+                email VARCHAR(50)
+            );
         `);
         res.status(200).send({ message: "Table created successfully" });
     } catch (err) {
@@ -23,7 +24,7 @@ router.get('/', async (req, res) => {
 router.get('/reset', async (req, res) => {
     try {
         await pool.query(`
-            DELETE FROM schools;
+            DELETE FROM users;
         `);
         res.status(200).send({ message: "Table reset successfully" });
     } catch (err) {
@@ -35,7 +36,7 @@ router.get('/reset', async (req, res) => {
 router.get('/delete', async (req, res) => {
     try {
         await pool.query(`
-            DROP TABLE IF EXISTS schools;
+            DROP TABLE IF EXISTS users;
         `);
         res.status(200).send({ message: "Data deleted successfully" });
     } catch (err) {

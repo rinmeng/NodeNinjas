@@ -11,6 +11,10 @@
     @apply text-4xl font-bold;
   }
 
+  .forms {
+    @apply p-2 text-xl items-center focus:bg-slate-800 text-center focus:outline-none rounded-md border-slate-500 border-2 bg-slate-700 t200e text-white;
+  }
+
   .btn {
     @apply px-6 py-3 bg-slate-800 text-white font-extrabold rounded-xl hover:bg-slate-900 t200e;
   }

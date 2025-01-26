@@ -19,6 +19,7 @@ services:
     volumes:
       - ./server:/usr/src/app          # Mount the server code
       - /usr/src/app/node_modules      # Prevent overwriting node_modules
+    command: npm run dev
     stdin_open: true                   # Enable hot-reloading support
     tty: true
     environment:

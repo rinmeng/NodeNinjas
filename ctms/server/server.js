@@ -5,21 +5,16 @@ const PORT = 5000;
 
 const app = express();
 
-// Middleware
 app.use(express.json());
 app.use(cors());
 
-// Import Routes
-const homeRoutes = require('./routes/home');
-const apiRoutes = require('./routes/api');
-const setupRoutes = require('./routes/setup');
-const helloRoutes = require('./routes/hello');
+const home = require('./routes/home');
+const setup = require('./routes/setup');
+const user = require('./routes/user');
 
-// Use Routes
-app.use('/', homeRoutes);    // Home and POST handler
-app.use('/api', apiRoutes);  // API handler
-app.use('/setup', setupRoutes); // Setup handler
-app.use('/hello', helloRoutes); // Hello handler
+app.use('/', home);
+app.use('/setup', setup);
+app.use('/user', user);
 
 // Start the server
 app.listen(PORT, () => {
