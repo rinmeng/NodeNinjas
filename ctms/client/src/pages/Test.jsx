@@ -6,11 +6,11 @@ const proxy = "http://localhost:15000/";
 function Test() {
   const [backendData, setBackendData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [message, setMessage] = useState("");
   const [deleteUserId, setDeleteUserId] = useState(""); // Add state for the user ID input
 
   const fetchData = () => {
-    fetch(proxy)
+    fetch(proxy + "user/all")
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -25,46 +25,26 @@ function Test() {
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setErrorMessage(error.message);
+        setMessage(error.message);
         setLoading(false);
       });
   };
 
   const resetTableData = () => {
     fetch(proxy + "setup/reset")
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.error || "Reset failed");
-          });
-        }
-        return res.json();
-      })
-      .then(() => {
-        window.location.reload();
-      })
-      .catch((error) => {
-        console.error("Reset error:", error);
-        setErrorMessage(error.message);
+      .then((res) => res.json())
+      .then((data) => {
+        setMessage(data.message);
+        fetchData();
       });
   };
 
   const deleteTableData = () => {
     fetch(proxy + "setup/delete")
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.error || "Delete failed");
-          });
-        }
-        return res.json();
-      })
-      .then(() => {
-        window.location.reload();
-      })
-      .catch((error) => {
-        console.error("Delete error:", error);
-        setErrorMessage(error.message);
+      .then((res) => res.json())
+      .then((data) => {
+        setMessage(data.message);
+        fetchData();
       });
   };
 
@@ -79,65 +59,45 @@ function Test() {
         email: "test@email.test",
       }),
     })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.error || "Add failed");
-          });
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setMessage(data.error);
+        } else {
+          setMessage(data.message);
+          fetchData();
         }
-        return res.json();
-      })
-      .then(() => {
-        window.location.reload();
-      })
-      .catch((error) => {
-        console.error("Add error:", error);
-        setErrorMessage(error.message);
       });
   };
 
   const testDelete = () => {
     if (!deleteUserId) {
-      setErrorMessage("Please enter a valid user ID to delete");
+      setMessage("Please enter a valid user ID to delete");
       return;
     }
-
     fetch(proxy + `user/delete/${deleteUserId}`, {
-      method: "DELETE", // Send a DELETE request
+      method: "DELETE",
     })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.error || "Delete failed");
-          });
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setMessage(data.error);
+        } else {
+          setMessage(data.message);
+          fetchData();
         }
-        return res.json();
-      })
-      .then(() => {
-        window.location.reload(); // Reload to reflect the changes
       })
       .catch((error) => {
-        console.error("Delete error:", error);
-        setErrorMessage(error.message);
+        setMessage("Failed to delete user");
       });
   };
 
   const setupDatabase = () => {
     fetch(proxy + "setup")
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.error || "Setup failed");
-          });
-        }
-        return res.json();
-      })
-      .then(() => {
+      .then((res) => res.json())
+      .then((data) => {
+        setMessage(data.message);
         window.location.reload();
-      })
-      .catch((error) => {
-        console.error("Setup error:", error);
-        setErrorMessage(error.message);
       });
   };
 
@@ -148,41 +108,58 @@ function Test() {
   return (
     <div className="text-center mp5 space-y-4">
       <h1 className="title">React App + ExpressJS!</h1>
-      <div className="space-y-4 flex flex-col justify-center w-1/6 m-auto">
-        <button onClick={testAdd} className="btn">
-          Add Test User
-        </button>
-        <form className="space-y-2 w-full">
-          <button type="button" onClick={testDelete} className="btn w-full">
-            Delete User
+      <div className="space-y-4 flex flex-col justify-center m-auto">
+        <div className="flex flex-col justify-center m-auto space-y-4">
+          <div className="flex flex-row justify-center space-x-4">
+            <button onClick={testAdd} className="btn-blue">
+              Add Test User
+            </button>
+            <button type="button" onClick={testDelete} className="btn-red">
+              Delete User
+            </button>
+          </div>
+          <form className="space-y-2 w-full">
+            {/* Input field to enter the user ID for deletion */}
+            <input
+              className="forms"
+              type="text"
+              value={deleteUserId}
+              onChange={(e) => setDeleteUserId(e.target.value)} // Update the state when user types
+              placeholder="Enter User ID"
+            />
+          </form>
+        </div>
+        <div className="flex flex-row justify-center w-full space-x-4">
+          <button onClick={resetTableData} className="btn-grey">
+            Reset Table
           </button>
-          {/* Input field to enter the user ID for deletion */}
-          <input
-            className="forms"
-            type="text"
-            value={deleteUserId}
-            onChange={(e) => setDeleteUserId(e.target.value)} // Update the state when user types
-            placeholder="Enter User ID"
-          />
-        </form>
-        <button onClick={resetTableData} className="btn-grey">
-          Reset Table
-        </button>
-        <button onClick={deleteTableData} className="btn-red">
-          Delete Table
-        </button>
-      </div>
-      {loading ? (
-        <p className="text-lg">Loading...</p>
-      ) : errorMessage ? (
-        <div>
-          <p className="text-lg text-red-500 my-4">Error: {errorMessage}</p>
+          <button onClick={deleteTableData} className="btn-red">
+            Delete Table
+          </button>
           <button onClick={setupDatabase} className="btn-green">
             Load database
           </button>
         </div>
+      </div>
+      {loading ? (
+        <p className="text-lg">Loading...</p>
+      ) : message === "Internal Server Error: Is database setup yet?" ? (
+        <div>
+          <p className="text-lg text-red-500 my-4">{message}</p>
+        </div>
       ) : (
         <div>
+          <div>
+            <p
+              className={`${
+                message.toLowerCase().includes("success")
+                  ? "text-green-500"
+                  : "text-red-500"
+              } text-lg text-red-500 my-4`}
+            >
+              {message}
+            </p>
+          </div>
           <div className="grid grid-cols-3 gap-4 bg-slate-800 rounded-xl mp5 max-w-3xl mx-auto">
             {backendData && backendData.length === 0 ? (
               <p className="text-lg col-span-3">

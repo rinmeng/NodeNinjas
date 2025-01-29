@@ -33,4 +33,7 @@
   .btn-grey {
     @apply px-6 py-3 bg-gray-400 text-white font-extrabold rounded-xl hover:bg-gray-700 t200e;
   }
+  .btn-blue {
+    @apply px-6 py-3 bg-blue-600 text-white font-extrabold rounded-xl hover:bg-blue-700 t200e;
+  }
 }

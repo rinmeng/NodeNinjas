@@ -20,5 +20,5 @@ Content-Type: application/json
 }
 ###
 # Delete user with ID 1
-DELETE http://localhost:15000/user/delete/1
+DELETE http://localhost:15000/user/delete/5
 ###

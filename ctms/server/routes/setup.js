@@ -17,7 +17,7 @@ router.get('/', async (req, res) => {
         res.status(200).send({ message: "Table created successfully" });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ error: 'Internal Server Error' });
+        res.status(500).send({ error: 'Error setting up table' });
     }
 });
 
@@ -29,7 +29,7 @@ router.get('/reset', async (req, res) => {
         res.status(200).send({ message: "Table reset successfully" });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ error: 'Internal Server Error' });
+        res.status(500).send({ error: 'Error resetting users' });
     }
 });
 
@@ -41,7 +41,7 @@ router.get('/delete', async (req, res) => {
         res.status(200).send({ message: "Data deleted successfully" });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ error: 'Internal Server Error' });
+        res.status(500).send({ error: 'Error deleting table' });
     }
 });
 
