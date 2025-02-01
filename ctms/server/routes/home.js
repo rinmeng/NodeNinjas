@@ -2,10 +2,14 @@ const express = require('express');
 const pool = require('../db'); // Access the database connection
 const router = express.Router();
 
-//CREATE TABLE users (
-// id SERIAL PRIMARY KEY,
-// username VARCHAR(50),
-// email VARCHAR(50)
-// );
+router.get('/', (req, res) => {
+    res.send(`
+        <h1>Visit 
+        <br> /user to access the user endpoint
+        <br> /task to access the task endpoint
+        <br> /setup to setup the database
+        </h1>
+        `);
+});
 
 module.exports = router;

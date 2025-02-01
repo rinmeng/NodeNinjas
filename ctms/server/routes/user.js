@@ -2,47 +2,166 @@ const express = require('express');
 const pool = require('../db');
 const router = express.Router();
 
+// CREATE TYPE user_role AS ENUM('admin', 'team_member');
+
+// CREATE TABLE
+// users(
+//     id SERIAL PRIMARY KEY,
+//     username VARCHAR(50) UNIQUE NOT NULL,
+//     email VARCHAR(255) UNIQUE NOT NULL,
+//     password_hash VARCHAR(255) NOT NULL,
+//     role user_role NOT NULL DEFAULT 'team_member',
+//     display_name VARCHAR(100)
+// );
+
+// --Create indexes for common search operations
+// CREATE INDEX idx_users_username ON users(username);
+
+// CREATE INDEX idx_users_email ON users(email);
+
+// CREATE INDEX idx_users_role ON users(role);
+
+
+// GET /user
 router.get('/', (req, res) => {
     res.send(`
-        <h1>Use 
-        <br> /add to add a user for this endpoint
-        <br> /delete/:id to delete a user by id</h1>
-        
+        <h1 class="text-3xl">Use 
+            <br> /add to add a user for this endpoint
+            <br> /delete/:id to delete a user by id
+            <br> /all to get all users
+        <br>
+        <br> Examples: 
+        <br> /add
+        <pre>
+const testAdd = () => {
+    fetch(proxy + "user/add", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        username: formData.username,
+        email: formData.email,
+        password_hash: formData.password,
+        role: formData.role,
+        display_name: formData.displayName,
+      }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.error) {
+          setMessage(data.error);
+        } else {
+          setMessage(data.message);
+          fetchData();
+        }
+      });
+  };    
+        </pre>
+        <br> /delete/:id
+        <pre>
+const testDelete = () => {
+    if (!deleteUserId) {
+      setMessage("Please enter a valid user ID to delete");
+      return;
+    }
+    fetch(proxy + \`user / delete/\${deleteUserId}\`, {
+      method: "DELETE",
+    })
+    .then((res) => res.json())
+    .then((data) => {
+        if (data.error) {
+            setMessage(data.error);
+        } else {
+            setMessage(data.message);
+            fetchData();
+        }
+    })
+    .catch((error) => {
+        setMessage("Failed to delete user");
+    });
+  };
+        </pre >
+    <br> /all
+        <pre>
+const fetchData = () => {
+    fetch(proxy + "user/all")
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.error || "Unknown error occurred");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setBackendData(data);
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setMessage(error.message);
+        setLoading(false);
+      });
+  };
+        </pre >
+        </h1>
         `);
 });
 
+
+// GET /user/add
 router.get('/add', (req, res) => {
     res.send('<h1>Add a user by sending a POST request to this endpoint</h1>');
 });
 
+// POST /user/add
 router.post('/add', async (req, res) => {
-    const { username, email } = req.body;
-    if (!username || !email) {
-        return res.status(400).send({ message: "Username and email are required" });
+    const { username, email, password_hash, role, display_name } = req.body;
+    if (!username || !email || !password_hash || !role || !display_name) {
+        return res.status(400).json({ error: "Please provide all required fields" });
     }
     try {
         const result = await pool.query(
-            `INSERT INTO users (username, email) VALUES ($1, $2);`,
-            [username, email]
+            'INSERT INTO users (username, email, password_hash, role, display_name) VALUES ($1, $2, $3, $4, $5) RETURNING *',
+            [username, email, password_hash, role, display_name]
         );
         if (result.rowCount === 0) {
             return res.status(400).json({ error: "User not added" });
         }
         res.json({ message: "User added successfully" });
     } catch (err) {
-        console.error('Error adding user:', err.message);
+        console.error('Error adding user:', err);
 
-        // Respond with a 500 status code on error
-        res.status(500).send({
-            error: "An error occurred while adding the user",
-        });
+        // PostgreSQL error codes
+        switch (err.code) {
+            case '23505': // unique_violation
+                const field = err.detail.includes('email') ? 'email' : 'username';
+                return res.status(409).json({
+                    message: `This ${field} is already registered`
+                });
+            case '23514': // check_violation
+                return res.status(400).json({
+                    message: "Invalid role. Must be either 'admin' or 'team_member'"
+                });
+            case '22001': // string_data_right_truncation
+                return res.status(400).json({
+                    message: "One or more fields exceed maximum length"
+                });
+            default:
+                return res.status(500).json({
+                    message: "An error occurred while adding the user"
+                });
+        }
     }
 });
 
+// GET /user/delete
 router.get('/delete', (req, res) => {
     res.send('<h1>Delete a user by sending a DELETE request to this endpoint</h1>');
 });
 
+// DELETE /user/delete/:id
 router.delete('/delete/:id', async (req, res) => {
     const id = req.params.id;
 
@@ -61,6 +180,7 @@ router.delete('/delete/:id', async (req, res) => {
     }
 });
 
+// GET /user/all
 router.get('/all', async (req, res) => {
     try {
         const data = await pool.query('SELECT * FROM users');
@@ -70,4 +190,8 @@ router.get('/all', async (req, res) => {
         res.status(500).send({ error: 'Internal Server Error: Is database setup yet?' });
     }
 });
+
+
+
+
 module.exports = router;

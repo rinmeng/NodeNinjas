@@ -3,6 +3,10 @@
 @tailwind utilities;
 
 @layer components {
+  .glass-slate {
+    @apply bg-slate-900 backdrop-filter backdrop-blur-xl shadow-lg bg-opacity-25;
+  }
+
   .mp5 {
     @apply m-5 p-5;
   }
@@ -22,18 +26,32 @@
     @apply transition-all duration-200 ease-in-out;
   }
 
+  .t500e {
+    @apply transition-all duration-500 ease-in-out;
+  }
+
   .btn-red {
-    @apply px-6 py-3 bg-red-600 text-white font-extrabold rounded-xl hover:bg-red-700 t200e;
+    @apply px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 t200e;
   }
 
   .btn-green {
-    @apply px-6 py-3 bg-green-600 text-white font-extrabold rounded-xl hover:bg-green-700 t200e;
+    @apply px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 t200e;
   }
 
   .btn-grey {
-    @apply px-6 py-3 bg-gray-400 text-white font-extrabold rounded-xl hover:bg-gray-700 t200e;
+    @apply px-6 py-3 bg-gray-400 text-white font-bold rounded-xl hover:bg-gray-700 t200e;
   }
   .btn-blue {
-    @apply px-6 py-3 bg-blue-600 text-white font-extrabold rounded-xl hover:bg-blue-700 t200e;
+    @apply px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 t200e;
+  }
+  .zoomin {
+    @apply hover:scale-125;
+  }
+  .zoomin-sm {
+    @apply hover:scale-110;
+  }
+
+  .test-panel {
+    @apply text-4xl glass-slate p-28 m-10 hover:bg-slate-900 t500e rounded-xl zoomin-sm;
   }
 }
