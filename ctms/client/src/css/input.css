@@ -54,4 +54,11 @@
   .test-panel {
     @apply text-4xl glass-slate p-28 m-10 hover:bg-slate-900 t500e rounded-xl zoomin-sm;
   }
+  .task {
+
+    @apply p-2 border border-gray-700 rounded w-full mb-4 bg-black text-white placeholder-gray-500 focus:outline-none focus:border-blue-500;
+  }
+  .task-bg{
+    @apply bg-gray-900 p-6 rounded-lg shadow-lg;
+  }
 }
