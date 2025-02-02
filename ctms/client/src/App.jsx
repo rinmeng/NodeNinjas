@@ -9,6 +9,7 @@ import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
 
+
 function App() {
   return (
     <Router>
@@ -19,6 +20,7 @@ function App() {
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+         
 
           {/*
             Nested routes for the testing pages
