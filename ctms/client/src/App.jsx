@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar"; // Import the Navbar component
 import Home from "./pages/Home"; // Import the pages
 import About from "./pages/About";
+import AdminPage from "./pages/AdminPage"; 
 import Contact from "./pages/Contact";
 import TestUser from "./pages/testing/TestUser";
 import Test from "./pages/Test";
@@ -18,8 +19,10 @@ function App() {
         {/* Define your routes */}
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/AdminPage" element={<AdminPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
+         
          
 
           {/*
