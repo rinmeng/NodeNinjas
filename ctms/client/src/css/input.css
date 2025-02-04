@@ -4,7 +4,19 @@
 
 @layer components {
   .glass-slate {
-    @apply bg-slate-900 backdrop-filter backdrop-blur-xl shadow-lg bg-opacity-25;
+    @apply bg-slate-800 backdrop-filter backdrop-blur-xl shadow-lg bg-opacity-25;
+  }
+
+  .strong-slate {
+    @apply bg-slate-800 backdrop-filter backdrop-blur-3xl shadow-lg bg-opacity-95;
+  }
+
+  .glass-amber {
+    @apply bg-amber-800 backdrop-filter backdrop-blur-lg shadow-lg bg-opacity-50;
+  }
+
+  .glass-green {
+    @apply bg-green-800 backdrop-filter backdrop-blur-lg shadow-lg bg-opacity-50;
   }
 
   .mp5 {

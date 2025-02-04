@@ -1,9 +1,12 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Navbar = () => {
+const Navbar = ({ showNavbar }) => {
   return (
-    <nav className="fixed left-0 top-0 w-screen bg-slate-800 p-4 z-[1]">
+    <nav
+      className={`${showNavbar ? "animate-fadein" : "animate-fadeout"}
+    fixed left-0 top-0 w-screen bg-slate-800 p-4 z-10`}
+    >
       <div className="container mx-auto flex justify-between items-center">
         <div className="text-white text-xl">
           <h1>
@@ -17,6 +20,14 @@ const Navbar = () => {
           >
             Home
           </Link>
+
+          <Link
+            to="/AdminPage"
+            className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
+          >
+            AdminPage
+          </Link>
+
           <Link
             to="/about"
             className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"

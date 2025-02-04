@@ -20,7 +20,7 @@ import Feedback from "../components/subcomponents/Feedback";
 
 const proxy = "http://localhost:15000/";
 
-const Login = () => {
+const Login = ({ setShowNavbar }) => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -29,13 +29,19 @@ const Login = () => {
     role: "team_member",
     isRemembered: false,
   });
-
   const [showPopup, setShowPopup] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
 
   const timer = 3;
+
+  useEffect(() => {
+    setShowNavbar(!showPopup);
+    return () => {
+      setShowNavbar(true);
+    };
+  }, [showPopup, setShowNavbar]);
 
   useEffect(() => {
     let feedbackTimer;
@@ -192,7 +198,7 @@ const Login = () => {
                       />
                       <Check
                         className="absolute top-1/2 left-1/2 
-                                  transform -translate-x-3
+                                  -translate-x-3
                                   -translate-y-4 w-7 h-7 
                                   pointer-events-none opacity-0 peer-checked:opacity-100 
                                   transition-opacity duration-200"
@@ -236,8 +242,8 @@ const Login = () => {
       <div
         className={`${
           showPopup
-            ? "opacity-100 translate-x-1/4 z-50 pointer-events-auto"
-            : "opacity-0 translate-x-full -z-10 pointer-events-none"
+            ? "opacity-100 z-30 translate-x-1/4 pointer-events-auto"
+            : "opacity-0 -z-30 translate-x-full pointer-events-none"
         } t200e fixed top-0 left-0 w-full h-full flex justify-center items-center`}
       >
         <div className="bg-slate-600 p-8 rounded-lg w-1/3">
