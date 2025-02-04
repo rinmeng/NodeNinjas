@@ -33,7 +33,7 @@ const Login = ({ setShowNavbar }) => {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
-
+  const [currentUser, setCurrentUser] = useState(null);
   const timer = 3;
 
   useEffect(() => {
@@ -101,6 +101,7 @@ const Login = ({ setShowNavbar }) => {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
         display_name: displayName,
         email,
@@ -135,11 +136,48 @@ const Login = ({ setShowNavbar }) => {
         }
       })
       .catch((error) => {
-        showFeedbackMessage("An error occurred. Please try again.", false);
+        console.error(error);
+        showFeedbackMessage(
+          "An error occured while trying to add user.",
+          false
+        );
       });
   };
 
-  const loginUser = () => {};
+  const loginUser = (e) => {
+    e.preventDefault();
+    fetch(proxy + "user/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        username: formData.username,
+        password_hash: formData.password,
+      }),
+    })
+      .then((res) => {
+        const statusCode = res.status;
+        return res.json().then((data) => ({
+          statusCode,
+          data,
+        }));
+      })
+      .then(({ statusCode, data }) => {
+        if (statusCode === 200) {
+          console.log(data.session.user);
+          showFeedbackMessage("Login successful!", true);
+          setCurrentUser(data.session.user);
+        } else {
+          showFeedbackMessage(data.message || "Login failed.", false);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        showFeedbackMessage("An error occurred while trying to log in.", false);
+      });
+  };
 
   return (
     <div className="animate-fadein">
@@ -160,7 +198,11 @@ const Login = ({ setShowNavbar }) => {
         </div>
         <div className="flex flex-col justify-center bg-slate-900 p-5">
           <div className="space-y-4 text-center">
-            <h1 className="title text-white">Login to myCTMS</h1>
+            <h1 className="title text-white">
+              {currentUser
+                ? `Welcome back! ${currentUser.display_name}`
+                : "Login to myCMTS"}
+            </h1>
             <hr className="w-1/4 m-auto my-4" />
             <form className="flex flex-col space-y-4 w-1/2 m-auto">
               <IconizedTextField
