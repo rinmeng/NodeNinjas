@@ -231,12 +231,12 @@ const Login = () => {
           showPopup
             ? "opacity-80 z-20 pointer-events-auto"
             : "opacity-0 -z-20 pointer-events-none"
-        } t500e fixed left-0 top-0 bg-black w-full h-full`}
+        }  t500e fixed left-0 top-0 bg-black w-full h-full`}
       ></div>
       <div
         className={`${
           showPopup
-            ? "opacity-100 translate-x-1/4 z-30 pointer-events-auto"
+            ? "opacity-100 translate-x-1/4 z-50 pointer-events-auto"
             : "opacity-0 translate-x-full -z-10 pointer-events-none"
         } t200e fixed top-0 left-0 w-full h-full flex justify-center items-center`}
       >
