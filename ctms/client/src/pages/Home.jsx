@@ -22,7 +22,7 @@ const Home = () => {
   };
 
   return (
-    <div className="text-center mp5 my-16">
+    <div className="text-center mp5 my-16 animate-fadein">
       <h1 className="title">User Task Management</h1>
       <p>Welcome to your Dashboard</p>
       {/* Serach Task Section */}
