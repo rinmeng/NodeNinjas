@@ -10,7 +10,6 @@ import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
 
-
 function App() {
   return (
     <Router>
