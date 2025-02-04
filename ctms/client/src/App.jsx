@@ -3,12 +3,11 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar"; // Import the Navbar component
 import Home from "./pages/Home"; // Import the pages
 import About from "./pages/About";
-import Contact from "./pages/Contact";
+import Login from "./pages/Login";
 import TestUser from "./pages/testing/TestUser";
 import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
-
 
 function App() {
   return (
@@ -19,8 +18,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-         
+          <Route path="/login" element={<Login />} />
 
           {/*
             Nested routes for the testing pages
