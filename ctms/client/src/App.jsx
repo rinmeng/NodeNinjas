@@ -3,8 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
 import About from "./pages/About";
-import AdminPage from "./pages/AdminPage"; 
-import Contact from "./pages/Contact";
+import AdminPage from "./pages/AdminPage";
 import Login from "./pages/Login";
 import TestUser from "./pages/testing/TestUser";
 import Test from "./pages/Test";
@@ -26,7 +25,6 @@ function App() {
             path="/login"
             element={<Login setShowNavbar={setShowNavbar} />} // Pass setShowNavbar to Login
           />
-          <Route path="/contact" element={<Contact />} />
           <Route path="/login" element={<Login />} />
 
           {/*

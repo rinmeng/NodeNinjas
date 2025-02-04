@@ -29,7 +29,7 @@ const Login = ({ setShowNavbar }) => {
     role: "team_member",
     isRemembered: false,
   });
-  const [showPopup, setShowPopup] = useState(true);
+  const [showPopup, setShowPopup] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
