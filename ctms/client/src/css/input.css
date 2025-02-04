@@ -12,11 +12,22 @@
   }
 
   .title {
-    @apply text-4xl font-bold;
+    @apply text-5xl font-bold;
+  }
+  .title-sm {
+    @apply text-2xl font-bold;
+  }
+
+  .text-field-icon {
+    @apply absolute left-3 w-5 h-5 text-gray-400;
+  }
+
+  .text-field {
+    @apply forms pl-10 w-full text-left;
   }
 
   .forms {
-    @apply p-2 text-xl items-center focus:bg-slate-800 text-center focus:outline-none rounded-md border-slate-500 border-2 bg-slate-700 t200e text-white;
+    @apply p-2 text-xl bg-slate-700  items-center focus:bg-slate-800 text-center focus:outline-none rounded-md border-slate-500 border-2 t200e text-white;
   }
 
   .btn {
@@ -28,6 +39,10 @@
 
   .t500e {
     @apply transition-all duration-500 ease-in-out;
+  }
+
+  .t1000e {
+    @apply transition-all duration-1000 ease-in-out;
   }
 
   .btn-red {
@@ -42,7 +57,10 @@
     @apply px-6 py-3 bg-gray-400 text-white font-bold rounded-xl hover:bg-gray-700 t200e;
   }
   .btn-blue {
-    @apply px-6 py-3 bg-blue-600 text-white font-bold rounded-xl hover:bg-blue-700 t200e;
+    @apply px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 t200e;
+  }
+  .btn-white {
+    @apply px-6 py-3 bg-white text-black font-bold rounded-full hover:text-white hover:bg-slate-500 t200e;
   }
   .zoomin {
     @apply hover:scale-125;
@@ -52,13 +70,12 @@
   }
 
   .test-panel {
-    @apply text-4xl glass-slate p-28 m-10 hover:bg-slate-900 t500e rounded-xl zoomin-sm;
+    @apply text-4xl glass-slate p-28 m-10 hover:bg-slate-900 t200e rounded-xl zoomin-sm;
   }
   .task {
-
     @apply p-2 border border-gray-700 rounded w-full mb-4 bg-black text-white placeholder-gray-500 focus:outline-none focus:border-blue-500;
   }
-  .task-bg{
+  .task-bg {
     @apply bg-gray-900 p-6 rounded-lg shadow-lg;
   }
 }

@@ -5,6 +5,7 @@ import Home from "./pages/Home"; // Import the pages
 import About from "./pages/About";
 import AdminPage from "./pages/AdminPage"; 
 import Contact from "./pages/Contact";
+import Login from "./pages/Login";
 import TestUser from "./pages/testing/TestUser";
 import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
@@ -21,8 +22,7 @@ function App() {
           <Route path="/AdminPage" element={<AdminPage />} />
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
-         
-         
+          <Route path="/login" element={<Login />} />
 
           {/*
             Nested routes for the testing pages

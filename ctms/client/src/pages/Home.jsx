@@ -1,6 +1,4 @@
-import React, {useState} from "react";
-
-
+import React, { useState } from "react";
 
 const Home = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -22,9 +20,9 @@ const Home = () => {
     console.log("Task Added:", newTask);
     // we will function for sending task to back end
   };
-  
+
   return (
-    <div className="text-center mp5">
+    <div className="text-center mp5 my-16 animate-fadein">
       <h1 className="title">User Task Management</h1>
       <p>Welcome to your Dashboard</p>
       {/* Serach Task Section */}
@@ -55,7 +53,6 @@ const Home = () => {
         </div>
       </section>
 
-
       {/* View Task Section */}
       <section className="my-8 p-4">
         <h2 className="text-2xl font-bold mb-4ti">View Task</h2>
@@ -74,7 +71,7 @@ const Home = () => {
               type="text"
               placeholder="Task Title"
               value={taskTitle}
-              onChange={(e)=>setTaskTitle(e.target.value)}
+              onChange={(e) => setTaskTitle(e.target.value)}
               className="task"
             />
             <textarea
@@ -87,7 +84,6 @@ const Home = () => {
               type="submit"
               className="bg-blue-800 text-white p-2 rounded"
             >
-              
               Add Task
             </button>
           </formo>
@@ -99,16 +95,8 @@ const Home = () => {
         <h2 className="text-2xl font-bold mb-4">Update Task</h2>
         <div className="task-bg">
           <form>
-            <input
-              type="text"
-              placeholder="Task ID"
-              className="task"
-            />
-            <input
-              type="text"
-              placeholder="New Task Title"
-              className="task"
-            />
+            <input type="text" placeholder="Task ID" className="task" />
+            <input type="text" placeholder="New Task Title" className="task" />
             <textarea
               placeholder="New Task Description"
               className="task"

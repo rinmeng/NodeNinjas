@@ -119,7 +119,7 @@ router.get('/add', (req, res) => {
 router.post('/add', async (req, res) => {
     const { username, email, password_hash, role, display_name } = req.body;
     if (!username || !email || !password_hash || !role || !display_name) {
-        return res.status(400).json({ error: "Please provide all required fields" });
+        return res.status(400).json({ message: "Please provide all required fields" });
     }
     try {
         const result = await pool.query(
@@ -129,7 +129,7 @@ router.post('/add', async (req, res) => {
         if (result.rowCount === 0) {
             return res.status(400).json({ error: "User not added" });
         }
-        res.json({ message: "User added successfully" });
+        return res.status(201).json({ message: "User added successfully" });
     } catch (err) {
         console.error('Error adding user:', err);
 
@@ -183,7 +183,7 @@ router.delete('/delete/:id', async (req, res) => {
 // GET /user/all
 router.get('/all', async (req, res) => {
     try {
-        const data = await pool.query('SELECT * FROM users');
+        const data = await pool.query('SELECT * FROM users ORDER BY id ASC');
         res.status(200).json(data.rows);
     } catch (err) {
         console.error(err.message);
@@ -191,6 +191,36 @@ router.get('/all', async (req, res) => {
     }
 });
 
+
+// GET /user/:id
+router.get('/:id', async (req, res) => {
+    const id = req.params.id;
+    try {
+        const data = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        if (data.rowCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json(data.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ message: 'Internal Server Error: Is database setup yet?' });
+    }
+});
+
+// GET /user/:username
+router.get('/:username', async (req, res) => {
+    const username = req.params.username;
+    try {
+        const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (data.rowCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        return res.status(200).json(data.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ message: 'Error searching up user' });
+    }
+});
 
 
 
