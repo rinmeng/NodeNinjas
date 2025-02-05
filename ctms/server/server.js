@@ -9,13 +9,21 @@ const user = require('./routes/user');
 const PORT = 5000;
 const app = express();
 
+const allowedOrigins = ['http://localhost:3000', 'http://localhost:13000'];
+
 app.use(express.json());
 
-// Configure CORS
-app.use(cors({
-    origin: 'http://localhost:13000',
-    credentials: true
-}));
+// Configure CORS dynamically
+app.use((req, res, next) => {
+    const origin = req.headers.origin;
+    if (allowedOrigins.includes(origin)) {
+        res.header('Access-Control-Allow-Origin', origin);
+    }
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.header('Access-Control-Allow-Credentials', 'true'); // Allow credentials
+    next();
+});
 
 // Configure session - using express-session only
 app.use(session({
