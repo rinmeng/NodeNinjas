@@ -1,6 +1,8 @@
 const express = require('express');
 const pool = require('../db');
 const router = express.Router();
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 
 // CREATE TYPE user_role AS ENUM('admin', 'team_member');
 
@@ -191,10 +193,25 @@ router.get('/all', async (req, res) => {
     }
 });
 
+// Modified check-session route
+router.get('/checkSession', (req, res) => {
+    if (req.session && req.session.user) {
+        res.status(200).json({
+            session: {
+                user: req.session.user
+            }
+        });
+    } else {
+        res.status(401).json({
+            message: "No active session found"
+        });
+    }
+});
+
 
 // GET /user/:id
 router.get('/:id', async (req, res) => {
-    const id = req.params.id;
+    const id = req.body.id;
     try {
         const data = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
         if (data.rowCount === 0) {
@@ -203,13 +220,13 @@ router.get('/:id', async (req, res) => {
         return res.status(200).json(data.rows[0]);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ message: 'Internal Server Error: Is database setup yet?' });
+        res.status(500).send({ message: 'Error searching up user id.' });
     }
 });
 
 // GET /user/:username
 router.get('/:username', async (req, res) => {
-    const username = req.params.username;
+    const username = req.body.username;
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (data.rowCount === 0) {
@@ -218,10 +235,65 @@ router.get('/:username', async (req, res) => {
         return res.status(200).json(data.rows[0]);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ message: 'Error searching up user' });
+        res.status(500).send({ message: 'Error searching up username.' });
     }
 });
 
 
+
+// Modified login route with proper session handling
+router.post('/login', async (req, res) => {
+    const { username, password_hash } = req.body;
+    try {
+        const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (data.rowCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+
+        const user = data.rows[0];
+        if (user.password_hash === password_hash) {
+            // Set session data
+            req.session.user = {
+                id: user.id,
+                username: user.username,
+                role: user.role,
+                display_name: user.display_name
+            };
+            req.session.save((err) => {
+                if (err) {
+                    console.error('Session save error:', err);
+                    return res.status(500).json({ message: "Error saving session" });
+                }
+                return res.status(200).json({
+                    message: "Login successful",
+                    session: {
+                        user: req.session.user
+                    }
+                });
+            });
+        } else {
+            return res.status(401).json({ message: "Incorrect password" });
+        }
+    } catch (err) {
+        console.error('Login error:', err.message);
+        res.status(500).json({ message: 'Error logging user in.' });
+    }
+});
+
+// Modified logout route
+router.post('/logout', (req, res) => {
+    if (req.session) {
+        req.session.destroy((err) => {
+            if (err) {
+                console.error('Logout error:', err);
+                return res.status(500).json({ message: "Could not log out" });
+            }
+            res.clearCookie('connect.sid'); // Clear the session cookie
+            res.json({ message: "Logged out successfully" });
+        });
+    } else {
+        res.json({ message: "No session to end" });
+    }
+});
 
 module.exports = router;

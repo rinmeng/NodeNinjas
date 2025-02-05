@@ -2,6 +2,24 @@ const express = require('express');
 const pool = require('../db'); // Access the database connection
 const router = express.Router();
 
+async function initpgSession() {
+    try {
+        await pool.query(`
+            CREATE TABLE IF NOT EXISTS user_sessions (
+                sid varchar NOT NULL COLLATE "default",
+                sess json NOT NULL,
+                expire timestamp(6) NOT NULL,
+                CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
+            );
+            CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON user_sessions ("expire");
+        `);
+        return { message: "Session table created successfully" };
+    } catch (err) {
+        console.error("Error setting up session table:", err.message);
+        throw err;
+    }
+}
+
 async function setupUsers() {
     try {
         await pool.query(`
@@ -58,7 +76,8 @@ async function deleteUsers() {
 router.get('/', async (req, res) => {
     try {
         const result = await setupUsers();
-        res.status(200).send(result);
+        const session = await initpgSession();
+        res.status(200).send({ result, session });
     } catch (err) {
         console.error(err.message);
         res.status(500).send({ message: 'Error setting up tables' });

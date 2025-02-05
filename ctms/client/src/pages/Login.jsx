@@ -20,7 +20,7 @@ import Feedback from "../components/subcomponents/Feedback";
 
 const proxy = "http://localhost:15000/";
 
-const Login = ({ setShowNavbar }) => {
+const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -33,26 +33,7 @@ const Login = ({ setShowNavbar }) => {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
-
   const timer = 3;
-
-  useEffect(() => {
-    setShowNavbar(!showPopup);
-    return () => {
-      setShowNavbar(true);
-    };
-  }, [showPopup, setShowNavbar]);
-
-  useEffect(() => {
-    let feedbackTimer;
-    if (showFeedback) {
-      feedbackTimer = setTimeout(() => {
-        setShowFeedback(false);
-        setFeedbackMessage("");
-      }, timer * 1000);
-    }
-    return () => clearTimeout(feedbackTimer);
-  }, [showFeedback]);
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -82,6 +63,24 @@ const Login = ({ setShowNavbar }) => {
     addUser();
   };
 
+  useEffect(() => {
+    setShowNavbar(!showPopup);
+    return () => {
+      setShowNavbar(true);
+    };
+  }, [showPopup, setShowNavbar]);
+
+  useEffect(() => {
+    let feedbackTimer;
+    if (showFeedback) {
+      feedbackTimer = setTimeout(() => {
+        setShowFeedback(false);
+        setFeedbackMessage("");
+      }, timer * 1000);
+    }
+    return () => clearTimeout(feedbackTimer);
+  }, [showFeedback]);
+
   const addUser = () => {
     const { displayName, email, username, password } = formData;
 
@@ -101,6 +100,7 @@ const Login = ({ setShowNavbar }) => {
       headers: {
         "Content-Type": "application/json",
       },
+      credentials: "include",
       body: JSON.stringify({
         display_name: displayName,
         email,
@@ -135,11 +135,81 @@ const Login = ({ setShowNavbar }) => {
         }
       })
       .catch((error) => {
-        showFeedbackMessage("An error occurred. Please try again.", false);
+        console.error(error);
+        showFeedbackMessage(
+          "An error occured while trying to add user.",
+          false
+        );
       });
   };
 
-  const loginUser = () => {};
+  const loginUser = (e) => {
+    e.preventDefault();
+    if (!formData.username || !formData.password) {
+      showFeedbackMessage("Please fill in all required fields.", false);
+      return;
+    }
+    fetch(proxy + "user/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({
+        username: formData.username,
+        password_hash: formData.password,
+      }),
+    })
+      .then((res) => {
+        const statusCode = res.status;
+        return res.json().then((data) => ({
+          statusCode,
+          data,
+        }));
+      })
+      .then(({ statusCode, data }) => {
+        if (statusCode === 200) {
+          console.log(data.session.user);
+          showFeedbackMessage("Login successful!", true);
+          setSessionUser(data.session.user);
+        } else {
+          showFeedbackMessage(data.message || "Login failed.", false);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        showFeedbackMessage("An error occurred while trying to log in.", false);
+      });
+  };
+
+  const userLogout = () => {
+    fetch(proxy + "user/logout", {
+      method: "POST",
+      credentials: "include",
+    })
+      .then((res) => {
+        const statusCode = res.status;
+        return res.json().then((data) => ({
+          statusCode,
+          data,
+        }));
+      })
+      .then(({ statusCode, data }) => {
+        if (statusCode === 200) {
+          showFeedbackMessage("Logout successful!", true);
+          setSessionUser(null);
+        } else {
+          showFeedbackMessage(data.message || "Logout failed.", false);
+        }
+      })
+      .catch((error) => {
+        console.error(error);
+        showFeedbackMessage(
+          "An error occurred while trying to log out.",
+          false
+        );
+      });
+  };
 
   return (
     <div className="animate-fadein">
@@ -158,79 +228,101 @@ const Login = ({ setShowNavbar }) => {
             The next generation of Task Management.
           </p>
         </div>
-        <div className="flex flex-col justify-center bg-slate-900 p-5">
-          <div className="space-y-4 text-center">
-            <h1 className="title text-white">Login to myCTMS</h1>
+        {sessionUser ? (
+          <div className="flex flex-col items-center justify-center bg-slate-900">
+            <h1 className="title text-white">
+              {sessionUser
+                ? `Welcome back, ${sessionUser.display_name}`
+                : "Login to myCMTS"}
+            </h1>
             <hr className="w-1/4 m-auto my-4" />
-            <form className="flex flex-col space-y-4 w-1/2 m-auto">
-              <IconizedTextField
-                icon={<User strokeWidth={3} className="text-field-icon" />}
-                inputDisplay="Username"
-                inputStyle="text-field"
-                name="username"
-                value={formData.username}
-                onChange={handleInputChange}
-                maxLength={50}
-              />
+            <IconizedButton
+              text="Logout"
+              btnStyle="btn-red w-1/2"
+              icon={<LogIn className="ml-2" size={20} strokeWidth={3} />}
+              onClick={userLogout}
+            />
+          </div>
+        ) : (
+          <div className="flex flex-col justify-center bg-slate-900 p-5">
+            <div className="space-y-4 text-center">
+              <h1 className="title text-white">
+                {sessionUser
+                  ? `Welcome back, ${sessionUser.display_name}`
+                  : "Login to myCMTS"}
+              </h1>
+              <hr className="w-1/4 m-auto my-4" />
 
-              <IconizedTextField
-                icon={<Lock strokeWidth={3} className="text-field-icon" />}
-                inputDisplay="Password"
-                inputStyle="text-field"
-                name="password"
-                value={formData.password}
-                onChange={handleInputChange}
-                maxLength={255}
-              />
+              <form className="flex flex-col space-y-4 w-1/2 m-auto">
+                <IconizedTextField
+                  icon={<User strokeWidth={3} className="text-field-icon" />}
+                  inputDisplay="Username"
+                  inputStyle="text-field"
+                  name="username"
+                  value={formData.username}
+                  onChange={handleInputChange}
+                  maxLength={50}
+                />
 
-              <div className="flex items-center justify-center">
-                <div className="relative flex items-center w-1/2 justify-center">
-                  <label className="flex items-center cursor-pointer">
-                    <div className="relative items-center">
-                      <input
-                        type="checkbox"
-                        name="isRemembered"
-                        className="items-center flex justify-center cursor-pointer
+                <IconizedTextField
+                  icon={<Lock strokeWidth={3} className="text-field-icon" />}
+                  inputDisplay="Password"
+                  inputStyle="text-field"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleInputChange}
+                  maxLength={255}
+                />
+
+                <div className="flex items-center justify-center">
+                  <div className="relative flex items-center w-1/2 justify-center">
+                    <label className="flex items-center cursor-pointer">
+                      <div className="relative items-center">
+                        <input
+                          type="checkbox"
+                          name="isRemembered"
+                          className="items-center flex justify-center cursor-pointer
                                   h-6 w-6 border-2 peer checked:border-blue-500 appearance-none 
                                   rounded-md border-slate-400 t200e"
-                        checked={formData.isRemembered}
-                        onChange={handleInputChange}
-                      />
-                      <Check
-                        className="absolute top-1/2 left-1/2 
+                          checked={formData.isRemembered}
+                          onChange={handleInputChange}
+                        />
+                        <Check
+                          className="absolute top-1/2 left-1/2 
                                   -translate-x-3
                                   -translate-y-4 w-7 h-7 
                                   pointer-events-none opacity-0 peer-checked:opacity-100 
                                   transition-opacity duration-200"
-                      />
-                    </div>
-                    <h1 className="ml-2 font-semibold">Remember Me</h1>
-                  </label>
-                </div>
+                        />
+                      </div>
+                      <h1 className="ml-2 font-semibold">Remember Me</h1>
+                    </label>
+                  </div>
 
+                  <IconizedButton
+                    text="Login"
+                    btnStyle="btn-blue w-1/2"
+                    icon={<LogIn className="ml-2" size={20} strokeWidth={3} />}
+                    onClick={loginUser}
+                  />
+                </div>
+              </form>
+            </div>
+            <hr className="w-1/2 m-auto my-4" />
+            <div className="space-y-2 text-center">
+              <h1 className="title-sm text-white">New Here?</h1>
+              <form className="flex flex-col space-y-4 w-1/2 m-auto">
+                <p>Sign up to start tracking your progress.</p>
                 <IconizedButton
-                  text="Login"
-                  btnStyle="btn-blue w-1/2"
-                  icon={<LogIn className="ml-2" size={20} strokeWidth={3} />}
-                  onClick={loginUser}
+                  text="Sign Up"
+                  btnStyle="btn-white w-full space-x-2"
+                  icon={<ChartSpline size={20} strokeWidth={3} />}
+                  onClick={registerPopup}
                 />
-              </div>
-            </form>
+              </form>
+            </div>
           </div>
-          <hr className="w-1/2 m-auto my-4" />
-          <div className="space-y-2 text-center">
-            <h1 className="title-sm text-white">New Here?</h1>
-            <form className="flex flex-col space-y-4 w-1/2 m-auto">
-              <p>Sign up to start tracking your progress.</p>
-              <IconizedButton
-                text="Sign Up"
-                btnStyle="btn-white w-full space-x-2"
-                icon={<ChartSpline size={20} strokeWidth={3} />}
-                onClick={registerPopup}
-              />
-            </form>
-          </div>
-        </div>
+        )}
       </div>
       <div
         className={`${

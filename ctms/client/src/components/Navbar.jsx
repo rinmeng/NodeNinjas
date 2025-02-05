@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Navbar = ({ showNavbar }) => {
+const Navbar = ({ showNavbar, sessionUser }) => {
   return (
     <nav
       className={`${showNavbar ? "animate-fadein" : "animate-fadeout"}
@@ -18,14 +18,14 @@ const Navbar = ({ showNavbar }) => {
             to="/"
             className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
           >
-            Home
+            Your Dashboard
           </Link>
 
           <Link
-            to="/AdminPage"
+            to="/admin"
             className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
           >
-            AdminPage
+            Admin Page
           </Link>
 
           <Link
@@ -38,7 +38,7 @@ const Navbar = ({ showNavbar }) => {
             to="/login"
             className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
           >
-            Login
+            {sessionUser ? "Profile" : "Login"}
           </Link>
           <Link
             to="/test"
