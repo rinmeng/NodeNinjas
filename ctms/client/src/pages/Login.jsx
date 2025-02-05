@@ -20,7 +20,7 @@ import Feedback from "../components/subcomponents/Feedback";
 
 const proxy = "http://localhost:15000/";
 
-const Login = ({ setShowNavbar, setSessionUser }) => {
+const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -33,7 +33,6 @@ const Login = ({ setShowNavbar, setSessionUser }) => {
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
-  const [currentUser, setCurrentUser] = useState(null);
   const timer = 3;
 
   const handleInputChange = (e) => {
@@ -63,22 +62,6 @@ const Login = ({ setShowNavbar, setSessionUser }) => {
     e.preventDefault();
     addUser();
   };
-
-  useEffect(() => {
-    fetch(proxy + "user/checkSession", {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.session && data.session.user) {
-          setCurrentUser(data.session.user);
-          setSessionUser(currentUser);
-        }
-      })
-      .catch((error) => {
-        console.error("Session check failed:", error);
-      });
-  }, [currentUser, setCurrentUser, setSessionUser]);
 
   useEffect(() => {
     setShowNavbar(!showPopup);
@@ -188,7 +171,7 @@ const Login = ({ setShowNavbar, setSessionUser }) => {
         if (statusCode === 200) {
           console.log(data.session.user);
           showFeedbackMessage("Login successful!", true);
-          setCurrentUser(data.session.user);
+          setSessionUser(data.session.user);
         } else {
           showFeedbackMessage(data.message || "Login failed.", false);
         }
@@ -214,7 +197,7 @@ const Login = ({ setShowNavbar, setSessionUser }) => {
       .then(({ statusCode, data }) => {
         if (statusCode === 200) {
           showFeedbackMessage("Logout successful!", true);
-          setCurrentUser(null);
+          setSessionUser(null);
         } else {
           showFeedbackMessage(data.message || "Logout failed.", false);
         }
@@ -245,11 +228,11 @@ const Login = ({ setShowNavbar, setSessionUser }) => {
             The next generation of Task Management.
           </p>
         </div>
-        {currentUser ? (
+        {sessionUser ? (
           <div className="flex flex-col items-center justify-center bg-slate-900">
             <h1 className="title text-white">
-              {currentUser
-                ? `Welcome back, ${currentUser.display_name}`
+              {sessionUser
+                ? `Welcome back, ${sessionUser.display_name}`
                 : "Login to myCMTS"}
             </h1>
             <hr className="w-1/4 m-auto my-4" />
@@ -264,8 +247,8 @@ const Login = ({ setShowNavbar, setSessionUser }) => {
           <div className="flex flex-col justify-center bg-slate-900 p-5">
             <div className="space-y-4 text-center">
               <h1 className="title text-white">
-                {currentUser
-                  ? `Welcome back, ${currentUser.display_name}`
+                {sessionUser
+                  ? `Welcome back, ${sessionUser.display_name}`
                   : "Login to myCMTS"}
               </h1>
               <hr className="w-1/4 m-auto my-4" />

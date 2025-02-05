@@ -45,6 +45,7 @@ function App() {
             element={
               <Login
                 setShowNavbar={setShowNavbar}
+                sessionUser={sessionUser}
                 setSessionUser={setSessionUser}
               />
             }
