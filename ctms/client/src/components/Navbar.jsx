@@ -18,7 +18,7 @@ const Navbar = ({ showNavbar, sessionUser }) => {
             to="/"
             className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
           >
-            Home
+            Your Dashboard
           </Link>
 
           <Link

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -10,14 +10,31 @@ import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
 
+const proxy = "http://localhost:15000/";
+
 function App() {
   const [showNavbar, setShowNavbar] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);
 
+  // Check for an existing session on app load
+  useEffect(() => {
+    fetch(proxy + "user/checkSession", {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.session && data.session.user) {
+          setSessionUser(data.session.user);
+        }
+      })
+      .catch((error) => {
+        console.error("Session check failed:", error);
+      });
+  }, []);
+
   return (
     <Router>
       <Navbar showNavbar={showNavbar} sessionUser={sessionUser} />
-      {/* Pass showNavbar as prop */}
       <div>
         <Routes>
           <Route path="/" element={<Home />} />
@@ -32,10 +49,6 @@ function App() {
               />
             }
           />
-
-          {/*
-            Nested routes for the testing pages
-          */}
           <Route path="/test" element={<Test />} />
           <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
