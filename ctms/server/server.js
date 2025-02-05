@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('./db');
 const cors = require('cors');
 const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 const home = require('./routes/home');
 const setup = require('./routes/setup');
 const user = require('./routes/user');
@@ -18,6 +19,10 @@ app.use(cors({
 
 // Configure session - using express-session only
 app.use(session({
+    store: new pgSession({
+        pool: pool,
+        tableName: 'user_sessions'
+    }),
     secret: 'ctms_by_nodeninjas',
     resave: false,
     saveUninitialized: false,

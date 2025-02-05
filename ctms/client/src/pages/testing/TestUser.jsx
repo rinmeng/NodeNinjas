@@ -18,11 +18,12 @@ function Test() {
   });
 
   const columns = [
-    { header: "ID", key: "id" },
-    { header: "Name", key: "username" },
-    { header: "Email", key: "email" },
-    { header: "Role", key: "role" },
-    { header: "Display Name", key: "display_name" },
+    { header: "id", key: "id" },
+    { header: "username", key: "username" },
+    { header: "email", key: "email" },
+    { header: "role", key: "role" },
+    { header: "password_hash", key: "password_hash" },
+    { header: "display_name", key: "display_name" },
   ];
 
   const fetchData = () => {

@@ -193,6 +193,21 @@ router.get('/all', async (req, res) => {
     }
 });
 
+// Modified check-session route
+router.get('/checkSession', (req, res) => {
+    if (req.session && req.session.user) {
+        res.status(200).json({
+            session: {
+                user: req.session.user
+            }
+        });
+    } else {
+        res.status(401).json({
+            message: "No active session found"
+        });
+    }
+});
+
 
 // GET /user/:id
 router.get('/:id', async (req, res) => {
@@ -224,20 +239,7 @@ router.get('/:username', async (req, res) => {
     }
 });
 
-// Modified check-session route
-router.get('/check-session', (req, res) => {
-    if (req.session && req.session.user) {
-        res.status(200).json({
-            session: {
-                user: req.session.user
-            }
-        });
-    } else {
-        res.status(401).json({
-            message: "No active session found"
-        });
-    }
-});
+
 
 // Modified login route with proper session handling
 router.post('/login', async (req, res) => {
