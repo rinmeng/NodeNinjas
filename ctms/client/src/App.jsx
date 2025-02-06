@@ -1,36 +1,57 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar"; // Import the Navbar component
-import Home from "./pages/Home"; // Import the pages
+import Navbar from "./components/Navbar";
+import Home from "./pages/Home";
 import About from "./pages/About";
-import Contact from "./pages/Contact";
+import Admin from "./pages/Admin";
+import Login from "./pages/Login";
 import TestUser from "./pages/testing/TestUser";
 import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
 
+const proxy = "http://localhost:15000/";
 
 function App() {
+  const [showNavbar, setShowNavbar] = useState(true);
+  const [sessionUser, setSessionUser] = useState(null);
+
+  // Check for an existing session on app load
+  useEffect(() => {
+    fetch(proxy + "user/checkSession", {
+      credentials: "include",
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.session && data.session.user) {
+          setSessionUser(data.session.user);
+        }
+      })
+      .catch((error) => {
+        console.error("Session check failed:", error);
+      });
+  }, []);
+
   return (
     <Router>
-      <Navbar /> {/* Display the Navbar on every page */}
+      <Navbar showNavbar={showNavbar} sessionUser={sessionUser} />
       <div>
-        {/* Define your routes */}
         <Routes>
           <Route path="/" element={<Home />} />
+          <Route path="/admin" element={<Admin />} />
           <Route path="/about" element={<About />} />
-          <Route path="/contact" element={<Contact />} />
-         
-
-          {/*
-            Nested routes for the testing pages
-          */}
+          <Route
+            path="/login"
+            element={
+              <Login
+                setShowNavbar={setShowNavbar}
+                sessionUser={sessionUser}
+                setSessionUser={setSessionUser}
+              />
+            }
+          />
           <Route path="/test" element={<Test />} />
           <Route path="/test/user" element={<TestUser />} />
-
-          {/* 
-            If the user navigates to a route that does not exist,
-          */}
           <Route path="*" element={<NotFound />} />
         </Routes>
       </div>

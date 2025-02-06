@@ -18,11 +18,12 @@ function Test() {
   });
 
   const columns = [
-    { header: "ID", key: "id" },
-    { header: "Name", key: "username" },
-    { header: "Email", key: "email" },
-    { header: "Role", key: "role" },
-    { header: "Display Name", key: "display_name" },
+    { header: "id", key: "id" },
+    { header: "username", key: "username" },
+    { header: "email", key: "email" },
+    { header: "role", key: "role" },
+    { header: "password_hash", key: "password_hash" },
+    { header: "display_name", key: "display_name" },
   ];
 
   const fetchData = () => {
@@ -161,7 +162,7 @@ function Test() {
   }, []);
 
   return (
-    <div className="text-center mp5 space-y-4">
+    <div className="text-center mp5 space-y-4 my-16">
       <h1 className="title">React App + ExpressJS!</h1>
       <div className="space-y-4 flex flex-col justify-center m-auto">
         <div className="flex flex-col justify-center m-auto space-y-4">

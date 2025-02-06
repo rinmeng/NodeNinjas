@@ -93,7 +93,18 @@ Now you can run the `GET http://localhost:15000/` again to see the list of schoo
 
 ### Frontend
 
-Then check your front-end, visit [http://localhost:13000](http://localhost:13000) to see the front-end.
+Then check your front-end, visit [http://localhost:13000](http://localhost:13000) to see the front-end (visiting purpose only)
+
+On macOS, Docker has been optimized to run both frontend and backend without any issues, but sometimes there is a time where updates are not made real-time, if you want to enter development mode manually, you can run the following command
+
+```shell
+ctms> cd client
+ctms\client> npm run dev
+```
+
+which will start the frontend in development mode on [http://localhost:3000](http://localhost:3000) instead.
+
+Sometimes Docker does not update the front-end real time when you develop. It needs to be rebuilt everytime you run docker so you need to run the above command to see the changes you make in the front-end code.
 
 To reset the table, simply visit setup again [http://localhost:15000/setup](http://localhost:15000/setup)
 
