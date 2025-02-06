@@ -25,10 +25,10 @@ const Test = ({ sessionUser, devMode }) => {
         tables here. Click on the links below to test the tables:
       </p>
       <div className="grid grid-cols-2 gap-2">
-        <Link to="/test/user" className="test-panel">
+        <Link to="/test/user" className="test-panel-blue">
           Users Table Testing
         </Link>
-        <Link to="/test/task" className="test-panel">
+        <Link to="/test/task" className="test-panel-amber">
           Tasks Table Testing
         </Link>
       </div>
