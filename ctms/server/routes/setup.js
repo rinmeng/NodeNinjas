@@ -41,7 +41,30 @@ async function setupUsers() {
             CREATE INDEX idx_users_email ON users (email);
             CREATE INDEX idx_users_role ON users (role);
         `);
-        return { message: "Users table created successfully" };
+
+        // Add users with admin role
+        const adminUsers = [
+            { username: 'rin', email: 'rin@example.com', password: 'rin', display_name: 'Rin' },
+            { username: 'enock', email: 'enock@example.com', password: 'enock', display_name: 'Enock' },
+            { username: 'keeran', email: 'keeran@example.com', password: 'keeran', display_name: 'Keeran' },
+            { username: 'madiba', email: 'madiba@example.com', password: 'madiba', display_name: 'Madiba' },
+            { username: 'mason', email: 'mason@example.com', password: 'mason', display_name: 'Mason' },
+        ];
+
+        for (const user of adminUsers) {
+            await pool.query(`
+                INSERT INTO users (username, email, password_hash, role)
+                VALUES ($1, $2, $3, 'admin')
+            `, [user.username, user.email, user.password]);
+        }
+
+        // Add Arnold with team_member role
+        await pool.query(`
+            INSERT INTO users (username, email, password_hash, role)
+            VALUES ($1, $2, $3, 'team_member')
+        `, ['arnold', 'arnold@example.com', 'arnold']);
+
+        return { message: "Users table created and users added successfully" };
     } catch (err) {
         console.error("Error setting up users table:", err.message);
         throw err;

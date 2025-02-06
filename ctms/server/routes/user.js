@@ -192,7 +192,7 @@ router.get('/all', isAuthAsAdmin, async (req, res) => {
         res.status(200).json(data.rows);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ error: 'Internal Server Error: Is database setup yet?' });
+        res.status(500).send({ message: 'Internal Server Error: Is database setup yet?' });
     }
 });
 
