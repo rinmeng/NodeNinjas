@@ -15,7 +15,7 @@ const proxy = "http://localhost:15000/";
 function App() {
   const [showNavbar, setShowNavbar] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);
-  const [devMode, setDevMode] = useState(false);
+  const [devMode, setDevMode] = useState(true);
 
   // Check for an existing session on app load
   useEffect(() => {

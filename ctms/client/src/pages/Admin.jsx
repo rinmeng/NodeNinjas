@@ -7,7 +7,10 @@ const Admin = ({ sessionUser, devMode }) => {
     return (
       <div className="mp5 my-16 animate-fadein">
         <h1 className="title text-center">Welcome to the Admin Dashboard!</h1>
-        <p className="text-center">Please log in as admin to view this page.</p>
+        <p className="text-center text-xl">
+          Please log in as admin to view this page, or enable{" "}
+          <code>devMode</code> to bypass authentication in <code>App.jsx</code>
+        </p>
       </div>
     );
   }

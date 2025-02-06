@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
 
-const Navbar = ({ showNavbar, sessionUser }) => {
+const Navbar = ({ showNavbar, sessionUser, devMode }) => {
   return (
     <nav
       className={`${showNavbar ? "animate-fadein" : "animate-fadeout"}
@@ -14,19 +14,32 @@ const Navbar = ({ showNavbar, sessionUser }) => {
           </h1>
         </div>
         <div className="space-x-4">
-          <Link
-            to="/"
-            className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-          >
-            Your Dashboard
-          </Link>
+          {(sessionUser?.role === "admin" || devMode) && (
+            <Link
+              to="/test"
+              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
+            >
+              Test Database Connection
+            </Link>
+          )}
 
-          <Link
-            to="/admin"
-            className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-          >
-            Admin Page
-          </Link>
+          {(sessionUser || devMode) && (
+            <Link
+              to="/"
+              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
+            >
+              Your Dashboard
+            </Link>
+          )}
+
+          {(sessionUser?.role === "admin" || devMode) && (
+            <Link
+              to="/admin"
+              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
+            >
+              Admin Page
+            </Link>
+          )}
 
           <Link
             to="/about"
@@ -34,17 +47,12 @@ const Navbar = ({ showNavbar, sessionUser }) => {
           >
             About
           </Link>
+
           <Link
             to="/login"
             className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
           >
             {sessionUser ? "Profile" : "Login"}
-          </Link>
-          <Link
-            to="/test"
-            className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-          >
-            Test Database Connection
           </Link>
         </div>
       </div>
