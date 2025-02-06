@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { Navigate } from "react-router-dom";
 
 const Home = ({ sessionUser, devMode }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -29,6 +30,8 @@ const Home = ({ sessionUser, devMode }) => {
           Please log in to view this page, or enable <code>devMode</code> to
           bypass authentication in <code>App.jsx</code>
         </p>
+        {/* redirect to /login */}
+        <Navigate to="/login" />
       </div>
     );
   }
