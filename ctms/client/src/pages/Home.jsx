@@ -9,87 +9,91 @@ const Home = ({ sessionUser, devMode }) => {
   const [taskDate, setTaskDate] = useState(null); // Stores selected date
   const handleAddTask = (e) => {
     e.preventDefault();
+  };
   const [tasks, setTasks] = useState([]); // State to manage tasks
   const [taskPriority, setTaskPirioty] = useState("");
   const [updateTaskId, setUpdateTaskId] = useState(null); // Track if a task is being updated
-  const [erroMessage, setErrorMessage]=useState(" ")//check if the field is emptçy
+  const [errorMessage, setErrorMessage] = useState(" "); //check if the field is emptçy
+  const formattedDate = taskDate ? taskDate.toISOString().split("T")[0] : "";
 
-    // Add or Update Task
-        const handleAddOrUpdateTask = (e) => {
-          e.preventDefault();
-          if(!taskDate || !taskTitle || !taskDescription ||!taskPriority){
-            setErrorMessage("Please of your field is empy")
-            return;
-          }
+  // Add or Update Task
+  const handleAddOrUpdateTask = (e) => {
+    e.preventDefault();
+    if (!taskDate || !taskTitle || !taskDescription || !taskPriority) {
+      setErrorMessage("Please of your field is empy");
+      return;
+    }
 
-          if (updateTaskId) {
-            // Update an existing task
-            setTasks((prevTasks) =>
-              prevTasks.map((task) =>
-                task.id === updateTaskId
-                  ? {
-                      ...task,
-                      title: taskTitle,
-                      description: taskDescription,
-                      priority: taskPriority,
-                      date: taskDate,
-                    }
-                  : task
-              )
-            );
-            console.log(`Task Updated: ${updateTaskId}`);
-          } else {
-            // Add a new task
-            const newTask = {
-              id: Date.now(), // Unique ID
-              title: taskTitle,
-              description: taskDescription,
-              priority: taskPriority,
-              date: taskDate,
-            };
-            setTasks((prevTasks) => [...prevTasks, newTask]);
-            console.log("Task Added:", newTask);
-          }
+    if (updateTaskId) {
+      // Update an existing task
+      setTasks((prevTasks) =>
+        prevTasks.map((task) =>
+          task.id === updateTaskId
+            ? {
+                ...task,
+                title: taskTitle,
+                description: taskDescription,
+                priority: taskPriority,
+                date: taskDate,
+              }
+            : task
+        )
+      );
+      console.log(`Task Updated: ${updateTaskId}`);
+    } else {
+      // Add a new task
+      const newTask = {
+        id: Date.now(), // Unique ID
+        title: taskTitle,
+        description: taskDescription,
+        priority: taskPriority,
+        date: taskDate,
+      };
+      setTasks((prevTasks) => [...prevTasks, newTask]);
+      console.log("Task Added:", newTask);
+    }
 
-          // Reset the form
-          setTaskTitle("");
-          setTaskDescription("");
-          setTaskPirioty("");
-          setTaskDate("");
-          setUpdateTaskId(null);
-          setErrorMessage("");
-        };
+    // Reset the form
+    setTaskTitle("");
+    setTaskDescription("");
+    setTaskPirioty("");
+    setTaskDate("");
+    setUpdateTaskId(null);
+    setErrorMessage("");
+  };
 
-        // Populate task data for updating
-        const handleEditTask = (id) => {
-          const taskToEdit = tasks.find((task) => task.id === id);
-          if (taskToEdit) {
-            setTaskTitle(taskToEdit.title);
-            setTaskDescription(taskToEdit.description);
-            setTaskPirioty(taskToEdit.priority);
-            setTaskDate(taskToEdit.date);
-            setUpdateTaskId(taskToEdit.id);
-          }
-        };
+  // Populate task data for updating
+  const handleEditTask = (id) => {
+    const taskToEdit = tasks.find((task) => task.id === id);
+    if (taskToEdit) {
+      setTaskTitle(taskToEdit.title);
+      setTaskDescription(taskToEdit.description);
+      setTaskPirioty(taskToEdit.priority);
+      setTaskDate(taskToEdit.date);
+      setUpdateTaskId(taskToEdit.id);
+    }
+  };
 
-        // Delete a specific task
-        const handleDeleteTask = (id) => {
-          setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
-        };
+  // Delete a specific task
+  const handleDeleteTask = (id) => {
+    setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
+  };
 
-        // Filter tasks based on search criteria
-        const filteredTasks = tasks.filter((task) =>
-          task[searchCriteria]?.toString().toLowerCase().includes(searchQuery.toLowerCase())
-        );
+  // Filter tasks based on search criteria
+  const filteredTasks = tasks.filter((task) =>
+    task[searchCriteria]
+      ?.toString()
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase())
+  );
 
-    const newTask = {
-      title: taskTitle,
-      description: taskDescription,
-      date: formattedDate,
-    };
-    console.log("Task Added:", newTask);
-    // we will function for sending task to back end
-  
+  const newTask = {
+    title: taskTitle,
+    description: taskDescription,
+    date: formattedDate,
+  };
+  console.log("Task Added:", newTask);
+  // we will function for sending task to back end
 
   if (!sessionUser && !devMode) {
     return (
@@ -147,10 +151,18 @@ const Home = ({ sessionUser, devMode }) => {
                 className="flex justify-between items-center bg-sky-600 p-4 mb-2 rounded"
               >
                 <div>
-                  <p><strong>Title:</strong> {task.title}</p>
-                  <p><strong>Priority:</strong> {task.priority}</p>
-                  <p><strong>Date:</strong> {task.date}</p>
-                  <p><strong>Description:</strong> {task.description}</p>
+                  <p>
+                    <strong>Title:</strong> {task.title}
+                  </p>
+                  <p>
+                    <strong>Priority:</strong> {task.priority}
+                  </p>
+                  <p>
+                    <strong>Date:</strong> {task.date}
+                  </p>
+                  <p>
+                    <strong>Description:</strong> {task.description}
+                  </p>
                 </div>
                 <div>
                   <button
