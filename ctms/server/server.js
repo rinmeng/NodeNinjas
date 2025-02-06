@@ -29,10 +29,6 @@ app.use(cors({
 
 // Configure session - using express-session only
 app.use(session({
-    store: new pgSession({
-        pool: pool,
-        tableName: 'user_sessions'
-    }),
     secret: 'ctms_by_nodeninjas',
     resave: false,
     saveUninitialized: false,
