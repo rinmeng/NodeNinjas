@@ -4,6 +4,9 @@ const router = express.Router();
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
 
+const { isAuthenticated } = require('../auth');
+const { isAdmin } = require('../auth');
+
 // CREATE TYPE user_role AS ENUM('admin', 'team_member');
 
 // CREATE TABLE
@@ -183,7 +186,7 @@ router.delete('/delete/:id', async (req, res) => {
 });
 
 // GET /user/all
-router.get('/all', async (req, res) => {
+router.get('/all', isAdmin, async (req, res) => {
     try {
         const data = await pool.query('SELECT * FROM users ORDER BY id ASC');
         res.status(200).json(data.rows);
@@ -194,7 +197,7 @@ router.get('/all', async (req, res) => {
 });
 
 // Modified check-session route
-router.get('/checkSession', (req, res) => {
+router.get('/checksession', (req, res) => {
     if (req.session && req.session.user) {
         res.status(200).json({
             session: {

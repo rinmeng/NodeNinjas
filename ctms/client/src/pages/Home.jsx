@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 
-const Home = () => {
+const Home = ({ sessionUser, devMode }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCriteria, setSearchCriteria] = useState("name"); // Default search by name
   const [taskTitle, setTaskTitle] = useState("");
@@ -20,6 +20,15 @@ const Home = () => {
     console.log("Task Added:", newTask);
     // we will function for sending task to back end
   };
+
+  if (!sessionUser && !devMode) {
+    return (
+      <div className="mp5 my-16 animate-fadein">
+        <h1 className="title text-center">Welcome to the Admin Dashboard!</h1>
+        <p className="text-center">Please log in as admin to view this page.</p>
+      </div>
+    );
+  }
 
   return (
     <div className="text-center mp5 my-16 animate-fadein">
