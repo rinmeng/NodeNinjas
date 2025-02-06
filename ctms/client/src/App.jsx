@@ -18,7 +18,8 @@ function App() {
   const [showNavbar, setShowNavbar] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);
 
-  // Check for an existing session on app load
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
     fetch(proxy + "user/checkSession", {
       credentials: "include",
@@ -31,8 +32,15 @@ function App() {
       })
       .catch((error) => {
         console.error("Session check failed:", error);
+      })
+      .finally(() => {
+        setIsLoading(false); // Set loading to false after the session check is complete
       });
   }, []);
+
+  if (isLoading) {
+    return <div>Loading...</div>; // Show a loading indicator while checking the session
+  }
 
   return (
     <Router>
