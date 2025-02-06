@@ -27,15 +27,21 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Configure session - using express-session only
+// Create session store
+const sessionStore = new pgSession({
+    pool: pool,
+    tableName: 'user_sessions'
+});
+
+// Configure session with dynamic maxAge
 app.use(session({
+    store: sessionStore,
     secret: 'ctms_by_nodeninjas',
     resave: false,
     saveUninitialized: false,
     cookie: {
         httpOnly: true,
         secure: false,  // Set to true if using HTTPS
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
         sameSite: 'lax'
     },
     name: 'CTMS_sessionID'
@@ -45,10 +51,12 @@ app.use('/', home);
 app.use('/setup', setup);
 app.use('/user', user);
 
-// Session debugging middleware
+// Enhanced session debugging middleware
 app.use((req, res, next) => {
     console.log('Session ID:', req.sessionID);
     console.log('Session Data:', req.session);
+    console.log('Cookie MaxAge:', req.session.cookie.maxAge);
+    console.log('Remember Me:', req.body?.isRemembered);
     next();
 });
 

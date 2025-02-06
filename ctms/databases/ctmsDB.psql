@@ -12,7 +12,9 @@ CREATE TABLE
         email VARCHAR(255) UNIQUE NOT NULL,
         password_hash VARCHAR(255) NOT NULL,
         role user_role NOT NULL DEFAULT 'team_member',
-        display_name VARCHAR(100)
+        display_name VARCHAR(100),
+        manager_id INT,
+        FOREIGN KEY (manager_id) REFERENCES users (id)
     );
 
 -- Create indexes for common search operations

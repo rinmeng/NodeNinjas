@@ -2,24 +2,23 @@ const express = require('express');
 const pool = require('../db'); // Access the database connection
 const router = express.Router();
 
-// async function initpgSession() {
-// try {
-//     await pool.query(`
-//         DROP TABLE IF EXISTS user_sessions;
-//         CREATE TABLE IF NOT EXISTS user_sessions (
-//             sid varchar NOT NULL COLLATE "default",
-//             sess json NOT NULL,
-//             expire timestamp(6) NOT NULL,
-//             CONSTRAINT "session_pkey" PRIMARY KEY ("sid")
-//         );
-//         CREATE INDEX IF NOT EXISTS "IDX_session_expire" ON user_sessions ("expire");
-//     `);
-//     return { message: "Session table created successfully" };
-// } catch (err) {
-//     console.error("Error setting up session table:", err.message);
-//     throw err;
-// }
-// }
+async function setupPgSession() {
+    try {
+        await pool.query(`
+            DROP TABLE IF EXISTS user_sessions;
+            CREATE TABLE user_sessions (
+                sid VARCHAR(100) PRIMARY KEY,
+                sess JSON NOT NULL,
+                expire TIMESTAMP(6) NOT NULL
+            );
+        `);
+        return { message: "Session table created successfully" };
+    } catch (err) {
+        console.error("Error setting up session table:", err.message);
+        throw err;
+    }
+}
+
 
 async function setupUsers() {
     try {
@@ -34,7 +33,9 @@ async function setupUsers() {
                 email VARCHAR(255) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
                 role user_role NOT NULL DEFAULT 'team_member',
-                display_name VARCHAR(100)
+                display_name VARCHAR(100),
+                manager_id INT,
+                FOREIGN KEY (manager_id) REFERENCES users (id)
             );
 
             -- Create indexes for common search operations
@@ -45,25 +46,25 @@ async function setupUsers() {
 
         // Add users with admin role
         const adminUsers = [
-            { username: 'rin', email: 'rin@example.com', password: 'rin', display_name: 'Rin' },
-            { username: 'enock', email: 'enock@example.com', password: 'enock', display_name: 'Enock' },
-            { username: 'keeran', email: 'keeran@example.com', password: 'keeran', display_name: 'Keeran' },
-            { username: 'madiba', email: 'madiba@example.com', password: 'madiba', display_name: 'Madiba' },
-            { username: 'mason', email: 'mason@example.com', password: 'mason', display_name: 'Mason' },
+            { username: 'rin', email: 'rin@example.com', password: 'rin', display_name: 'Rin', manager_id: 1 },
+            { username: 'enock', email: 'enock@example.com', password: 'enock', display_name: 'Enock', manager_id: 2 },
+            { username: 'keeran', email: 'keeran@example.com', password: 'keeran', display_name: 'Keeran', manager_id: 3 },
+            { username: 'madiba', email: 'madiba@example.com', password: 'madiba', display_name: 'Madiba', manager_id: 4 },
+            { username: 'mason', email: 'mason@example.com', password: 'mason', display_name: 'Mason', manager_id: 5 },
         ];
 
         for (const user of adminUsers) {
             await pool.query(`
-                INSERT INTO users (username, email, password_hash, role, display_name)
-                VALUES ($1, $2, $3, 'admin', $4)
-            `, [user.username, user.email, user.password, user.display_name]);
+                INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
+                VALUES ($1, $2, $3, 'admin', $4, $5)
+            `, [user.username, user.email, user.password, user.display_name, user.manager_id]);
         }
 
         // Add Arnold with team_member role
         await pool.query(`
-            INSERT INTO users (username, email, password_hash, role, display_name)
-            VALUES ($1, $2, $3, 'team_member', $4)
-        `, ['arnold', 'arnold@example.com', 'arnold', 'Arnold']);
+            INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
+            VALUES ($1, $2, $3, 'team_member', $4, $5)
+        `, ['arnold', 'arnold@example.com', 'arnold', 'Arnold', 1]);
 
         return { message: "Users table created and users added successfully" };
     } catch (err) {
@@ -100,7 +101,7 @@ async function deleteUsers() {
 router.get('/', async (req, res) => {
     try {
         const result = await setupUsers();
-        // const session = await initpgSession();
+        const session = await setupPgSession();
         res.status(200).send({ result, session });
     } catch (err) {
         console.error(err.message);

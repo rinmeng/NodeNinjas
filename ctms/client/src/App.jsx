@@ -21,25 +21,27 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    fetch(proxy + "user/checkSession", {
-      credentials: "include",
+    fetch(proxy + "user/session", {
+      credentials: "include", // Important for cross-origin cookies
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.session && data.session.user) {
-          setSessionUser(data.session.user);
+        if (data.isValid && data.user) {
+          setSessionUser(data.user);
+        } else {
+          setSessionUser(null);
         }
       })
       .catch((error) => {
         console.error("Session check failed:", error);
       })
       .finally(() => {
-        setIsLoading(false); // Set loading to false after the session check is complete
+        setIsLoading(false);
       });
   }, []);
 
   if (isLoading) {
-    return <div>Loading...</div>; // Show a loading indicator while checking the session
+    return <div>Loading...</div>;
   }
 
   return (
