@@ -5,6 +5,8 @@ import DBTable from "./subcomp/DBTable";
 const proxy = "http://localhost:15000/";
 
 function Test() {
+  const isOnlyNumbers = (str) => /^[0-9]+$/.test(str);
+
   const [backendData, setBackendData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -30,6 +32,7 @@ function Test() {
     fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
+          // Parse the error response as JSON
           return res.json().then((error) => {
             throw new Error(error.message || "Failed to fetch users");
           });
@@ -67,6 +70,20 @@ function Test() {
   };
 
   const testAdd = () => {
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !formData.role ||
+      !formData.displayName
+    ) {
+      setMessage("Please fill in all fields");
+      return;
+    }
+    if (formData.role !== "admin" && formData.role !== "team_member") {
+      setMessage("Role must be either 'admin' or 'team_member'");
+      return;
+    }
     fetch(proxy + "user/add", {
       method: "POST",
       headers: {
@@ -128,7 +145,7 @@ function Test() {
   };
 
   const testDelete = () => {
-    if (!deleteUserId) {
+    if (!deleteUserId || !isOnlyNumbers(deleteUserId)) {
       setMessage("Please enter a valid user ID to delete");
       return;
     }
