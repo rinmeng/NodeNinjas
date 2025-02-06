@@ -46,7 +46,9 @@ function Test() {
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setMessage(error.message || "An error occurred while fetching data");
+        setMessage(
+          "An error occurred while fetching data, Is the server running? Is the database loaded?"
+        );
         setLoading(false);
         setBackendData([]); // Set empty data on error
       });
