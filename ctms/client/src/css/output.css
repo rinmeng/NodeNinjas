@@ -1564,6 +1564,11 @@ video {
   -moz-osx-font-smoothing: grayscale;
 }
 
+.placeholder-white::placeholder {
+  --tw-placeholder-opacity: 1;
+  color: rgb(255 255 255 / var(--tw-placeholder-opacity, 1));
+}
+
 .opacity-0 {
   opacity: 0;
 }

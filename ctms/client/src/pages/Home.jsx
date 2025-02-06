@@ -2,20 +2,15 @@ import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 
 const Home = ({ sessionUser, devMode }) => {
+  const [tasks, setTasks] = useState([]); // State to manage tasks
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchCriteria, setSearchCriteria] = useState("name"); // Default search by name
+  const [searchCriteria, setSearchCriteria] = useState("priority"); // Default search by priority
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
-  const [taskDate, setTaskDate] = useState(null); // Stores selected date
-  const handleAddTask = (e) => {
-    e.preventDefault();
-  };
-  const [tasks, setTasks] = useState([]); // State to manage tasks
   const [taskPriority, setTaskPirioty] = useState("");
+  const [taskDate, setTaskDate] = useState("");
   const [updateTaskId, setUpdateTaskId] = useState(null); // Track if a task is being updated
-  const [errorMessage, setErrorMessage] = useState(" "); //check if the field is emptçy
-  const formattedDate = taskDate ? taskDate.toISOString().split("T")[0] : "";
-
+  const [errorMessage, setErrorMessage] = useState(" "); //check if the field is empty
   // Add or Update Task
   const handleAddOrUpdateTask = (e) => {
     e.preventDefault();
@@ -87,14 +82,6 @@ const Home = ({ sessionUser, devMode }) => {
       .includes(searchQuery.toLowerCase())
   );
 
-  const newTask = {
-    title: taskTitle,
-    description: taskDescription,
-    date: formattedDate,
-  };
-  console.log("Task Added:", newTask);
-  // we will function for sending task to back end
-
   if (!sessionUser && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -104,13 +91,12 @@ const Home = ({ sessionUser, devMode }) => {
           bypass authentication in <code>App.jsx</code>
         </p>
         {/* redirect to /login */}
-        <Navigate to="/login" />
+        {/* <Navigate to="/login" /> */}
       </div>
     );
   }
-
   return (
-    <div className="text-center mp5 my-16 animate-fadein">
+    <div className="text-center my-16 animate-fadein">
       <h1 className="title">User Task Management</h1>
       <p>Welcome to your Dashboard</p>
 
@@ -192,20 +178,48 @@ const Home = ({ sessionUser, devMode }) => {
           {updateTaskId ? "Update Task" : "Add Task"}
         </h2>
         <div className="task-bg">
-          <formo nSubmit={handleAddTask}>
-            <input
-              type="text"
-              placeholder="Task Title"
-              value={taskTitle}
-              onChange={(e) => setTaskTitle(e.target.value)}
-              className="task"
-            />
-            <textarea
-              placeholder="Task Description"
-              value={taskDescription}
-              onChange={(e) => setTaskDescription(e.target.value)}
-              className="task"
-            ></textarea>
+          <form onSubmit={handleAddOrUpdateTask}>
+            <div className="flex gap-4">
+              <input
+                type="text"
+                placeholder="Task Title"
+                value={taskTitle}
+                onChange={(e) => setTaskTitle(e.target.value)}
+                className="bg-sky-700 placeholder-white p-4 rounded-xl w-full"
+              />
+              <input
+                type="text"
+                placeholder="Task Description"
+                value={taskDescription}
+                onChange={(e) => setTaskDescription(e.target.value)}
+                className="bg-sky-700 placeholder-white p-4 rounded-xl w-full"
+              />
+            </div>
+            <div className="flex gap-4 mt-5">
+              <div className="flex flex-col w-full">
+                <label className="text-white mb-2">Priority</label>
+                <select
+                  value={taskPriority}
+                  onChange={(e) => setTaskPirioty(e.target.value)}
+                  className="bg-sky-700 p-4 rounded-xl w-full"
+                >
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+                  <option value="4">4</option>
+                  <option value="5">5</option>
+                </select>
+              </div>
+              <div className="flex flex-col w-full">
+                <label className="text-white mb-2">Due Date</label>
+                <input
+                  type="date"
+                  value={taskDate}
+                  onChange={(e) => setTaskDate(e.target.value)}
+                  className="bg-sky-700 p-4 rounded-xl w-full"
+                />
+              </div>
+            </div>
             <button
               type="submit"
               className={`${
@@ -213,28 +227,6 @@ const Home = ({ sessionUser, devMode }) => {
               } text-white p-2 rounded mt-5`}
             >
               {updateTaskId ? "Update Task" : "Add Task"}
-              Add Task
-            </button>
-          </formo>
-        </div>
-      </section>
-
-      {/* Update Task Section */}
-      <section className="my-8 p-4">
-        <h2 className="text-2xl font-bold mb-4">Update Task</h2>
-        <div className="task-bg">
-          <form>
-            <input type="text" placeholder="Task ID" className="task" />
-            <input type="text" placeholder="New Task Title" className="task" />
-            <textarea
-              placeholder="New Task Description"
-              className="task"
-            ></textarea>
-            <button
-              type="submit"
-              className="bg-green-500 text-white p-2 rounded"
-            >
-              Update Task
             </button>
           </form>
         </div>

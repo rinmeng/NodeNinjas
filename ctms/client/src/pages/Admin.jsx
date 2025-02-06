@@ -12,7 +12,7 @@ const Admin = ({ sessionUser, devMode }) => {
           <code>devMode</code> to bypass authentication in <code>App.jsx</code>
         </p>
         {/* redirect to /login */}
-        <Navigate to="/login" />
+        {/* <Navigate to="/login" /> */}
       </div>
     );
   }
