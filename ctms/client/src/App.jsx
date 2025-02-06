@@ -13,6 +13,8 @@ import "./css/output.css";
 const proxy = "http://localhost:15000/";
 
 function App() {
+  const [devMode, setDevMode] = useState(false);
+
   const [showNavbar, setShowNavbar] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);
 
@@ -34,11 +36,21 @@ function App() {
 
   return (
     <Router>
-      <Navbar showNavbar={showNavbar} sessionUser={sessionUser} />
+      <Navbar
+        showNavbar={showNavbar}
+        sessionUser={sessionUser}
+        devMode={devMode}
+      />
       <div>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route
+            path="/"
+            element={<Home sessionUser={sessionUser} devMode={devMode} />}
+          />
+          <Route
+            path="/admin"
+            element={<Admin sessionUser={sessionUser} devMode={devMode} />}
+          />
           <Route path="/about" element={<About />} />
           <Route
             path="/login"
@@ -50,7 +62,10 @@ function App() {
               />
             }
           />
-          <Route path="/test" element={<Test />} />
+          <Route
+            path="/test"
+            element={<Test sessionUser={sessionUser} devMode={devMode} />}
+          />
           <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

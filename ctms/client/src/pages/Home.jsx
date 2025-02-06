@@ -1,15 +1,18 @@
 import React, { useState } from "react";
+import { Navigate } from "react-router-dom";
 
-const Home = () => {
-    const [tasks, setTasks] = useState([]); // State to manage tasks
-    const [searchQuery, setSearchQuery] = useState("");
-    const [searchCriteria, setSearchCriteria] = useState("priority"); // Default search by priority
-    const [taskTitle, setTaskTitle] = useState("");
-    const [taskDescription, setTaskDescription] = useState("");
-    const [taskPriority, setTaskPirioty] = useState("");
-    const [taskDate, setTaskDate] = useState("");
-    const [updateTaskId, setUpdateTaskId] = useState(null); // Track if a task is being updated
-    const [erroMessage, setErrorMessage]=useState(" ")//check if the field is emptçy
+const Home = ({ sessionUser, devMode }) => {
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchCriteria, setSearchCriteria] = useState("name"); // Default search by name
+  const [taskTitle, setTaskTitle] = useState("");
+  const [taskDescription, setTaskDescription] = useState("");
+  const [taskDate, setTaskDate] = useState(null); // Stores selected date
+  const handleAddTask = (e) => {
+    e.preventDefault();
+  const [tasks, setTasks] = useState([]); // State to manage tasks
+  const [taskPriority, setTaskPirioty] = useState("");
+  const [updateTaskId, setUpdateTaskId] = useState(null); // Track if a task is being updated
+  const [erroMessage, setErrorMessage]=useState(" ")//check if the field is emptçy
 
     // Add or Update Task
         const handleAddOrUpdateTask = (e) => {
@@ -87,6 +90,20 @@ const Home = () => {
     console.log("Task Added:", newTask);
     // we will function for sending task to back end
   
+
+  if (!sessionUser && !devMode) {
+    return (
+      <div className="mp5 my-16 animate-fadein">
+        <h1 className="title text-center">Welcome to your Dashboard!</h1>
+        <p className="text-center text-xl">
+          Please log in to view this page, or enable <code>devMode</code> to
+          bypass authentication in <code>App.jsx</code>
+        </p>
+        {/* redirect to /login */}
+        <Navigate to="/login" />
+      </div>
+    );
+  }
 
   return (
     <div className="text-center mp5 my-16 animate-fadein">

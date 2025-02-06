@@ -27,11 +27,11 @@ function Test() {
   ];
 
   const fetchData = () => {
-    fetch(proxy + "user/all")
+    fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
-            throw new Error(error.error || "Unknown error occurred");
+            throw new Error(error.message || "Failed to fetch users");
           });
         }
         return res.json();
@@ -42,8 +42,9 @@ function Test() {
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setMessage(error.message);
+        setMessage(error.message || "An error occurred while fetching data");
         setLoading(false);
+        setBackendData([]); // Set empty data on error
       });
   };
 
