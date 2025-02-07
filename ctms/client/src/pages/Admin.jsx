@@ -18,7 +18,6 @@ const Admin = ({ sessionUser, devMode }) => {
     );
   }
 
-   // Here are my UseSates for adding a task
     const [taskName,setTaskName] = useState("");
     const [taskDesc, setTaskDesc] = useState("");
     const [taskPriority,setTaskPriority] = useState("1");
