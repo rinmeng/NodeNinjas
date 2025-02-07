@@ -169,6 +169,17 @@ const Home = ({ sessionUser, devMode }) => {
           ) : (
             <p>No tasks found matching the criteria.</p>
           )}
+          <div className="flex justify-end">
+            <select
+                value={searchCriteria}
+                onChange={(e) => setSearchCriteria(e.target.value)}
+                className="task w-56 p-2 border rounded"
+              >
+                <option value="pending">Pending</option>
+                <option value="inProgress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+          </div>
         </div>
       </section>
 

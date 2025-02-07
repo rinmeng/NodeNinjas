@@ -18,7 +18,6 @@ const Admin = ({ sessionUser, devMode }) => {
     );
   }
 
-   // Here are my UseSates for adding a task
     const [taskName,setTaskName] = useState("");
     const [taskDesc, setTaskDesc] = useState("");
     const [taskPriority,setTaskPriority] = useState("1");
@@ -97,6 +96,13 @@ const FilterDataByOption = () => {
             </select>
           </div>
 
+                <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
+                <label className="text-xl mt-15">Adjust Users:</label>
+                    <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">Deactivate</button>
+                    <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">Delete</button>
+                </div>
+
+
           <div>
             <DBTable columns={columns} data = {FilterDataByOption()} loading={false}/>
           </div>
@@ -156,6 +162,16 @@ const FilterDataByOption = () => {
                     </div>
                 ))
             ):(<p className="text-center text-xl">There aren't any assigned tasks here!</p>)}
+                      <div className="mt-4 flex justify-end">
+                        <div className="bg-sky-700 inline-block p-4 rounded-xl mr-5">
+                            <label className="text-xl mt-15">Filter by:</label>
+                                <select className="bg-blue-900 mt-15 ml-5 p-1">
+                                    <option value="pending">Pending</option>
+                                    <option value="inProgress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
 
 
           <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 "></div>
