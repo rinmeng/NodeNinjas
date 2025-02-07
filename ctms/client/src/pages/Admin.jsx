@@ -117,27 +117,33 @@ const Admin = ({ sessionUser, devMode }) => {
             </h1>
           </div>
 
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">Filter Tasks by:</label>
-            <select
-              className="bg-blue-900 mt-15 ml-5"
-              value={filterData}
-              onChange={(e) => setFilterData(e.target.value)}
-            >
-              <option value="teamMember">Team Members</option>
-              <option value="priority">Priority</option>
-              <option value="date">Due Date</option>
-            </select>
-          </div>
+          <div className="flex justify-around items-center">
+            <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
+              <label className="text-xl mt-15">Filter Tasks by:</label>
+              <select
+                className="bg-blue-900 mt-15 ml-5"
+                value={filterData}
+                onChange={(e) => setFilterData(e.target.value)}
+              >
+                <option value="teamMember">Team Members</option>
+                <option value="priority">Priority</option>
+                <option value="date">Due Date</option>
+              </select>
+            </div>
 
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">Adjust Users:</label>
-            <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
-              Deactivate
-            </button>
-            <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
-              Delete
-            </button>
+            <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
+              <label className="text-xl mt-15">Adjust Users:</label>
+              <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
+                Deactivate
+              </button>
+              <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
+                Delete
+              </button>
+            </div>
+
+            <div>
+              <button className="btn-red">Reset</button>
+            </div>
           </div>
 
           <div>
