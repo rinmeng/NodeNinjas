@@ -45,10 +45,10 @@ const Admin = ({ sessionUser, devMode }) => {
     setTaskList([...taskList,addedTask]);
 
     // After creating our new task, we will reset all the fields in the Add Task section
-    setTaskName('');
-    setTaskDesc('');
-    setTaskPriority('1');
-    setTaskDue('');
+    setTaskName("");
+    setTaskDesc("");
+    setTaskPriority("1");
+    setTaskDue("");
   };
 
  //Here is my data for the table which view all created tasks under Managing Roles. 
