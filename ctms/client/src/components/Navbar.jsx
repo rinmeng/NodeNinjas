@@ -1,7 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { FaBell } from "react-icons/fa";
 
-const Navbar = ({ showNavbar, sessionUser, devMode }) => {
+const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [], onShowNotifications }) => {
   return (
     <nav
       className={`${showNavbar ? "animate-fadein" : "animate-fadeout"}
@@ -54,6 +55,18 @@ const Navbar = ({ showNavbar, sessionUser, devMode }) => {
           >
             {sessionUser ? "Profile" : "Login"}
           </Link>
+
+          <button 
+        onClick={onShowNotifications}
+        className="notification-bell"
+      >
+        <FaBell className="text-xl" />
+        {notifications.length > 0 && (
+          <span className="notification-badge">
+            {notifications.length}
+          </span>
+        )}
+          </button>
         </div>
       </div>
     </nav>

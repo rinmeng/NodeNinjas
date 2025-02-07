@@ -4,6 +4,17 @@ import DBTable from "./testing/subcomp/DBTable";
 import { useState } from "react";
 
 const Admin = ({ sessionUser, devMode }) => {
+  const [taskName, setTaskName] = useState("");
+  const [taskDesc, setTaskDesc] = useState("");
+  const [taskPriority, setTaskPriority] = useState("1");
+  const [taskDue, setTaskDue] = useState("");
+
+  //This is my UseState for filtering my data in the table
+  const [filterData, setFilterData] = useState("");
+
+  // UseState for the list of tasks you can view
+  const [taskList, setTaskList] = useState([]);
+
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -17,18 +28,6 @@ const Admin = ({ sessionUser, devMode }) => {
       </div>
     );
   }
-
-  // Here are my UseSates for adding a task
-  const [taskName, setTaskName] = useState("");
-  const [taskDesc, setTaskDesc] = useState("");
-  const [taskPriority, setTaskPriority] = useState("1");
-  const [taskDue, setTaskDue] = useState("");
-
-  //This is my UseState for filtering my data in the table
-  const [filterData, setFilterData] = useState("");
-
-  // UseState for the list of tasks you can view
-  const [taskList, setTaskList] = useState([]);
 
   //Our function will check the new task that is added when the user presses the "Add" button on the Add Task form
   const HandleAddandViewTask = () => {
@@ -62,7 +61,7 @@ const Admin = ({ sessionUser, devMode }) => {
   //If the user chooses a specific option from the selector, this function will be called and sort our tasks based on their priority or due date
   const FilterDataByOption = () => {
     const clonedList = [...taskList];
-    if (filterData == "priority") {
+    if (filterData === "priority") {
       clonedList.sort((a, b) => a.priority - b.priority);
     } else clonedList.sort((a, b) => new Date(a.date) - new Date(b.date));
 
