@@ -40,8 +40,8 @@ function Test() {
         }
         return res.json();
       })
-      .then((data) => {
-        setBackendData(data);
+      .then((usersList) => {
+        setBackendData(usersList);
         setLoading(false);
       })
       .catch((error) => {

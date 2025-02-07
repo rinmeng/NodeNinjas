@@ -1,13 +1,17 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import DBTable from "./testing/subcomp/DBTable";
 import { useState } from "react";
+
+const proxy = "https://localhost:15000/";
 
 const Admin = ({ sessionUser, devMode }) => {
   const [taskName, setTaskName] = useState("");
   const [taskDesc, setTaskDesc] = useState("");
   const [taskPriority, setTaskPriority] = useState("1");
   const [taskDue, setTaskDue] = useState("");
+
+  const [usersList, setUsersList] = useState([]);
 
   //This is my UseState for filtering my data in the table
   const [filterData, setFilterData] = useState("");
@@ -58,6 +62,13 @@ const Admin = ({ sessionUser, devMode }) => {
     { header: "Due Date", key: "date" },
   ];
 
+  const usersColumns = [
+    { header: "User Id", key: "id" },
+    { header: "Username", key: "username" },
+    { header: "Email Address", key: "email" },
+    { header: "Role", key: "role" },
+  ];
+
   //If the user chooses a specific option from the selector, this function will be called and sort our tasks based on their priority or due date
   const FilterDataByOption = () => {
     const clonedList = [...taskList];
@@ -66,6 +77,29 @@ const Admin = ({ sessionUser, devMode }) => {
     } else clonedList.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     return clonedList;
+  };
+
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = () => {
+    fetch(proxy + "user/all", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "The users can't be loaded");
+          });
+        }
+        return res.json();
+      })
+      .then((usersList) => {
+        setUsersList(usersList);
+      })
+      .catch((error) => {
+        console.error("error fetching data:", error);
+        setUsersList([]);
+      });
   };
 
   return (
@@ -109,6 +143,14 @@ const Admin = ({ sessionUser, devMode }) => {
             <DBTable
               columns={columns}
               data={FilterDataByOption()}
+              loading={false}
+            />
+          </div>
+
+          <div>
+            <DBTable
+              columns={usersColumns}
+              data={fetchUsers()}
               loading={false}
             />
           </div>
