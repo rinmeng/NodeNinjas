@@ -27,6 +27,13 @@ const AdminPage = () => {
                     </select>
                 </div>
 
+                <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
+                <label className="text-xl mt-15">Adjust Users:</label>
+                    <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">Deactivate</button>
+                    <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">Delete</button>
+                </div>
+
+
                 <div>
                     <DBTable />
                 </div>
@@ -77,7 +84,16 @@ const AdminPage = () => {
                     <h1 className="text-2xl font-bold text-center"> View Task </h1>
                 </div>
                     <p className="text-xl mt-15 p-30 text-center">You can view Tasks here!</p>
-
+                    <div className="mt-4 flex justify-end">
+                        <div className="bg-sky-700 inline-block p-4 rounded-xl mr-5">
+                            <label className="text-xl mt-15">Filter by:</label>
+                                <select className="bg-blue-900 mt-15 ml-5 p-1">
+                                    <option value="pending">Pending</option>
+                                    <option value="inProgress">In Progress</option>
+                                    <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
                 <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 ">
                 </div>
             </div>

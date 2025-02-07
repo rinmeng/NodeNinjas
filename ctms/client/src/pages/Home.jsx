@@ -59,6 +59,17 @@ const Home = () => {
         <div className="task-bg">
           <p>Here you can view all your tasks.</p>
           {/* Add your task list or other components here */}
+          <div className="flex justify-end">
+            <select
+                value={searchCriteria}
+                onChange={(e) => setSearchCriteria(e.target.value)}
+                className="task w-56 p-2 border rounded"
+              >
+                <option value="pending">Pending</option>
+                <option value="inProgress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+          </div>
         </div>
       </section>
 
