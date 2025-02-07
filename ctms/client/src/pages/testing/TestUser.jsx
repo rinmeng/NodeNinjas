@@ -5,6 +5,8 @@ import DBTable from "./subcomp/DBTable";
 const proxy = "http://localhost:15000/";
 
 function Test() {
+  const isOnlyNumbers = (str) => /^[0-9]+$/.test(str);
+
   const [backendData, setBackendData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
@@ -24,14 +26,16 @@ function Test() {
     { header: "role", key: "role" },
     { header: "password_hash", key: "password_hash" },
     { header: "display_name", key: "display_name" },
+    { header: "manager_id", key: "manager_id" },
   ];
 
   const fetchData = () => {
-    fetch(proxy + "user/all")
+    fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
+          // Parse the error response as JSON
           return res.json().then((error) => {
-            throw new Error(error.error || "Unknown error occurred");
+            throw new Error(error.message || "Failed to fetch users");
           });
         }
         return res.json();
@@ -42,8 +46,11 @@ function Test() {
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setMessage(error.message);
+        setMessage(
+          "An error occurred while fetching data, Is the server running? Is the database loaded?"
+        );
         setLoading(false);
+        setBackendData([]); // Set empty data on error
       });
   };
 
@@ -66,6 +73,21 @@ function Test() {
   };
 
   const testAdd = () => {
+    if (
+      !formData.username ||
+      !formData.email ||
+      !formData.password ||
+      !formData.role ||
+      !formData.displayName ||
+      !isOnlyNumbers(formData.managerId)
+    ) {
+      setMessage("Please fill in all fields");
+      return;
+    }
+    if (formData.role !== "admin" && formData.role !== "team_member") {
+      setMessage("Role must be either 'admin' or 'team_member'");
+      return;
+    }
     fetch(proxy + "user/add", {
       method: "POST",
       headers: {
@@ -77,6 +99,7 @@ function Test() {
         password_hash: formData.password,
         role: formData.role,
         display_name: formData.displayName,
+        manager_id: parseInt(formData.managerId),
       }),
     })
       .then((res) => res.json())
@@ -127,7 +150,7 @@ function Test() {
   };
 
   const testDelete = () => {
-    if (!deleteUserId) {
+    if (!deleteUserId || !isOnlyNumbers(deleteUserId)) {
       setMessage("Please enter a valid user ID to delete");
       return;
     }
@@ -229,6 +252,18 @@ function Test() {
                   value={formData.role}
                   onChange={(e) =>
                     setFormData({ ...formData, role: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <h2 className="text-lg">Manager ID:</h2>
+                <input
+                  className="forms"
+                  type="text"
+                  placeholder="Manager ID"
+                  value={formData.managerId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, managerId: e.target.value })
                   }
                 />
               </div>

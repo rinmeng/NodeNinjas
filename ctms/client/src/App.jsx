@@ -13,32 +13,54 @@ import "./css/output.css";
 const proxy = "http://localhost:15000/";
 
 function App() {
+  const [devMode, setDevMode] = useState(true);
+
   const [showNavbar, setShowNavbar] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);
 
-  // Check for an existing session on app load
+  const [isLoading, setIsLoading] = useState(true);
+
   useEffect(() => {
-    fetch(proxy + "user/checkSession", {
-      credentials: "include",
+    fetch(proxy + "user/session", {
+      credentials: "include", // Important for cross-origin cookies
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.session && data.session.user) {
-          setSessionUser(data.session.user);
+        if (data.isValid && data.user) {
+          setSessionUser(data.user);
+        } else {
+          setSessionUser(null);
         }
       })
       .catch((error) => {
         console.error("Session check failed:", error);
+      })
+      .finally(() => {
+        setIsLoading(false);
       });
   }, []);
 
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
+
   return (
     <Router>
-      <Navbar showNavbar={showNavbar} sessionUser={sessionUser} />
+      <Navbar
+        showNavbar={showNavbar}
+        sessionUser={sessionUser}
+        devMode={devMode}
+      />
       <div>
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/admin" element={<Admin />} />
+          <Route
+            path="/"
+            element={<Home sessionUser={sessionUser} devMode={devMode} />}
+          />
+          <Route
+            path="/admin"
+            element={<Admin sessionUser={sessionUser} devMode={devMode} />}
+          />
           <Route path="/about" element={<About />} />
           <Route
             path="/login"
@@ -50,7 +72,10 @@ function App() {
               />
             }
           />
-          <Route path="/test" element={<Test />} />
+          <Route
+            path="/test"
+            element={<Test sessionUser={sessionUser} devMode={devMode} />}
+          />
           <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

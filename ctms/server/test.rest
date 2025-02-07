@@ -22,7 +22,12 @@ Content-Type: application/json
 # Delete user with ID 1
 DELETE http://localhost:15000/user/delete/5
 ###
-GET http://localhost:15000/user/17
+GET http://localhost:15000/user/:username
+Content-Type: application/json
+
+{
+  "username": "rin"
+}
 
 ###
 POST http://localhost:15000/user/login
