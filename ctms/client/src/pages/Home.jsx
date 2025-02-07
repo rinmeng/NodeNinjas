@@ -122,6 +122,7 @@ const Home = ({ sessionUser, devMode }) => {
               <option value="date">Date</option>
               <option value="description">Description</option>
             </select>
+            <button className="bg-red-700 w-30 ml-10 p-3 rounded-xl">Reset</button>
           </div>
         </div>
       </section>
