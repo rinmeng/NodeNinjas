@@ -3,7 +3,6 @@ import {
   User,
   Lock,
   LogIn,
-  Check,
   ChartSpline,
   TrendingUp,
   X,
@@ -13,10 +12,12 @@ import {
   CircleUserRound,
   UserX,
   UserRoundCheck,
+  UserCog,
 } from "lucide-react";
 import IconizedButton from "../components/subcomponents/IconizedButton";
 import IconizedTextField from "../components/subcomponents/IconizedTextField";
 import Feedback from "../components/subcomponents/Feedback";
+import TickCheckbox from "../components/subcomponents/TickCheckbox";
 
 const proxy = "http://localhost:15000/";
 
@@ -28,11 +29,13 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
     email: "",
     role: "team_member",
     isRemembered: false,
+    manager_username: "",
   });
   const [showPopup, setShowPopup] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
   const [showFeedback, setShowFeedback] = useState(false);
   const [isSuccess, setIsSuccess] = useState(true);
+  const [teamMember, setTeamMember] = useState(true);
   const timer = 3;
 
   const handleInputChange = (e) => {
@@ -81,10 +84,18 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
     return () => clearTimeout(feedbackTimer);
   }, [showFeedback]);
 
-  const addUser = () => {
-    const { displayName, email, username, password } = formData;
+  const addUser = async () => {
+    const { displayName, email, username, password, role, manager_username } =
+      formData;
 
-    if (!displayName || !email || !username || !password) {
+    if (
+      !displayName ||
+      !email ||
+      !username ||
+      !password ||
+      !role ||
+      !manager_username
+    ) {
       showFeedbackMessage("Please fill in all required fields.", false);
       return;
     } else if (password.length < 8) {
@@ -95,54 +106,74 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       return;
     }
 
-    fetch(proxy + "user/add", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        display_name: displayName,
-        email,
-        username,
-        password_hash: password,
-        role: formData.role,
-      }),
-    })
-      .then((res) => {
-        const statusCode = res.status;
-        return res.json().then((data) => ({
-          statusCode,
-          data,
-        }));
-      })
-      .then(({ statusCode, data }) => {
-        if (statusCode === 201) {
-          showFeedbackMessage("Registration successful!", true);
-
-          // Clear form fields except username and password
-          setFormData((prev) => ({
-            ...prev,
-            displayName: "",
-            email: "",
-            role: "team_member",
-            isRemembered: true,
-          }));
-          setShowPopup(false);
-        } else {
-          showFeedbackMessage(data.message || "Registration failed.", false);
-          setShowPopup(true);
+    try {
+      // Fetch the manager's user ID
+      const managerResponse = await fetch(
+        proxy + `user/username/${manager_username}`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
         }
-      })
-      .catch((error) => {
-        console.error(error);
+      );
+
+      const managerData = await managerResponse.json();
+
+      if (managerResponse.status !== 200) {
+        showFeedbackMessage(managerData.message || "Manager not found.", false);
+        return;
+      }
+
+      const manager_id = managerData.id;
+
+      // Register the new user with the manager_id
+      const registerResponse = await fetch(proxy + "user/add", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({
+          display_name: displayName,
+          email,
+          username,
+          password_hash: password,
+          role,
+          manager_id,
+        }),
+      });
+
+      const registerData = await registerResponse.json();
+
+      if (registerResponse.status === 201) {
+        showFeedbackMessage("Registration successful!", true);
+
+        // Clear form fields except username and password
+        setFormData((prev) => ({
+          ...prev,
+          displayName: "",
+          email: "",
+          role: "team_member",
+          isRemembered: true,
+          manager_username: "",
+        }));
+        setShowPopup(false);
+      } else {
         showFeedbackMessage(
-          "An error occured while trying to add user.",
+          registerData.message || "Registration failed.",
           false
         );
-      });
+        setShowPopup(true);
+      }
+    } catch (error) {
+      console.error(error);
+      showFeedbackMessage(error.message || "An error occurred.", false);
+    }
   };
 
+  // In your Login.js component, modify the loginUser function
   const loginUser = (e) => {
     e.preventDefault();
     if (!formData.username || !formData.password) {
@@ -158,6 +189,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       body: JSON.stringify({
         username: formData.username,
         password_hash: formData.password,
+        isRemembered: formData.isRemembered, // Add this line
       }),
     })
       .then((res) => {
@@ -169,7 +201,6 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       })
       .then(({ statusCode, data }) => {
         if (statusCode === 200) {
-          console.log(data.session.user);
           showFeedbackMessage("Login successful!", true);
           setSessionUser(data.session.user);
         } else {
@@ -246,11 +277,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
         ) : (
           <div className="flex flex-col justify-center bg-slate-900 p-5">
             <div className="space-y-4 text-center">
-              <h1 className="title text-white">
-                {sessionUser
-                  ? `Welcome back, ${sessionUser.display_name}`
-                  : "Login to myCMTS"}
-              </h1>
+              <h1 className="title text-white">Login to myCMTS</h1>
               <hr className="w-1/4 m-auto my-4" />
 
               <form className="flex flex-col space-y-4 w-1/2 m-auto">
@@ -262,6 +289,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                   value={formData.username}
                   onChange={handleInputChange}
                   maxLength={50}
+                  inputPlaceholder="Enter your username"
                 />
 
                 <IconizedTextField
@@ -272,36 +300,19 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                   value={formData.password}
                   onChange={handleInputChange}
                   maxLength={255}
+                  inputPlaceholder="Enter your password"
                 />
 
-                <div className="flex items-center justify-center">
-                  <div className="relative flex items-center w-1/2 justify-center">
-                    <label className="flex items-center cursor-pointer">
-                      <div className="relative items-center">
-                        <input
-                          type="checkbox"
-                          name="isRemembered"
-                          className="items-center flex justify-center cursor-pointer
-                                  h-6 w-6 border-2 peer checked:border-blue-500 appearance-none 
-                                  rounded-md border-slate-400 t200e"
-                          checked={formData.isRemembered}
-                          onChange={handleInputChange}
-                        />
-                        <Check
-                          className="absolute top-1/2 left-1/2 
-                                  -translate-x-3
-                                  -translate-y-4 w-7 h-7 
-                                  pointer-events-none opacity-0 peer-checked:opacity-100 
-                                  transition-opacity duration-200"
-                        />
-                      </div>
-                      <h1 className="ml-2 font-semibold">Remember Me</h1>
-                    </label>
-                  </div>
-
+                <div className="flex flex-col space-y-4 items-center justify-center">
+                  <TickCheckbox
+                    checked={formData.isRemembered}
+                    onChange={handleInputChange}
+                    label="Remember Me"
+                    name="isRemembered"
+                  />
                   <IconizedButton
                     text="Login"
-                    btnStyle="btn-blue w-1/2"
+                    btnStyle="btn-blue w-3/4"
                     icon={<LogIn className="ml-2" size={20} strokeWidth={3} />}
                     onClick={loginUser}
                   />
@@ -358,6 +369,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
               value={formData.username}
               onChange={handleInputChange}
               maxLength={50}
+              inputPlaceholder="Enter your unique username"
             />
             <IconizedTextField
               icon={<Lock strokeWidth={3} className="text-field-icon" />}
@@ -367,6 +379,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
               value={formData.password}
               onChange={handleInputChange}
               maxLength={255}
+              inputPlaceholder="Enter your password"
             />
             <IconizedTextField
               icon={<Contact strokeWidth={3} className="text-field-icon" />}
@@ -376,6 +389,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
               value={formData.displayName}
               onChange={handleInputChange}
               maxLength={100}
+              inputPlaceholder="Enter your display name"
             />
             <IconizedTextField
               icon={<Mail strokeWidth={3} className="text-field-icon" />}
@@ -385,6 +399,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
               value={formData.email}
               onChange={handleInputChange}
               maxLength={255}
+              inputPlaceholder="Enter your email"
             />
             <h1>
               <p className="font-semibold text-lg">User Role</p>
@@ -396,14 +411,14 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                   name="role"
                   value="team_member"
                   className="hidden peer"
-                  defaultChecked
+                  checked={formData.role === "team_member"}
                   onChange={handleInputChange}
                 />
                 <div
                   className="p-4 border-2 t200e font-bold border-slate-500 
-                  bg-slate-700 rounded-full peer-checked:bg-slate-950 
-                  peer-checked:border-slate-300 peer-checked:text-white
-                  flex justify-center items-center space-x-2"
+                          bg-slate-700 rounded-full peer-checked:bg-slate-950 
+                          peer-checked:border-slate-300 peer-checked:text-white
+                           flex justify-center items-center space-x-2"
                 >
                   <p>Team Member</p>
                   <CircleUserRound size={20} strokeWidth={3} />
@@ -416,18 +431,32 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                   name="role"
                   value="admin"
                   className="hidden peer"
+                  checked={formData.role === "admin"}
                   onChange={handleInputChange}
                 />
                 <div
                   className="p-4 border-2 t200e font-bold border-slate-500 
-                  bg-slate-700 rounded-full peer-checked:bg-slate-950 
-                  peer-checked:border-slate-300 peer-checked:text-white
-                  flex justify-center items-center space-x-2"
+                            bg-slate-700 rounded-full peer-checked:bg-slate-950 
+                            peer-checked:border-slate-300 peer-checked:text-white
+                            flex justify-center items-center space-x-2"
                 >
                   <p>Admin</p>
                   <Shield size={20} strokeWidth={3} />
                 </div>
               </label>
+            </div>
+
+            <div>
+              <IconizedTextField
+                icon={<UserCog strokeWidth={3} className="text-field-icon" />}
+                inputDisplay="Admin's Username"
+                inputStyle="text-field"
+                name="manager_username"
+                value={formData.manager_username}
+                onChange={handleInputChange}
+                maxLength={255}
+                inputPlaceholder="Enter your Admin's username"
+              />
             </div>
             <hr className="my-4 w-1/4 m-auto" />
             <div className="flex justify-end">

@@ -34,83 +34,6 @@ router.get('/', (req, res) => {
             <br> /add to add a user for this endpoint
             <br> /delete/:id to delete a user by id
             <br> /all to get all users
-        <br>
-        <br> Examples: 
-        <br> /add
-        <pre>
-const testAdd = () => {
-    fetch(proxy + "user/add", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        username: formData.username,
-        email: formData.email,
-        password_hash: formData.password,
-        role: formData.role,
-        display_name: formData.displayName,
-      }),
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.error) {
-          setMessage(data.error);
-        } else {
-          setMessage(data.message);
-          fetchData();
-        }
-      });
-  };    
-        </pre>
-        <br> /delete/:id
-        <pre>
-const testDelete = () => {
-    if (!deleteUserId) {
-      setMessage("Please enter a valid user ID to delete");
-      return;
-    }
-    fetch(proxy + \`user / delete/\${deleteUserId}\`, {
-      method: "DELETE",
-    })
-    .then((res) => res.json())
-    .then((data) => {
-        if (data.error) {
-            setMessage(data.error);
-        } else {
-            setMessage(data.message);
-            fetchData();
-        }
-    })
-    .catch((error) => {
-        setMessage("Failed to delete user");
-    });
-  };
-        </pre >
-    <br> /all
-        <pre>
-const fetchData = () => {
-    fetch(proxy + "user/all")
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.error || "Unknown error occurred");
-          });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        setBackendData(data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setMessage(error.message);
-        setLoading(false);
-      });
-  };
-        </pre >
-        </h1>
         `);
 });
 
@@ -122,14 +45,25 @@ router.get('/add', (req, res) => {
 
 // POST /user/add
 router.post('/add', async (req, res) => {
-    const { username, email, password_hash, role, display_name } = req.body;
-    if (!username || !email || !password_hash || !role || !display_name) {
-        return res.status(400).json({ message: "Please provide all required fields" });
+    const { username, email, password_hash, role, display_name, manager_id
+    } = req.body;
+    if (!username || !email || !password_hash || !role || !display_name, !manager_id) {
+        missingFields = [];
+        if (!username) missingFields.push('username');
+        if (!email) missingFields.push('email');
+        if (!password_hash) missingFields.push('password_hash');
+        if (!role) missingFields.push('role');
+        if (!display_name) missingFields.push('display_name');
+        if (!manager_id) missingFields.push('manager_id');
+
+        return res.status(400).json({
+            message: "Missing required fields: " + missingFields.join(', ')
+        });
     }
     try {
         const result = await pool.query(
-            'INSERT INTO users (username, email, password_hash, role, display_name) VALUES ($1, $2, $3, $4, $5) RETURNING *',
-            [username, email, password_hash, role, display_name]
+            'INSERT INTO users (username, email, password_hash, role, display_name, manager_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING * ',
+            [username, email, password_hash, role, display_name, manager_id]
         );
         if (result.rowCount === 0) {
             return res.status(400).json({ error: "User not added" });
@@ -192,29 +126,30 @@ router.get('/all', isAuthAsAdmin, async (req, res) => {
         res.status(200).json(data.rows);
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ message: 'Internal Server Error: Is database setup yet?' });
+        res.status(500).send({ message: 'Internal Server Error: Is database loaded yet?' });
     }
 });
 
-// Modified check-session route
-router.get('/checksession', (req, res) => {
+// GET /user/session
+router.get('/session', (req, res) => {
     if (req.session && req.session.user) {
-        res.status(200).json({
-            session: {
-                user: req.session.user
-            }
+        res.json({
+            isValid: true,
+            expiresIn: req.session.cookie.maxAge,
+            user: req.session.user
         });
     } else {
-        res.status(401).json({
-            message: "No active session found"
+        res.json({
+            isValid: false,
+            message: "No active session"
         });
     }
 });
 
 
-// GET /user/:id
-router.get('/:id', async (req, res) => {
-    const id = req.body.id;
+// GET /user/id/:id
+router.get('/userid/:id', async (req, res) => {
+    const id = req.body.id || req.params.id;
     try {
         const data = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
         if (data.rowCount === 0) {
@@ -227,9 +162,9 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// GET /user/:username
-router.get('/:username', async (req, res) => {
-    const username = req.body.username;
+// GET /user/username/:username
+router.get('/username/:username', async (req, res) => {
+    const username = req.body.username || req.params.username;
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (data.rowCount === 0) {
@@ -246,7 +181,7 @@ router.get('/:username', async (req, res) => {
 
 // Modified login route with proper session handling
 router.post('/login', async (req, res) => {
-    const { username, password_hash } = req.body;
+    const { username, password_hash, isRemembered } = req.body;
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (data.rowCount === 0) {
@@ -260,17 +195,37 @@ router.post('/login', async (req, res) => {
                 id: user.id,
                 username: user.username,
                 role: user.role,
-                display_name: user.display_name
+                display_name: user.display_name,
+                manager_id: user.manager_id
             };
+
+            // Set session expiration based on "Remember Me"
+            if (isRemembered) {
+                req.session.cookie.maxAge = 30 * 24 * 60 * 60 * 1000; // 30 days
+            } else {
+                req.session.cookie.maxAge = 1 * 60 * 60 * 1000; // 1 hour
+            }
+
+            // Save the session with new maxAge
             req.session.save((err) => {
                 if (err) {
                     console.error('Session save error:', err);
                     return res.status(500).json({ message: "Error saving session" });
                 }
+
+                // Also update the cookie settings in the response
+                res.cookie('CTMS_sessionID', req.sessionID, {
+                    maxAge: req.session.cookie.maxAge,
+                    httpOnly: true,
+                    secure: false,
+                    sameSite: 'lax'
+                });
+
                 return res.status(200).json({
                     message: "Login successful",
                     session: {
-                        user: req.session.user
+                        user: req.session.user,
+                        maxAge: req.session.cookie.maxAge
                     }
                 });
             });
@@ -291,12 +246,18 @@ router.post('/logout', (req, res) => {
                 console.error('Logout error:', err);
                 return res.status(500).json({ message: "Could not log out" });
             }
-            res.clearCookie('connect.sid'); // Clear the session cookie
+            // Clear the session cookie with the correct name
+            res.clearCookie('CTMS_sessionID', {
+                httpOnly: true,
+                secure: false,
+                sameSite: 'lax'
+            });
             res.json({ message: "Logged out successfully" });
         });
     } else {
         res.json({ message: "No session to end" });
     }
 });
+
 
 module.exports = router;

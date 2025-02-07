@@ -26,6 +26,7 @@ function Test() {
     { header: "role", key: "role" },
     { header: "password_hash", key: "password_hash" },
     { header: "display_name", key: "display_name" },
+    { header: "manager_id", key: "manager_id" },
   ];
 
   const fetchData = () => {
@@ -45,7 +46,9 @@ function Test() {
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
-        setMessage(error.message || "An error occurred while fetching data");
+        setMessage(
+          "An error occurred while fetching data, Is the server running? Is the database loaded?"
+        );
         setLoading(false);
         setBackendData([]); // Set empty data on error
       });
@@ -75,7 +78,8 @@ function Test() {
       !formData.email ||
       !formData.password ||
       !formData.role ||
-      !formData.displayName
+      !formData.displayName ||
+      !isOnlyNumbers(formData.managerId)
     ) {
       setMessage("Please fill in all fields");
       return;
@@ -95,6 +99,7 @@ function Test() {
         password_hash: formData.password,
         role: formData.role,
         display_name: formData.displayName,
+        manager_id: parseInt(formData.managerId),
       }),
     })
       .then((res) => res.json())
@@ -247,6 +252,18 @@ function Test() {
                   value={formData.role}
                   onChange={(e) =>
                     setFormData({ ...formData, role: e.target.value })
+                  }
+                />
+              </div>
+              <div>
+                <h2 className="text-lg">Manager ID:</h2>
+                <input
+                  className="forms"
+                  type="text"
+                  placeholder="Manager ID"
+                  value={formData.managerId}
+                  onChange={(e) =>
+                    setFormData({ ...formData, managerId: e.target.value })
                   }
                 />
               </div>
