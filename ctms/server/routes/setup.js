@@ -170,20 +170,32 @@ async function setupUsers() {
 
 async function resetAllTables() {
     try {
-        await pool.query(`
-            TRUNCATE TABLE notifications CASCADE;
-            TRUNCATE TABLE messages CASCADE;
-            TRUNCATE TABLE AssignedTo CASCADE;
-            TRUNCATE TABLE Task CASCADE;
-            TRUNCATE TABLE user_sessions CASCADE;
-            TRUNCATE TABLE users CASCADE;
-        `);
+        // Use a transaction to ensure all operations complete or none do
+        await pool.query('BEGIN');
 
-        await setupUsers();
-        return { message: "All tables reset successfully" };
+        try {
+            // Truncate all tables in correct order
+            await pool.query(`
+                -- First disable foreign key constraints
+                SET CONSTRAINTS ALL DEFERRED;
+                
+                -- Truncate all tables
+                TRUNCATE TABLE notifications, messages, AssignedTo, Task, user_sessions, users CASCADE;
+                
+                -- Re-enable constraints
+                SET CONSTRAINTS ALL IMMEDIATE;
+            `);
+
+            await pool.query('COMMIT');
+            return { message: "All tables cleared successfully" };
+
+        } catch (err) {
+            await pool.query('ROLLBACK');
+            throw err;
+        }
     } catch (err) {
-        console.error("Error resetting tables:", err.message);
-        throw new Error("Failed to reset tables: " + err.message);
+        console.error("Error clearing tables:", err.message);
+        throw new Error("Failed to clear tables: " + err.message);
     }
 }
 
@@ -226,7 +238,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Reset all tables
 router.get('/reset', async (req, res) => {
     try {
         const result = await resetAllTables();
@@ -236,6 +247,7 @@ router.get('/reset', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
 
 // Delete all tables
 router.get('/delete', async (req, res) => {
