@@ -231,7 +231,10 @@ router.get('/', async (req, res) => {
         const notifications = await setupNotifications();
         const assignedTo = await setupAssignedTo();
 
-        res.status(200).json({ message: "All tables created successfully" });
+        res.status(200).json({
+            message: "All tables created successfully",
+            users, session, tasks, messages, notifications, assignedTo
+        });
     } catch (err) {
         console.error(err.message);
         res.status(500).json({ message: err.message });
