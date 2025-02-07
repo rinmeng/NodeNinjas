@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaTimes } from "react-icons/fa";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -19,6 +20,8 @@ function App() {
   const [sessionUser, setSessionUser] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
+  const [notifications, setNotifications] = useState([]);
+  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     fetch(proxy + "user/session", {
@@ -50,12 +53,44 @@ function App() {
         showNavbar={showNavbar}
         sessionUser={sessionUser}
         devMode={devMode}
+        notifications={notifications}
+        onShowNotifications={() => setShowNotifications(!showNotifications)}
       />
+
+      {/* Add notifications dropdown here */}
+      {showNotifications && (
+        <div className="notification-dropdown">
+          {notifications.length === 0 ? (
+            <div className="p-3 text-gray-500">No notifications</div>
+          ) : (
+            notifications.map(notification => (
+              <div 
+                key={notification.id} 
+                className="notification-item p-3 border-b border-black-200"
+              >
+                <div className="flex justify-between items-center">
+                  <span>{notification.message}</span>
+                  <button 
+                    onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
+                    className="text-black hover:text-gray-600"
+                  >
+                    <FaTimes className="text-sm" />
+                  </button>
+                </div>
+                <div className="text-xs text-gray-500 mt-1">
+                  {new Date(notification.timestamp).toLocaleString()}
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+
       <div>
         <Routes>
           <Route
             path="/"
-            element={<Home sessionUser={sessionUser} devMode={devMode} />}
+            element={<Home sessionUser={sessionUser} devMode={devMode} notifications={notifications} setNotifications={setNotifications}/>}
           />
           <Route
             path="/admin"
