@@ -159,12 +159,8 @@ function Test() {
     })
       .then((res) => res.json())
       .then((data) => {
-        if (data.error) {
-          setMessage(data.error);
-        } else {
-          setMessage(data.message);
-          fetchData();
-        }
+        setMessage(data.message || "User deleted successfully");
+        fetchData();
       })
       .catch((error) => {
         setMessage("Failed to delete user");
@@ -303,23 +299,27 @@ function Test() {
       </div>
       {loading ? (
         <p className="text-lg">Loading...</p>
-      ) : message.toLowerCase().includes("error") ? (
+      ) : message?.toLowerCase().includes("error") ? (
         <div>
           <p className="text-lg text-red-500 my-4">{message}</p>
         </div>
       ) : (
         <div>
-          <div>
-            <p
-              className={`${
-                message.toLowerCase().includes("success")
-                  ? "text-green-500"
-                  : "text-red-500"
-              } text-lg my-4`}
-            >
-              {message}
-            </p>
-          </div>
+          {message && (
+            <div>
+              <p
+                className={`text-lg my-4 ${
+                  message.toLowerCase().includes("success")
+                    ? "text-green-500"
+                    : message.toLowerCase().includes("error")
+                    ? "text-red-500"
+                    : "text-black"
+                }`}
+              >
+                {message}
+              </p>
+            </div>
+          )}
           <DBTable
             columns={columns}
             data={backendData || []}
