@@ -90,3 +90,22 @@ CREATE TABLE
 CREATE INDEX idx_messages_user_id ON messages (user_id);
 
 CREATE INDEX idx_messages_task_id ON messages (task_id);
+
+-- Drop the notifications table if it exists
+DROP TABLE IF EXISTS notifications CASCADE;
+
+-- Notifications Table
+CREATE TABLE
+    notifications (
+        id SERIAL PRIMARY KEY, -- Auto-incremented unique notification ID
+        message TEXT NOT NULL, -- The notification content
+        user_id INT NOT NULL, -- The recipient of the notification
+        type VARCHAR(50) NOT NULL, -- Type of notification (e.g., 'task_update', 'message_received')
+        status VARCHAR(20) DEFAULT 'unread', -- Status of the notification (e.g., 'read', 'unread')
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the notification is created
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the notification is updated
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE -- Foreign key to users table
+    );
+
+-- Index for user_id in notifications table for faster queries on user notifications
+CREATE INDEX idx_notifications_user_id ON notifications (user_id);
