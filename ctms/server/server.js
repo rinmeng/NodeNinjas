@@ -6,6 +6,7 @@ const pgSession = require('connect-pg-simple')(session);
 const home = require('./routes/home');
 const setup = require('./routes/setup');
 const user = require('./routes/user');
+const task = require('./routes/task');
 const PORT = 5000;
 const app = express();
 
@@ -50,6 +51,7 @@ app.use(session({
 app.use('/', home);
 app.use('/setup', setup);
 app.use('/user', user);
+app.use('/task', task);
 
 // Enhanced session debugging middleware
 app.use((req, res, next) => {
