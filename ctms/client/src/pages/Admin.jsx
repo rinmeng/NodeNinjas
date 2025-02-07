@@ -3,7 +3,7 @@ import { Navigate } from "react-router-dom";
 import DBTable from "./testing/subcomp/DBTable";
 import { useState } from "react";
 
-const proxy = "https://localhost:15000/";
+const proxy = "http://localhost:15000/";
 
 const Admin = ({ sessionUser, devMode }) => {
   const [taskName, setTaskName] = useState("");
@@ -93,12 +93,13 @@ const Admin = ({ sessionUser, devMode }) => {
         }
         return res.json();
       })
-      .then((usersList) => {
-        setUsersList(usersList);
+      .then((data) => {
+        console.log("Fetch list:", data);
+        setUsersList(data);
       })
       .catch((error) => {
         console.error("error fetching data:", error);
-        setUsersList([]);
+        setUsersList(null);
       });
   };
 
@@ -150,7 +151,7 @@ const Admin = ({ sessionUser, devMode }) => {
           <div>
             <DBTable
               columns={usersColumns}
-              data={fetchUsers()}
+              data={usersList || []}
               loading={false}
             />
           </div>
