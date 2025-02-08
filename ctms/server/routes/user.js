@@ -88,6 +88,38 @@ router.get('/', (req, res) => {
                             </div>
                         </div>
 
+                        <!-- POST /user/add -->
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">POST /user/add</h3>
+                            <p class="text-gray-600 mt-2">Adds a new user to the database.</p>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Request Body:</h4>
+                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+{
+    "username": string,
+    "email": string,
+    "password_hash": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                                </pre>
+                            </div>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Response:</h4>
+                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+{
+    "id": number,
+    "username": string,
+    "email": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                                </pre>  
+                            </div>
+                        </div>
+
                         <!-- POST /user/login -->
                         <div class="border-l-4 border-blue-500 pl-4">
                             <h3 class="text-xl font-semibold text-gray-800">POST /user/login</h3>
@@ -95,11 +127,11 @@ router.get('/', (req, res) => {
                             <div class="mt-3">
                                 <h4 class="font-medium text-gray-700">Request Body:</h4>
                                 <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
-{
-    "username": string,
-    "password_hash": string,
-    "isRemembered": boolean
-}
+    {
+        "username": string,
+        "password_hash": string,
+        "isRemembered": boolean
+    }
                                 </pre>
                             </div>
                             <div class="mt-3">
@@ -170,22 +202,27 @@ router.get('/all', isAuthAsAdmin, async (req, res) => {
     }
 });
 
-// GET /user/session
-router.get('/session', (req, res) => {
-    if (req.session && req.session.user) {
-        res.json({
-            isValid: true,
-            expiresIn: req.session.cookie.maxAge,
-            user: req.session.user
-        });
-    } else {
-        res.json({
-            isValid: false,
-            message: "No active session"
-        });
+
+
+router.post('/add', async (req, res) => {
+    const { username, email, password_hash, role, display_name, manager_id } = req.body;
+
+    // Add validation for required fields
+    if (!username || !email || !password_hash || !role || !display_name) {
+        return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
+
+    }
+    try {
+        const data = await pool.query(`
+            INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
+            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [username, email, password_hash, role, display_name, manager_id]);
+        res.status(201).json(data.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ message: 'Error adding user.' });
     }
 });
-
 
 // GET /user/id/:id
 router.get('/userid/:id', async (req, res) => {
@@ -217,11 +254,46 @@ router.get('/username/:username', async (req, res) => {
     }
 });
 
+// PUT /user/update/:id
+router.put('/update/:id', isAuthAsAdmin, async (req, res) => {
+    const id = req.body.id;
+    const { username, email, password_hash, role, display_name, manager_id } = req.body;
 
+    // Add validation for required fields
+    if (!username || !email || !password_hash || !role || !display_name) {
+        return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
+
+    }
+    if (!id) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    try {
+        const user = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        if (user.rowCount === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const
+            data = await pool.query(`
+            UPDATE users
+            SET username = $1, email = $2, password_hash = $3, role = $4, display_name = $5, manager_id = $6
+            WHERE id = $7 RETURNING *`,
+                [username, email, password_hash, role, display_name, manager_id, id]);
+        res.status(200).json(data.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ message: 'Error updating user.' });
+    }
+});
 
 // Modified login route with proper session handling
 router.post('/login', async (req, res) => {
     const { username, password_hash, isRemembered } = req.body;
+
+    if (!username || !password_hash) {
+        return res.status(400).json({ message: "Username and password required" });
+    }
+
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (data.rowCount === 0) {
@@ -274,30 +346,47 @@ router.post('/login', async (req, res) => {
         }
     } catch (err) {
         console.error('Login error:', err.message);
-        res.status(500).json({ message: 'Error logging user in.' });
+        res.status(500).json({ message: 'Error logging in user' });
+    }
+});
+
+// GET /user/session
+router.get('/session', (req, res) => {
+    if (req.session && req.session.user) {
+        return res.status(200).json({
+            isValid: true,
+            expiresIn: req.session.cookie.maxAge,
+            user: req.session.user
+        });
+    } else {
+        return res.status(404).json({
+            message: "No active session"
+        });
     }
 });
 
 // Modified logout route
 router.post('/logout', (req, res) => {
-    if (req.session) {
-        req.session.destroy((err) => {
-            if (err) {
-                console.error('Logout error:', err);
-                return res.status(500).json({ message: "Could not log out" });
-            }
-            // Clear the session cookie with the correct name
-            res.clearCookie('CTMS_sessionID', {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax'
-            });
-            res.json({ message: "Logged out successfully" });
-        });
-    } else {
-        res.json({ message: "No session to end" });
+    if (!req.session.user) {
+        return res.status(400).json({ message: "No user to log out" });
     }
-});
+    console.log('Session to destroy:', req.session);
 
+    req.session.destroy((err) => {
+        console.log('Session destroyed:', req.sessionID);
+        if (err) {
+            console.error('Logout error:', err);
+            return res.status(500).json({ message: "Error logging out user" });
+        }
+
+        res.clearCookie('CTMS_sessionID', {
+            httpOnly: true,
+            secure: false,  // Set to true in production if using HTTPS
+            sameSite: 'lax'
+        });
+
+        return res.status(200).json({ message: "Logout successful" }); // Now send the success response
+    });
+});
 
 module.exports = router;
