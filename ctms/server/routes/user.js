@@ -202,21 +202,7 @@ router.get('/all', isAuthAsAdmin, async (req, res) => {
     }
 });
 
-// GET /user/session
-router.get('/session', (req, res) => {
-    if (req.session && req.session.user) {
-        res.json({
-            isValid: true,
-            expiresIn: req.session.cookie.maxAge,
-            user: req.session.user
-        });
-    } else {
-        res.json({
-            isValid: false,
-            message: "No active session"
-        });
-    }
-});
+
 
 router.post('/add', async (req, res) => {
     const { username, email, password_hash, role, display_name, manager_id } = req.body;
@@ -364,33 +350,43 @@ router.post('/login', async (req, res) => {
     }
 });
 
-// Modified logout route
-router.post('/logout', (req, res) => {
-    try {
-        // Check if session exists before destroying it
-        if (!req.session) {
-            return res.status(500).json({ message: "No active session" });
-        }
-
-        req.session.destroy((err) => {
-            if (err) {
-                console.error('Logout error:', err);
-                return res.status(500).json({ message: "Could not log out user" });
-            }
-            // Clear the session cookie with the correct name
-            res.clearCookie('CTMS_sessionID', {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax'
-            });
-            return res.status(200).json({ message: "Logout successful" });
+// GET /user/session
+router.get('/session', (req, res) => {
+    if (req.session && req.session.user) {
+        return res.status(200).json({
+            isValid: true,
+            expiresIn: req.session.cookie.maxAge,
+            user: req.session.user
         });
-    } catch (err) {
-        console.error('Logout error:', err);
-        return res.status(500).json({ message: "No active session" });
+    } else {
+        return res.status(404).json({
+            message: "No active session"
+        });
     }
 });
 
+// Modified logout route
+router.post('/logout', (req, res) => {
+    if (!req.session.user) {
+        return res.status(400).json({ message: "No user to log out" });
+    }
+    console.log('Session to destroy:', req.session);
 
+    req.session.destroy((err) => {
+        console.log('Session destroyed:', req.sessionID);
+        if (err) {
+            console.error('Logout error:', err);
+            return res.status(500).json({ message: "Error logging out user" });
+        }
+
+        res.clearCookie('CTMS_sessionID', {
+            httpOnly: true,
+            secure: false,  // Set to true in production if using HTTPS
+            sameSite: 'lax'
+        });
+
+        return res.status(200).json({ message: "Logout successful" }); // Now send the success response
+    });
+});
 
 module.exports = router;
