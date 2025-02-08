@@ -88,6 +88,38 @@ router.get('/', (req, res) => {
                             </div>
                         </div>
 
+                        <!-- POST /user/add -->
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">POST /user/add</h3>
+                            <p class="text-gray-600 mt-2">Adds a new user to the database.</p>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Request Body:</h4>
+                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+{
+    "username": string,
+    "email": string,
+    "password_hash": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                                </pre>
+                            </div>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Response:</h4>
+                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+{
+    "id": number,
+    "username": string,
+    "email": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                                </pre>  
+                            </div>
+                        </div>
+
                         <!-- POST /user/login -->
                         <div class="border-l-4 border-blue-500 pl-4">
                             <h3 class="text-xl font-semibold text-gray-800">POST /user/login</h3>
@@ -95,11 +127,11 @@ router.get('/', (req, res) => {
                             <div class="mt-3">
                                 <h4 class="font-medium text-gray-700">Request Body:</h4>
                                 <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
-{
-    "username": string,
-    "password_hash": string,
-    "isRemembered": boolean
-}
+    {
+        "username": string,
+        "password_hash": string,
+        "isRemembered": boolean
+    }
                                 </pre>
                             </div>
                             <div class="mt-3">
@@ -186,6 +218,20 @@ router.get('/session', (req, res) => {
     }
 });
 
+// POST /user/add/
+router.post('/add', async (req, res) => {
+    const { username, email, password_hash, role, display_name, manager_id } = req.body;
+    try {
+        const data = await pool.query(`
+            INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
+            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [username, email, password_hash, role, display_name, manager_id]);
+        res.status(201).json(data.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ message: 'Error adding user.' });
+    }
+});
 
 // GET /user/id/:id
 router.get('/userid/:id', async (req, res) => {
