@@ -251,7 +251,7 @@ const Admin = ({ sessionUser, devMode }) => {
               Enter Task Description:
             </label>
             <textarea
-              placeHolder="Enter a Description..."
+              placeholder="Enter a Description..."
               className="rounded-sm mt-30 bg-blue-900 pl-5"
               value={taskDesc}
               onChange={(e) => setTaskDesc(e.target.value)}
@@ -323,7 +323,7 @@ const Admin = ({ sessionUser, devMode }) => {
               Change Task Description:
             </label>
             <textarea
-              placeHolder="Enter a Description..."
+              placeholder="Enter a Description..."
               className="rounded-sm mt-30 bg-blue-900 pl-5"
             ></textarea>
           </div>

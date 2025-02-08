@@ -7,97 +7,137 @@ const pgSession = require('connect-pg-simple')(session);
 const { isAuthenticated } = require('../auth');
 const { isAuthAsAdmin } = require('../auth');
 
-// CREATE TYPE user_role AS ENUM('admin', 'team_member');
-
-// CREATE TABLE
-// users(
-//     id SERIAL PRIMARY KEY,
-//     username VARCHAR(50) UNIQUE NOT NULL,
-//     email VARCHAR(255) UNIQUE NOT NULL,
-//     password_hash VARCHAR(255) NOT NULL,
-//     role user_role NOT NULL DEFAULT 'team_member',
-//     display_name VARCHAR(100)
-// );
-
-// --Create indexes for common search operations
-// CREATE INDEX idx_users_username ON users(username);
-
-// CREATE INDEX idx_users_email ON users(email);
-
-// CREATE INDEX idx_users_role ON users(role);
-
-
-// GET /user
+// GET /user (documentation)
 router.get('/', (req, res) => {
     res.send(`
-        <h1 class="text-3xl">Use 
-            <br> /add to add a user for this endpoint
-            <br> /delete/:id to delete a user by id
-            <br> /all to get all users
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>User Endpoint Documentation</title>
+            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet">
+        </head>
+        <body class="bg-gray-50 min-h-screen p-8">
+            <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
+                <h1 class="text-3xl font-bold text-gray-800 mb-6">User Endpoint Documentation</h1>
+                
+                <div class="space-y-8">
+                    <!-- Authentication Note -->
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <h2 class="text-xl font-semibold text-blue-800 mb-2">Authentication</h2>
+                        <p class="text-blue-700">Some endpoints require authentication. Admin-only routes are protected by <code class="bg-blue-100 px-1 rounded">isAuthAsAdmin</code> middleware.</p>
+                    </div>
+
+                    <!-- Endpoints Section -->
+                    <div class="space-y-6">
+                        <!-- GET / -->
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">GET /user/</h3>
+                            <p class="text-gray-600 mt-2">Returns the main user endpoint navigation page.</p>
+                        </div>
+
+                        <!-- GET /user/all -->
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">GET /user/all</h3>
+                            <p class="text-gray-600 mt-2">Retrieves all users from the database.</p>
+                            <div class="mt-2">
+                                <span class="bg-red-100 text-red-800 text-sm font-medium px-2 py-1 rounded">Admin Only</span>
+                            </div>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Response:</h4>
+                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+{
+    "id": number,
+    "username": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}[]
+                                </pre>
+                            </div>
+                        </div>
+
+                        <!-- GET /user/userid/:id -->
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">GET /user/userid/:id</h3>
+                            <p class="text-gray-600 mt-2">Retrieves a user by their ID.</p>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Parameters:</h4>
+                                <p class="text-gray-600"><code class="bg-gray-100 px-1 rounded">id</code> - User ID (number)</p>
+                            </div>
+                        </div>
+
+                        <!-- GET /user/username/:username -->
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">GET /user/username/:username</h3>
+                            <p class="text-gray-600 mt-2">Retrieves a user by their username.</p>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Parameters:</h4>
+                                <p class="text-gray-600"><code class="bg-gray-100 px-1 rounded">username</code> - Username (string)</p>
+                            </div>
+                        </div>
+
+                        <!-- DELETE /user/delete/:id -->
+                        <div class="border-l-4 border-red-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">DELETE /user/delete/:id</h3>
+                            <p class="text-gray-600 mt-2">Deletes a user by their ID.</p>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Parameters:</h4>
+                                <p class="text-gray-600"><code class="bg-gray-100 px-1 rounded">id</code> - User ID to delete (number)</p>
+                            </div>
+                        </div>
+
+                        <!-- POST /user/login -->
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">POST /user/login</h3>
+                            <p class="text-gray-600 mt-2">Authenticates a user and creates a session.</p>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Request Body:</h4>
+                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+{
+    "username": string,
+    "password_hash": string,
+    "isRemembered": boolean
+}
+                                </pre>
+                            </div>
+                            <div class="mt-3">
+                                <h4 class="font-medium text-gray-700">Notes:</h4>
+                                <ul class="list-disc ml-5 text-gray-600">
+                                    <li>Session expires in 30 days if <code class="bg-gray-100 px-1 rounded">isRemembered</code> is true</li>
+                                    <li>Session expires in 1 hour if <code class="bg-gray-100 px-1 rounded">isRemembered</code> is false</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <!-- POST /user/logout -->
+                        <div class="border-l-4 border-blue-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">POST /user/logout</h3>
+                            <p class="text-gray-600 mt-2">Destroys the current user session and clears session cookie.</p>
+                        </div>
+
+                        <!-- GET /user/session -->
+                        <div class="border-l-4 border-green-500 pl-4">
+                            <h3 class="text-xl font-semibold text-gray-800">GET /user/session</h3>
+                            <p class="text-gray-600 mt-2">Retrieves current session information including user details and expiration.</p>
+                        </div>
+                    </div>
+
+                    <!-- Error Handling -->
+                    <div class="bg-yellow-50 p-4 rounded-lg mt-8">
+                        <h2 class="text-xl font-semibold text-yellow-800 mb-2">Error Responses</h2>
+                        <div class="space-y-2">
+                            <p class="text-yellow-700"><strong>404:</strong> Resource not found</p>
+                            <p class="text-yellow-700"><strong>401:</strong> Unauthorized access</p>
+                            <p class="text-yellow-700"><strong>500:</strong> Internal server error</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </body>
+        </html>
         `);
-});
-
-
-// GET /user/add
-router.get('/add', (req, res) => {
-    res.send('<h1>Add a user by sending a POST request to this endpoint</h1>');
-});
-
-// POST /user/add
-router.post('/add', async (req, res) => {
-    const { username, email, password_hash, role, display_name, manager_id
-    } = req.body;
-    if (!username || !email || !password_hash || !role || !display_name, !manager_id) {
-        missingFields = [];
-        if (!username) missingFields.push('username');
-        if (!email) missingFields.push('email');
-        if (!password_hash) missingFields.push('password_hash');
-        if (!role) missingFields.push('role');
-        if (!display_name) missingFields.push('display_name');
-        if (!manager_id) missingFields.push('manager_id');
-
-        return res.status(400).json({
-            message: "Missing required fields: " + missingFields.join(', ')
-        });
-    }
-    try {
-        const result = await pool.query(
-            'INSERT INTO users (username, email, password_hash, role, display_name, manager_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING * ',
-            [username, email, password_hash, role, display_name, manager_id]
-        );
-        if (result.rowCount === 0) {
-            return res.status(400).json({ error: "User not added" });
-        }
-        return res.status(201).json({ message: "User added successfully" });
-    } catch (err) {
-        console.error('Error adding user:', err);
-
-        // PostgreSQL error codes
-        switch (err.code) {
-            case '23505': // unique_violation
-                const field = err.detail.includes('email') ? 'email' : 'username';
-                return res.status(409).json({
-                    message: `This ${field} is already registered`
-                });
-            case '23514': // check_violation
-                return res.status(400).json({
-                    message: "Invalid role. Must be either 'admin' or 'team_member'"
-                });
-            case '22001': // string_data_right_truncation
-                return res.status(400).json({
-                    message: "One or more fields exceed maximum length"
-                });
-            default:
-                return res.status(500).json({
-                    message: "An error occurred while adding the user"
-                });
-        }
-    }
-});
-
-// GET /user/delete
-router.get('/delete', (req, res) => {
-    res.send('<h1>Delete a user by sending a DELETE request to this endpoint</h1>');
 });
 
 // DELETE /user/delete/:id
