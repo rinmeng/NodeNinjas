@@ -218,9 +218,14 @@ router.get('/session', (req, res) => {
     }
 });
 
-// POST /user/add/
 router.post('/add', async (req, res) => {
     const { username, email, password_hash, role, display_name, manager_id } = req.body;
+
+    // Add validation for required fields
+    if (!username || !email || !password_hash || !role || !display_name) {
+        return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
+
+    }
     try {
         const data = await pool.query(`
             INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
@@ -263,11 +268,46 @@ router.get('/username/:username', async (req, res) => {
     }
 });
 
+// PUT /user/update/:id
+router.put('/update/:id', isAuthAsAdmin, async (req, res) => {
+    const id = req.body.id;
+    const { username, email, password_hash, role, display_name, manager_id } = req.body;
 
+    // Add validation for required fields
+    if (!username || !email || !password_hash || !role || !display_name) {
+        return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
+
+    }
+    if (!id) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    try {
+        const user = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        if (user.rowCount === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const
+            data = await pool.query(`
+            UPDATE users
+            SET username = $1, email = $2, password_hash = $3, role = $4, display_name = $5, manager_id = $6
+            WHERE id = $7 RETURNING *`,
+                [username, email, password_hash, role, display_name, manager_id, id]);
+        res.status(200).json(data.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ message: 'Error updating user.' });
+    }
+});
 
 // Modified login route with proper session handling
 router.post('/login', async (req, res) => {
     const { username, password_hash, isRemembered } = req.body;
+
+    if (!username || !password_hash) {
+        return res.status(400).json({ message: "Username and password required" });
+    }
+
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (data.rowCount === 0) {
@@ -320,17 +360,22 @@ router.post('/login', async (req, res) => {
         }
     } catch (err) {
         console.error('Login error:', err.message);
-        res.status(500).json({ message: 'Error logging user in.' });
+        res.status(500).json({ message: 'Error logging in user' });
     }
 });
 
 // Modified logout route
 router.post('/logout', (req, res) => {
-    if (req.session) {
+    try {
+        // Check if session exists before destroying it
+        if (!req.session) {
+            return res.status(500).json({ message: "No active session" });
+        }
+
         req.session.destroy((err) => {
             if (err) {
                 console.error('Logout error:', err);
-                return res.status(500).json({ message: "Could not log out" });
+                return res.status(500).json({ message: "Could not log out user" });
             }
             // Clear the session cookie with the correct name
             res.clearCookie('CTMS_sessionID', {
@@ -338,12 +383,14 @@ router.post('/logout', (req, res) => {
                 secure: false,
                 sameSite: 'lax'
             });
-            res.json({ message: "Logged out successfully" });
+            return res.status(200).json({ message: "Logout successful" });
         });
-    } else {
-        res.json({ message: "No session to end" });
+    } catch (err) {
+        console.error('Logout error:', err);
+        return res.status(500).json({ message: "No active session" });
     }
 });
+
 
 
 module.exports = router;

@@ -9,7 +9,7 @@ const user = require('./routes/user');
 const task = require('./routes/task');
 const message = require('./routes/message');
 const notification = require('./routes/notification');
-const PORT = 5000;
+const PORT = 5001;
 const app = express();
 
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:13000'];
@@ -66,7 +66,11 @@ app.use((req, res, next) => {
     next();
 });
 
-app.listen(PORT, () => {
-    console.log('Server is running on port ' + PORT);
-    console.log('Visit it at: http://localhost:' + PORT);
-});
+if (process.env.NODE_ENV !== 'test') {
+    const server = app.listen(PORT, () => {
+        console.log('Server is running on port ' + PORT);
+        console.log('Visit it at: http://localhost:' + PORT);
+    });
+}
+
+module.exports = app;
