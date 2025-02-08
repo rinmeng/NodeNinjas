@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../db');
 const router = express.Router();
 const { isAuthenticated } = require('../auth');
+const { isAuthAsAdmin } = require('../auth');
 
 // GET /message/ (documentation endpoint implemented separately)
 router.get('/', (req, res) => {
@@ -163,6 +164,9 @@ router.get('/', (req, res) => {
 
 // GET /message/all - Get all messages for a user
 router.get('/all', isAuthenticated, async (req, res) => {
+    if (!req.session.user) { // If the user is not authenticated
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
     try {
         const result = await pool.query(`
             SELECT m.*, 
