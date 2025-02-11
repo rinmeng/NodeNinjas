@@ -1,9 +1,11 @@
 # API Backend Testing Guide with Jest and Supertest
 
-## Setup
+## Installing Jest and Supertest
+
+Install Jest and Supertest as dev dependencies, under the server directory:
 
 ```bash
-npm install --save-dev jest supertest
+ctms/server> npm install --save-dev jest supertest
 ```
 
 ## Example Test Structure
@@ -56,16 +58,10 @@ describe("API Endpoints", () => {
 4. Isolate tests using beforeEach/afterEach
 5. Mock external dependencies
 
-## Installing Jest and Supertest
-
-```bash
-npm install --save-dev jest supertest
-```
-
 ## Running Tests
 
-Run with (already configured in `package.json`):
+When you are in the server directory, run with (already configured in `package.json`):
 
 ```bash
-npm test
+ctms/server> npm test
 ```
