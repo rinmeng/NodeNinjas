@@ -369,6 +369,12 @@ describe('User Routes', () => {
         });
     });
 
+    // Logout routes and sessions needs to have tests written. 
+    // Currently both works out fine if we check
+    // but Rin does not know how to write tests for them since Cookies
+    // are involved, I think the issue may be that the session cannot mock cookies.
+    // I will try again and write the tests for them and see if they work.
+
     describe('POST /user/logout', () => {
         it('returns status code 400 if no user to log out', async () => {
             const response = await request(app)
