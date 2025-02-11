@@ -7,19 +7,17 @@ jest.mock('../../db', () => ({
     query: jest.fn()
 }));
 
-
-
 describe('User Routes', () => {
     // Add server variable to store server instance
     let server;
 
+    // Start server before all tests
     beforeAll(() => {
-        // Start server before all tests
         server = app.listen();
     });
 
+    // Close server after all tests
     afterAll((done) => {
-        // Close server after all tests
         if (server) {
             server.close(done);
         } else {
@@ -27,11 +25,12 @@ describe('User Routes', () => {
         }
     });
 
+    // Clear mocks before each test
     beforeEach(() => {
-        // Clear all mocks before each test
         jest.clearAllMocks();
     });
 
+    // used to mock the user object
     const sampleUser = {
         id: 1,
         username: 'testuser',
@@ -41,6 +40,7 @@ describe('User Routes', () => {
         display_name: 'testdisplayname',
         manager_id: '1'
     };
+
 
     describe('POST /user/add', () => {
         const validUser = {
@@ -322,6 +322,12 @@ describe('User Routes', () => {
             expect(response.body).toEqual({ message: 'Error updating user.' });
         });
     });
+
+    // Login and Logout routes and sessions needs to have tests written to check if Cookies are created.
+    // Currently both works out fine if we check manually but Rin does not know how to write tests for them since Cookies
+    // are involved, I think the issue may be that the session cannot mock cookies. Some ideas are checking the DB to see if user_sessions has a 
+    // cookie under my the username/id of the user that logged in, but that would make the  API testing invalid 
+    // because we need to test the route itself, not the DB. I will try to write the tests for them and see if they work.
 
     describe('POST /user/login', () => {
         const validLogin = {

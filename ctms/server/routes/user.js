@@ -202,8 +202,6 @@ router.get('/all', isAuthAsAdmin, async (req, res) => {
     }
 });
 
-
-
 router.post('/add', async (req, res) => {
     const { username, email, password_hash, role, display_name, manager_id } = req.body;
 
