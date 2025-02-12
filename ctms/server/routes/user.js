@@ -10,43 +10,43 @@ const { isAuthAsAdmin } = require('../auth');
 // GET /user (documentation)
 router.get('/', (req, res) => {
     res.send(`
-        <!DOCTYPE html>
-        <html lang="en">
-        <head>
-            <meta charset="UTF-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>User Endpoint Documentation</title>
-            <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet">
-        </head>
-        <body class="bg-gray-50 min-h-screen p-8">
-            <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
-                <h1 class="text-3xl font-bold text-gray-800 mb-6">User Endpoint Documentation</h1>
-                
-                <div class="space-y-8">
-                    <!-- Authentication Note -->
-                    <div class="bg-blue-50 p-4 rounded-lg">
-                        <h2 class="text-xl font-semibold text-blue-800 mb-2">Authentication</h2>
-                        <p class="text-blue-700">Some endpoints require authentication. Admin-only routes are protected by <code class="bg-blue-100 px-1 rounded">isAuthAsAdmin</code> middleware.</p>
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Endpoint Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-gray-100 mb-6">User Endpoint Documentation</h1>
+        
+        <div class="space-y-8">
+            <!-- Authentication Note -->
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <h2 class="text-xl font-semibold text-blue-300 mb-2">Authentication</h2>
+                <p class="text-gray-200">Some endpoints require authentication. Admin-only routes are protected by <code class="bg-gray-600 px-1 rounded">isAuthAsAdmin</code> middleware.</p>
+            </div>
+
+            <!-- Endpoints Section -->
+            <div class="space-y-6">
+                <!-- GET / -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/</h3>
+                    <p class="text-gray-300 mt-2">Returns the main user endpoint navigation page.</p>
+                </div>
+
+                <!-- GET /user/all -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/all</h3>
+                    <p class="text-gray-300 mt-2">Retrieves all users from the database.</p>
+                    <div class="mt-2">
+                        <span class="bg-red-900 text-red-100 text-sm font-medium px-2 py-1 rounded">Admin Only</span>
                     </div>
-
-                    <!-- Endpoints Section -->
-                    <div class="space-y-6">
-                        <!-- GET / -->
-                        <div class="border-l-4 border-green-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">GET /user/</h3>
-                            <p class="text-gray-600 mt-2">Returns the main user endpoint navigation page.</p>
-                        </div>
-
-                        <!-- GET /user/all -->
-                        <div class="border-l-4 border-green-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">GET /user/all</h3>
-                            <p class="text-gray-600 mt-2">Retrieves all users from the database.</p>
-                            <div class="mt-2">
-                                <span class="bg-red-100 text-red-800 text-sm font-medium px-2 py-1 rounded">Admin Only</span>
-                            </div>
-                            <div class="mt-3">
-                                <h4 class="font-medium text-gray-700">Response:</h4>
-                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
 {
     "id": number,
     "username": string,
@@ -54,47 +54,47 @@ router.get('/', (req, res) => {
     "display_name": string,
     "manager_id": number
 }[]
-                                </pre>
-                            </div>
-                        </div>
+                        </pre>
+                    </div>
+                </div>
 
-                        <!-- GET /user/userid/:id -->
-                        <div class="border-l-4 border-green-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">GET /user/userid/:id</h3>
-                            <p class="text-gray-600 mt-2">Retrieves a user by their ID.</p>
-                            <div class="mt-3">
-                                <h4 class="font-medium text-gray-700">Parameters:</h4>
-                                <p class="text-gray-600"><code class="bg-gray-100 px-1 rounded">id</code> - User ID (number)</p>
-                            </div>
-                        </div>
+                <!-- GET /user/userid/:id -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/userid/:id</h3>
+                    <p class="text-gray-300 mt-2">Retrieves a user by their ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - User ID (number)</p>
+                    </div>
+                </div>
 
-                        <!-- GET /user/username/:username -->
-                        <div class="border-l-4 border-green-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">GET /user/username/:username</h3>
-                            <p class="text-gray-600 mt-2">Retrieves a user by their username.</p>
-                            <div class="mt-3">
-                                <h4 class="font-medium text-gray-700">Parameters:</h4>
-                                <p class="text-gray-600"><code class="bg-gray-100 px-1 rounded">username</code> - Username (string)</p>
-                            </div>
-                        </div>
+                <!-- GET /user/username/:username -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/username/:username</h3>
+                    <p class="text-gray-300 mt-2">Retrieves a user by their username.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">username</code> - Username (string)</p>
+                    </div>
+                </div>
 
-                        <!-- DELETE /user/delete/:id -->
-                        <div class="border-l-4 border-red-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">DELETE /user/delete/:id</h3>
-                            <p class="text-gray-600 mt-2">Deletes a user by their ID.</p>
-                            <div class="mt-3">
-                                <h4 class="font-medium text-gray-700">Parameters:</h4>
-                                <p class="text-gray-600"><code class="bg-gray-100 px-1 rounded">id</code> - User ID to delete (number)</p>
-                            </div>
-                        </div>
+                <!-- DELETE /user/delete/:id -->
+                <div class="border-l-4 border-red-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">DELETE /user/delete/:id</h3>
+                    <p class="text-gray-300 mt-2">Deletes a user by their ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - User ID to delete (number)</p>
+                    </div>
+                </div>
 
-                        <!-- POST /user/add -->
-                        <div class="border-l-4 border-blue-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">POST /user/add</h3>
-                            <p class="text-gray-600 mt-2">Adds a new user to the database.</p>
-                            <div class="mt-3">
-                                <h4 class="font-medium text-gray-700">Request Body:</h4>
-                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+                <!-- POST /user/add -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">POST /user/add</h3>
+                    <p class="text-gray-300 mt-2">Adds a new user to the database.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
 {
     "username": string,
     "email": string,
@@ -103,11 +103,11 @@ router.get('/', (req, res) => {
     "display_name": string,
     "manager_id": number
 }
-                                </pre>
-                            </div>
-                            <div class="mt-3">
-                                <h4 class="font-medium text-gray-700">Response:</h4>
-                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
 {
     "id": number,
     "username": string,
@@ -116,60 +116,59 @@ router.get('/', (req, res) => {
     "display_name": string,
     "manager_id": number
 }
-                                </pre>  
-                            </div>
-                        </div>
-
-                        <!-- POST /user/login -->
-                        <div class="border-l-4 border-blue-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">POST /user/login</h3>
-                            <p class="text-gray-600 mt-2">Authenticates a user and creates a session.</p>
-                            <div class="mt-3">
-                                <h4 class="font-medium text-gray-700">Request Body:</h4>
-                                <pre class="bg-gray-50 p-3 rounded mt-2 text-sm">
-    {
-        "username": string,
-        "password_hash": string,
-        "isRemembered": boolean
-    }
-                                </pre>
-                            </div>
-                            <div class="mt-3">
-                                <h4 class="font-medium text-gray-700">Notes:</h4>
-                                <ul class="list-disc ml-5 text-gray-600">
-                                    <li>Session expires in 30 days if <code class="bg-gray-100 px-1 rounded">isRemembered</code> is true</li>
-                                    <li>Session expires in 1 hour if <code class="bg-gray-100 px-1 rounded">isRemembered</code> is false</li>
-                                </ul>
-                            </div>
-                        </div>
-
-                        <!-- POST /user/logout -->
-                        <div class="border-l-4 border-blue-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">POST /user/logout</h3>
-                            <p class="text-gray-600 mt-2">Destroys the current user session and clears session cookie.</p>
-                        </div>
-
-                        <!-- GET /user/session -->
-                        <div class="border-l-4 border-green-500 pl-4">
-                            <h3 class="text-xl font-semibold text-gray-800">GET /user/session</h3>
-                            <p class="text-gray-600 mt-2">Retrieves current session information including user details and expiration.</p>
-                        </div>
-                    </div>
-
-                    <!-- Error Handling -->
-                    <div class="bg-yellow-50 p-4 rounded-lg mt-8">
-                        <h2 class="text-xl font-semibold text-yellow-800 mb-2">Error Responses</h2>
-                        <div class="space-y-2">
-                            <p class="text-yellow-700"><strong>404:</strong> Resource not found</p>
-                            <p class="text-yellow-700"><strong>401:</strong> Unauthorized access</p>
-                            <p class="text-yellow-700"><strong>500:</strong> Internal server error</p>
-                        </div>
+                        </pre>  
                     </div>
                 </div>
+
+                <!-- POST /user/login -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">POST /user/login</h3>
+                    <p class="text-gray-300 mt-2">Authenticates a user and creates a session.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "username": string,
+    "password_hash": string,
+    "isRemembered": boolean
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Notes:</h4>
+                        <ul class="list-disc ml-5 text-gray-300">
+                            <li>Session expires in 30 days if <code class="bg-gray-600 px-1 rounded">isRemembered</code> is true</li>
+                            <li>Session expires in 1 hour if <code class="bg-gray-600 px-1 rounded">isRemembered</code> is false</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- POST /user/logout -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">POST /user/logout</h3>
+                    <p class="text-gray-300 mt-2">Destroys the current user session and clears session cookie.</p>
+                </div>
+
+                <!-- GET /user/session -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/session</h3>
+                    <p class="text-gray-300 mt-2">Retrieves current session information including user details and expiration.</p>
+                </div>
             </div>
-        </body>
-        </html>
-        `);
+
+            <!-- Error Handling -->
+            <div class="bg-gray-700 p-4 rounded-lg mt-8">
+                <h2 class="text-xl font-semibold text-yellow-300 mb-2">Error Responses</h2>
+                <div class="space-y-2">
+                    <p class="text-gray-200"><strong>404:</strong> Resource not found</p>
+                    <p class="text-gray-200"><strong>401:</strong> Unauthorized access</p>
+                    <p class="text-gray-200"><strong>500:</strong> Internal server error</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`);
 });
 
 // DELETE /user/delete/:id

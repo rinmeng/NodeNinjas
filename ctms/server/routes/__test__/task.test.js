@@ -292,74 +292,37 @@ describe('Task Routes', () => {
                 message: 'Task not found'
             });
         });
+
     });
 
-    describe('GET /task/assignedto/:id', () => {
-        it('should fetch assigned tasks successfully', async () => {
-            const mockTasks = [{
-                id: 1,
-                name: 'Task 1',
-                date: '2024-01-01',
-                description: 'Description 1',
-                status: 'pending',
-                priority: 'medium'
-            }];
-
-            pool.query.mockResolvedValueOnce({
-                rows: mockTasks
-            });
-
-            const response = await request(app)
-                .get('/task/assignedto/1')
-                .send({ id: 1 });
-
-            expect(response.status).toBe(200);
-            expect(response.body).toEqual(mockTasks);
-        });
-
-        it('should return 400 if user ID is missing', async () => {
-            const response = await request(app)
-                .get('/task/assignedto/1')
-                .send({});
-
-            expect(response.status).toBe(400);
-            expect(response.body).toEqual({
-                message: 'User ID is required'
-            });
-        });
-
-        it('should handle database errors', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Database error'));
-
-            const response = await request(app)
-                .get('/task/assignedto/1')
-                .send({ id: 1 });
-
-            expect(response.status).toBe(500);
-            expect(response.body).toEqual({
-                message: 'Failed to fetch tasks'
-            });
-        });
-    });
-
-    describe('GET /task/all/userid/:id', () => {
-        it('should fetch all tasks for a user successfully', async () => {
-            const mockTasks = [{
-                id: 1,
-                name: 'Task 1',
-                date: '2024-01-01',
-                description: 'Description 1',
-                status: 'pending',
-                priority: 'medium'
-            }];
+    describe('GET /task/assignedto/user/:id', () => {
+        it('should fetch tasks assigned to user successfully', async () => {
+            const mockTasks = [
+                {
+                    id: 1,
+                    name: 'Test Task 1',
+                    date: '2024-01-01',
+                    description: 'Description 1',
+                    status: 'pending',
+                    priority: 'medium'
+                },
+                {
+                    id: 2,
+                    name: 'Test Task 2',
+                    date: '2024-01-02',
+                    description: 'Description 2',
+                    status: 'in_progress',
+                    priority: 'high'
+                }
+            ];
 
             pool.query.mockResolvedValueOnce({
                 rows: mockTasks,
-                rowCount: 1
+                rowCount: 2
             });
 
             const response = await request(app)
-                .get('/task/all/userid/1')
+                .get('/task/assignedto/user/1')
                 .send({ id: 1 });
 
             expect(response.status).toBe(200);
@@ -372,7 +335,7 @@ describe('Task Routes', () => {
 
         it('should return 400 if user ID is missing', async () => {
             const response = await request(app)
-                .get('/task/all/userid/1')
+                .get('/task/assignedto/user/1')
                 .send({});
 
             expect(response.status).toBe(400);
@@ -388,8 +351,8 @@ describe('Task Routes', () => {
             });
 
             const response = await request(app)
-                .get('/task/all/userid/1')
-                .send({ id: 1 });
+                .get('/task/assignedto/user/999')
+                .send({ id: 999 });
 
             expect(response.status).toBe(404);
             expect(response.body).toEqual({
@@ -401,7 +364,7 @@ describe('Task Routes', () => {
             pool.query.mockRejectedValueOnce(new Error('Database error'));
 
             const response = await request(app)
-                .get('/task/all/userid/1')
+                .get('/task/assignedto/user/1')
                 .send({ id: 1 });
 
             expect(response.status).toBe(500);
