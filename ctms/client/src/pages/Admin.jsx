@@ -1,9 +1,20 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
 import DBTable from "./testing/subcomp/DBTable";
-import {useState} from "react";
+import { useState } from "react";
 
 const Admin = ({ sessionUser, devMode }) => {
+  const [taskName, setTaskName] = useState("");
+  const [taskDesc, setTaskDesc] = useState("");
+  const [taskPriority, setTaskPriority] = useState("1");
+  const [taskDue, setTaskDue] = useState("");
+
+  //This is my UseState for filtering my data in the table
+  const [filterData, setFilterData] = useState("");
+
+  // UseState for the list of tasks you can view
+  const [taskList, setTaskList] = useState([]);
+
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -18,30 +29,19 @@ const Admin = ({ sessionUser, devMode }) => {
     );
   }
 
-    const [taskName,setTaskName] = useState("");
-    const [taskDesc, setTaskDesc] = useState("");
-    const [taskPriority,setTaskPriority] = useState("1");
-    const [taskDue,setTaskDue] = useState("");
-
-    //This is my UseState for filtering my data in the table
-    const [filterData,setFilterData] = useState("");
-
-    // UseState for the list of tasks you can view
-    const[taskList,setTaskList] = useState([]);
-
-    //Our function will check the new task that is added when the user presses the "Add" button on the Add Task form
-    const HandleAddandViewTask = () => {
+  //Our function will check the new task that is added when the user presses the "Add" button on the Add Task form
+  const HandleAddandViewTask = () => {
     // A new Task object is made and it contains name, description, priority and date fields.
     const addedTask = {
-        id: Date.now(),
-        name: taskName,
-        description: taskDesc,
-        priority: taskPriority,
-        date: taskDue
+      id: Date.now(),
+      name: taskName,
+      description: taskDesc,
+      priority: taskPriority,
+      date: taskDue,
     };
 
-    //Once the new task has been created, we will added the created task to our existing array of tasks. 
-    setTaskList([...taskList,addedTask]);
+    //Once the new task has been created, we will added the created task to our existing array of tasks.
+    setTaskList([...taskList, addedTask]);
 
     // After creating our new task, we will reset all the fields in the Add Task section
     setTaskName("");
@@ -50,24 +50,23 @@ const Admin = ({ sessionUser, devMode }) => {
     setTaskDue("");
   };
 
- //Here is my data for the table which view all created tasks under Managing Roles. 
-const columns = [
-  {header: "Task Name", key: "name"},
-  {header: "Task Description", key: "description"},
-  {header: "Task Priority", key: "priority"},
-  {header: "Due Date", key: "date"}
-];
+  //Here is my data for the table which view all created tasks under Managing Roles.
+  const columns = [
+    { header: "Task Name", key: "name" },
+    { header: "Task Description", key: "description" },
+    { header: "Task Priority", key: "priority" },
+    { header: "Due Date", key: "date" },
+  ];
 
-//If the user chooses a specific option from the selector, this function will be called and sort our tasks based on their priority or due date
-const FilterDataByOption = () => {
-  const clonedList = [...taskList];
-  if(filterData == "priority"){
-    clonedList.sort((a,b) => a.priority - b.priority);
-  } else
-    clonedList.sort((a,b) => new Date(a.date) - new Date(b.date));
+  //If the user chooses a specific option from the selector, this function will be called and sort our tasks based on their priority or due date
+  const FilterDataByOption = () => {
+    const clonedList = [...taskList];
+    if (filterData === "priority") {
+      clonedList.sort((a, b) => a.priority - b.priority);
+    } else clonedList.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     return clonedList;
-}
+  };
 
   return (
     <div className="mp5 my-16 animate-fadein">
@@ -83,28 +82,41 @@ const FilterDataByOption = () => {
             </h1>
           </div>
 
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">Filter Tasks by:</label>
-            <select 
-            className="bg-blue-900 mt-15 ml-5"
-            value={filterData}
-            onChange={(e) => setFilterData(e.target.value)}
-            >
-              <option value="teamMember">Team Members</option>
-              <option value="priority">Priority</option>
-              <option value="date">Due Date</option>
-            </select>
+          <div className="flex justify-around items-center">
+            <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
+              <label className="text-xl mt-15">Filter Tasks by:</label>
+              <select
+                className="bg-blue-900 mt-15 ml-5"
+                value={filterData}
+                onChange={(e) => setFilterData(e.target.value)}
+              >
+                <option value="teamMember">Team Members</option>
+                <option value="priority">Priority</option>
+                <option value="date">Due Date</option>
+              </select>
+            </div>
+
+            <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
+              <label className="text-xl mt-15">Adjust Users:</label>
+              <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
+                Deactivate
+              </button>
+              <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
+                Delete
+              </button>
+            </div>
+
+            <div>
+              <button className="btn-red">Reset</button>
+            </div>
           </div>
 
-                <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-                <label className="text-xl mt-15">Adjust Users:</label>
-                    <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">Deactivate</button>
-                    <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">Delete</button>
-                </div>
-
-
           <div>
-            <DBTable columns={columns} data = {FilterDataByOption()} loading={false}/>
+            <DBTable
+              columns={columns}
+              data={FilterDataByOption()}
+              loading={false}
+            />
           </div>
 
           <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 "></div>
@@ -151,28 +163,36 @@ const FilterDataByOption = () => {
             <h1 className="text-2xl font-bold text-center"> View Task </h1>
           </div>
 
-            {/* If there are no new tasks, there will be a display message. Otherwise, all created Tasks can be viewed on the View Task */}
-            {taskList.length > 0 ? (
-                taskList.map((task,index) => (
-                    <div key={task.id} className="text-center text-xl m-5 bg-blue-900 rounded pt-5 pb-5">
-                        <h2>{index + 1 }.  Name: {task.name}</h2>
-                        <p>Priority: {task.priority}</p>
-                        <p>Description: {task.description}</p>
-                        <p>Due Date: {task.date}</p>
-                    </div>
-                ))
-            ):(<p className="text-center text-xl">There aren't any assigned tasks here!</p>)}
-                      <div className="mt-4 flex justify-end">
-                        <div className="bg-sky-700 inline-block p-4 rounded-xl mr-5">
-                            <label className="text-xl mt-15">Filter by:</label>
-                                <select className="bg-blue-900 mt-15 ml-5 p-1">
-                                    <option value="pending">Pending</option>
-                                    <option value="inProgress">In Progress</option>
-                                    <option value="completed">Completed</option>
-                            </select>
-                        </div>
-                    </div>
-
+          {/* If there are no new tasks, there will be a display message. Otherwise, all created Tasks can be viewed on the View Task */}
+          {taskList.length > 0 ? (
+            taskList.map((task, index) => (
+              <div
+                key={task.id}
+                className="text-center text-xl m-5 bg-blue-900 rounded pt-5 pb-5"
+              >
+                <h2>
+                  {index + 1}. Name: {task.name}
+                </h2>
+                <p>Priority: {task.priority}</p>
+                <p>Description: {task.description}</p>
+                <p>Due Date: {task.date}</p>
+              </div>
+            ))
+          ) : (
+            <p className="text-center text-xl">
+              There aren't any assigned tasks here!
+            </p>
+          )}
+          <div className="mt-4 flex justify-end">
+            <div className="bg-sky-700 inline-block p-4 rounded-xl mr-5">
+              <label className="text-xl mt-15">Filter by:</label>
+              <select className="bg-blue-900 mt-15 ml-5 p-1">
+                <option value="pending">Pending</option>
+                <option value="inProgress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+            </div>
+          </div>
 
           <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 "></div>
         </div>
@@ -193,8 +213,8 @@ const FilterDataByOption = () => {
               type="text"
               placeholder="Enter Task Name..."
               className="rounded-sm pl-5 ml-5 bg-blue-900"
-              value = {taskName}
-              onChange = {(e) => setTaskName(e.target.value)}
+              value={taskName}
+              onChange={(e) => setTaskName(e.target.value)}
             ></input>
           </div>
 
@@ -203,10 +223,10 @@ const FilterDataByOption = () => {
               Choose the Priority Level(1 being Critical and 5 being Low
               Priority):
             </label>
-            <select 
-            className="bg-blue-900 mt-15 ml-5"
-            value={taskPriority}
-            onChange = {(e) => setTaskPriority(e.target.value)}
+            <select
+              className="bg-blue-900 mt-15 ml-5"
+              value={taskPriority}
+              onChange={(e) => setTaskPriority(e.target.value)}
             >
               <option value="1">1</option>
               <option value="2">2</option>
@@ -218,10 +238,11 @@ const FilterDataByOption = () => {
 
           <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
             <label className="text-xl mt-15">Choose a Due Date:</label>
-            <input type="date" 
-            className="mt-15 ml-5 bg-blue-900"
-            value={taskDue}
-            onChange = {(e) => setTaskDue(e.target.value)}
+            <input
+              type="date"
+              className="mt-15 ml-5 bg-blue-900"
+              value={taskDue}
+              onChange={(e) => setTaskDue(e.target.value)}
             ></input>
           </div>
 
@@ -230,10 +251,10 @@ const FilterDataByOption = () => {
               Enter Task Description:
             </label>
             <textarea
-              placeHolder="Enter a Description..."
+              placeholder="Enter a Description..."
               className="rounded-sm mt-30 bg-blue-900 pl-5"
-              value = {taskDesc}
-              onChange = {(e) => setTaskDesc(e.target.value)}
+              value={taskDesc}
+              onChange={(e) => setTaskDesc(e.target.value)}
             ></textarea>
           </div>
 
@@ -250,9 +271,10 @@ const FilterDataByOption = () => {
           </div>
 
           <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 flex justify-center">
-            <button 
-            className="bg-green-700 w-30 p-2 ml-auto mr-auto rounded-xl"
-            onClick={HandleAddandViewTask}>
+            <button
+              className="bg-green-700 w-30 p-2 ml-auto mr-auto rounded-xl"
+              onClick={HandleAddandViewTask}
+            >
               Add Task
             </button>
           </div>
@@ -301,7 +323,7 @@ const FilterDataByOption = () => {
               Change Task Description:
             </label>
             <textarea
-              placeHolder="Enter a Description..."
+              placeholder="Enter a Description..."
               className="rounded-sm mt-30 bg-blue-900 pl-5"
             ></textarea>
           </div>

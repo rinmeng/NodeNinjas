@@ -1,7 +1,14 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import { FaBell } from "react-icons/fa";
 
-const Navbar = ({ showNavbar, sessionUser, devMode }) => {
+const Navbar = ({
+  showNavbar,
+  sessionUser,
+  devMode,
+  notifications = [],
+  onShowNotifications,
+}) => {
   return (
     <nav
       className={`${showNavbar ? "animate-fadein" : "animate-fadeout"}
@@ -14,14 +21,15 @@ const Navbar = ({ showNavbar, sessionUser, devMode }) => {
           </h1>
         </div>
         <div className="space-x-4">
-          {(sessionUser?.role === "admin" || devMode) && (
+          {/* Deprecated, since we are using a testing library instead. */}
+          {/* {(sessionUser?.role === "admin" || devMode) && (
             <Link
               to="/test"
               className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
             >
               Test Database Connection
             </Link>
-          )}
+          )} */}
 
           {(sessionUser || devMode) && (
             <Link
@@ -54,6 +62,13 @@ const Navbar = ({ showNavbar, sessionUser, devMode }) => {
           >
             {sessionUser ? "Profile" : "Login"}
           </Link>
+
+          <button onClick={onShowNotifications} className="notification-bell">
+            <FaBell className="text-xl" />
+            {notifications.length > 0 && (
+              <span className="notification-badge">{notifications.length}</span>
+            )}
+          </button>
         </div>
       </div>
     </nav>
