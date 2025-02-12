@@ -168,32 +168,15 @@ router.get('/', (req, res) => {
     `);
 });
 
-// GET /task/all - Get all tasks
-router.get('/all', isAuthenticated, async (req, res) => {
-    try {
-        const result = await pool.query(`
-            SELECT t.*, 
-                   json_agg(json_build_object(
-                       'user_id', u.id,
-                       'username', u.username,
-                       'display_name', u.display_name
-                   )) as assigned_users
-            FROM task t
-            LEFT JOIN assignedto a ON t.id = a.task_id
-            LEFT JOIN users u ON a.user_id = u.id
-            GROUP BY t.id
-            ORDER BY t.created_at DESC
-        `);
-
-        res.json(result.rows);
-    } catch (err) {
-        res.status(500).json({ message: 'Failed to retrieve tasks' });
-    }
-});
-
 // POST /task/add - Add a new task
 router.post('/add', isAuthenticated, async (req, res) => {
-    const { name, date, status, priority, assigned_users } = req.body;
+    const { name, date, description, status, priority, assigned_users } = req.body;
+
+    if (!name || !date || !status || !priority) {
+        return res.status(400).json({
+            message: 'Missing required fields'
+        });
+    }
 
     try {
         // Start transaction
@@ -201,10 +184,10 @@ router.post('/add', isAuthenticated, async (req, res) => {
 
         // Insert task
         const taskResult = await pool.query(
-            `INSERT INTO task (name, date, status, priority) 
-             VALUES ($1, $2, $3, $4) 
+            `INSERT INTO task (name, date, description, status, priority)
+             VALUES ($1, $2, $3, $4, $5) 
              RETURNING *`,
-            [name, date, status || 'pending', priority || 'medium']
+            [name, date, description, status || 'pending', priority || 'medium']
         );
 
         const taskId = taskResult.rows[0].id;
@@ -216,7 +199,7 @@ router.post('/add', isAuthenticated, async (req, res) => {
             }).join(',');
 
             await pool.query(`
-                INSERT INTO assignedto (user_id, task_id, assigned_date)
+                INSERT INTO AssignedTo (user_id, task_id, assigned_date)
                 VALUES ${assignValues}
             `);
         }
@@ -231,70 +214,16 @@ router.post('/add', isAuthenticated, async (req, res) => {
     }
 });
 
-// PUT /task/:id - Update a task
-router.put('/:id', isAuthenticated, async (req, res) => {
-    const { id } = req.params;
-    const { name, date, status, priority, assigned_users } = req.body;
-
-    try {
-        await pool.query('BEGIN');
-
-        // Update task
-        const updateResult = await pool.query(
-            `UPDATE task 
-             SET name = COALESCE($1, name),
-                 date = COALESCE($2, date),
-                 status = COALESCE($3, status),
-                 priority = COALESCE($4, priority),
-                 updated_at = CURRENT_TIMESTAMP
-             WHERE id = $5
-             RETURNING *`,
-            [name, date, status, priority, id]
-        );
-
-        if (updateResult.rows.length === 0) {
-            await pool.query('ROLLBACK');
-            return res.status(404).json({ message: 'Task not found' });
-        }
-
-        // Update assignments if provided
-        if (assigned_users) {
-            // Remove existing assignments
-            await pool.query('DELETE FROM assignedto WHERE task_id = $1', [id]);
-
-            // Add new assignments
-            if (assigned_users.length > 0) {
-                const assignValues = assigned_users.map(userId => {
-                    return `(${userId}, ${id}, CURRENT_DATE)`;
-                }).join(',');
-
-                await pool.query(`
-                    INSERT INTO assignedto (user_id, task_id, assigned_date)
-                    VALUES ${assignValues}
-                `);
-            }
-        }
-
-        await pool.query('COMMIT');
-
-        res.json(updateResult.rows[0]);
-    } catch (err) {
-        await pool.query('ROLLBACK');
-        res.status(500).json({ message: 'Failed to update task' });
+// DELETE /task/delete/:id - Delete a task by ID
+router.delete('/delete/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+        return res.status(400).json({ message: 'Task ID is required' });
     }
-});
-
-// DELETE /task/:id - Delete a task
-router.delete('/:id', isAuthenticated, async (req, res) => {
-    const { id } = req.params;
-
     try {
-        const result = await pool.query(
-            'DELETE FROM task WHERE id = $1 RETURNING *',
-            [id]
-        );
+        const deleteTask = await pool.query('DELETE FROM task WHERE id = $1 RETURNING *', [id]);
 
-        if (result.rows.length === 0) {
+        if (deleteTask.rowCount === 0) {
             return res.status(404).json({ message: 'Task not found' });
         }
 
@@ -304,33 +233,139 @@ router.delete('/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-// GET /task/:id - Get a specific task
-router.get('/:id', isAuthenticated, async (req, res) => {
-    const { id } = req.params;
+// PUT /task/update/:id - Update a task by ID
+router.put('/update/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.body;
+    const { name, date, description, status, priority, assigned_users } = req.body;
 
     try {
-        const result = await pool.query(`
-            SELECT t.*, 
-                   json_agg(json_build_object(
-                       'user_id', u.id,
-                       'username', u.username,
-                       'display_name', u.display_name
-                   )) as assigned_users
+        // Start transaction
+        await pool.query('BEGIN');
+
+        // Update task
+        const taskResult = await pool.query(`
+            UPDATE task
+            SET name = $1, date = $2, description = $3, status = $4, priority = $5
+            WHERE id = $6
+            RETURNING *
+        `, [name, date, description, status, priority, id]);
+
+        if (taskResult.rowCount === 0) {
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ message: 'Task not found' });
+        }
+
+        // Remove existing assignments
+        await pool.query('DELETE FROM assignedto WHERE task_id = $1', [id]);
+
+        // Assign users if provided
+        if (assigned_users && assigned_users.length > 0) {
+            const assignValues = assigned_users.map(userId => {
+                return `(${userId}, ${id}, CURRENT_DATE)`;
+            }).join(',');
+
+            await pool.query(`
+                INSERT INTO AssignedTo (user_id, task_id, assigned_date)
+                VALUES ${assignValues}
+            `);
+        }
+
+        // Commit transaction
+        await pool.query('COMMIT');
+
+        res.json(taskResult.rows[0]);
+    } catch (err) {
+        await pool.query('ROLLBACK');
+        res.status(500).json({ message: 'Failed to update task' });
+    }
+});
+
+// GET /task/:id - Fetch a task by ID
+router.get('/id/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+        return res.status(400).json({ message: 'Task ID is required' });
+    }
+    try {
+        const taskResult = await pool.query(`
+            SELECT t.id, t.name, t.date, t.description, t.status, t.priority, 
+            u.id as user_id, u.username, u.display_name
             FROM task t
             LEFT JOIN assignedto a ON t.id = a.task_id
             LEFT JOIN users u ON a.user_id = u.id
             WHERE t.id = $1
-            GROUP BY t.id
         `, [id]);
 
-        if (result.rows.length === 0) {
+        if (taskResult.rowCount === 0) {
             return res.status(404).json({ message: 'Task not found' });
         }
 
-        res.json(result.rows[0]);
+        const task = taskResult.rows[0];
+        const assigned_users = taskResult.rows
+            .filter(row => row.user_id)
+            .map(row => ({
+                user_id: row.user_id,
+                username: row.username,
+                display_name: row.display_name
+            }));
+
+        res.json({
+            id: task.id,
+            name: task.name,
+            date: task.date,
+            description: task.description,
+            status: task.status,
+            priority: task.priority,
+            assigned_users
+        });
     } catch (err) {
-        res.status(500).json({ message: 'Failed to retrieve task' });
+        res.status(500).json({ message: 'Failed to fetch task' });
     }
 });
+
+// GET /assignedto/:id - Fetch all tasks assigned to a user
+router.get('/assignedto/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+    try {
+        const result = await pool.query(`
+            SELECT t.id, t.name, t.date, t.description, t.status, t.priority
+            FROM task t
+            JOIN assignedto a ON t.id = a.task_id
+            WHERE a.user_id = $1
+            ORDER BY t.date DESC
+        `, [id]);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch tasks' });
+    }
+});
+
+// GET /task/all/userid/:id - Fetch all tasks with user id
+router.get('/all/userid/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+    try {
+        const result = await pool.query(`
+            SELECT t.id, t.name, t.date, t.description, t.status, t.priority
+            FROM task t
+            JOIN assignedto a ON t.id = a.task_id
+            WHERE a.user_id = $1
+            ORDER BY t.date DESC
+        `, [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'No tasks found under this user' });
+        }
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch tasks' });
+    }
+});
+
+
 
 module.exports = router;
