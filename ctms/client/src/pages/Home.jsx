@@ -11,6 +11,16 @@ const Home = ({ sessionUser, devMode }) => {
   const [taskDate, setTaskDate] = useState("");
   const [updateTaskId, setUpdateTaskId] = useState(null); // Track if a task is being updated
   const [errorMessage, setErrorMessage] = useState(" "); //check if the field is empty
+  const [checkStatus,setCheckStatus]=useState("");
+  
+  const handleStatusChange = (id, newStatus) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === id ? { ...task, status: newStatus } : task
+      )
+    );
+  };
+  
   // Add or Update Task
   const handleAddOrUpdateTask = (e) => {
     e.preventDefault();
@@ -30,6 +40,7 @@ const Home = ({ sessionUser, devMode }) => {
                 description: taskDescription,
                 priority: taskPriority,
                 date: taskDate,
+                status:checkStatus,
               }
             : task
         )
@@ -43,6 +54,7 @@ const Home = ({ sessionUser, devMode }) => {
         description: taskDescription,
         priority: taskPriority,
         date: taskDate,
+        status:"Pending"
       };
       setTasks((prevTasks) => [...prevTasks, newTask]);
       console.log("Task Added:", newTask);
@@ -55,6 +67,7 @@ const Home = ({ sessionUser, devMode }) => {
     setTaskDate("");
     setUpdateTaskId(null);
     setErrorMessage("");
+    setCheckStatus("Pending");
   };
 
   // Populate task data for updating
@@ -73,7 +86,7 @@ const Home = ({ sessionUser, devMode }) => {
   const handleDeleteTask = (id) => {
     setTasks((prevTasks) => prevTasks.filter((task) => task.id !== id));
   };
-
+  
   // Filter tasks based on search criteria
   const filteredTasks = tasks.filter((task) =>
     task[searchCriteria]
@@ -121,6 +134,7 @@ const Home = ({ sessionUser, devMode }) => {
               <option value="priority">Priority</option>
               <option value="date">Date</option>
               <option value="description">Description</option>
+              
             </select>
           </div>
         </div>
@@ -149,8 +163,18 @@ const Home = ({ sessionUser, devMode }) => {
                   <p>
                     <strong>Description:</strong> {task.description}
                   </p>
+                  <p><strong>Status:</strong> {task.status}</p>
                 </div>
                 <div>
+                <select
+              value={task.status}
+              onChange={(e) => handleStatusChange(task.id, e.target.value)}
+              className="bg-yellow-500 text-white p-2 rounded mr-2"
+            >
+              <option value="pending">Pending</option>
+              <option value="inProgress">In Progress</option>
+              <option value="completed">Completed</option>
+            </select>
                   <button
                     onClick={() => handleEditTask(task.id)}
                     className="bg-yellow-500 text-white p-2 rounded mr-2"
@@ -169,17 +193,7 @@ const Home = ({ sessionUser, devMode }) => {
           ) : (
             <p>No tasks found matching the criteria.</p>
           )}
-          <div className="flex justify-end">
-            <select
-                value={searchCriteria}
-                onChange={(e) => setSearchCriteria(e.target.value)}
-                className="task w-56 p-2 border rounded"
-              >
-                <option value="pending">Pending</option>
-                <option value="inProgress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-          </div>
+
         </div>
       </section>
 
@@ -214,11 +228,10 @@ const Home = ({ sessionUser, devMode }) => {
                   onChange={(e) => setTaskPirioty(e.target.value)}
                   className="bg-sky-700 p-4 rounded-xl w-full"
                 >
-                  <option value="1">1</option>
-                  <option value="2">2</option>
-                  <option value="3">3</option>
-                  <option value="4">4</option>
-                  <option value="5">5</option>
+                  <option value="High">High</option>
+                  <option value="Medium">Medium</option>
+                  <option value="Low">Low</option>
+
                 </select>
               </div>
               <div className="flex flex-col w-full">
@@ -240,6 +253,17 @@ const Home = ({ sessionUser, devMode }) => {
               {updateTaskId ? "Update Task" : "Add Task"}
             </button>
           </form>
+          <div className="flex justify-end">
+            <select
+                value={checkStatus}
+                onChange={(e) => setCheckStatus(e.target.value)}
+                className="task w-56 p-2 border rounded"
+              >
+                <option value="pending">Pending</option>
+                <option value="inProgress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
+          </div>
         </div>
       </section>
     </div>
