@@ -226,16 +226,28 @@ router.post('/register', async (req, res) => {
         return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
 
     }
+    // check if user already exists
+    const userExists = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+    // check if email already exists
+    const emailExists = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+
+    if (userExists.rowCount != 0) {
+        return res.status(400).json({ message: 'Username already exists' });
+    }
+    if (emailExists.rowCount != 0) {
+        return res.status(400).json({ message: 'Email already exists' });
+    }
 
     try {
+        const hashedPassword = await hashPassword(password_hash);
         const data = await pool.query(`
             INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
-            [username, email, password_hash, role, display_name, manager_id]);
-        res.status(201).json(data.rows[0]);
+            [username, email, hashedPassword, role, display_name, manager_id]);
+        res.status(201).json({ message: "User registered successfully" });
     } catch (err) {
         console.error(err.message);
-        res.status(500).send({ message: 'Error adding user.' });
+        return res.status(500).send({ message: 'Error adding user.' });
     }
 });
 
@@ -317,7 +329,9 @@ router.post('/login', async (req, res) => {
         }
 
         const user = data.rows[0];
-        if (user.password_hash === password_hash) {
+        const isPasswordValid = await verifyPassword(password_hash, user.password_hash);
+
+        if (isPasswordValid) {
             // Set session data
             req.session.user = {
                 id: user.id,
