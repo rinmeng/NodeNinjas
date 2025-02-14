@@ -3,9 +3,26 @@ const pool = require('../db');
 const router = express.Router();
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
+const bcrypt = require('bcryptjs');
+
+// 10 is the recommended salt rounds
+const BCRYPT_SALT = 10;
+
 
 const { isAuthenticated } = require('../auth');
 const { isAuthAsAdmin } = require('../auth');
+
+// use bcryptjs to hash passwords
+async function hashPassword(password) {
+    const salt = await bcrypt.genSalt(BCRYPT_SALT);
+    const hashedPassword = await bcrypt.hash(password, salt);
+    return hashedPassword;
+}
+
+// use bcryptjs to verify passwords
+async function verifyPassword(inputPassword, storedHash) {
+    return await bcrypt.compare(inputPassword, storedHash);
+}
 
 // GET /user (documentation)
 router.get('/', (req, res) => {
@@ -201,7 +218,7 @@ router.get('/all', isAuthAsAdmin, async (req, res) => {
     }
 });
 
-router.post('/add', async (req, res) => {
+router.post('/register', async (req, res) => {
     const { username, email, password_hash, role, display_name, manager_id } = req.body;
 
     // Add validation for required fields
@@ -209,6 +226,7 @@ router.post('/add', async (req, res) => {
         return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
 
     }
+
     try {
         const data = await pool.query(`
             INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
@@ -286,6 +304,7 @@ router.put('/update/:id', isAuthAsAdmin, async (req, res) => {
 // Modified login route with proper session handling
 router.post('/login', async (req, res) => {
     const { username, password_hash, isRemembered } = req.body;
+
 
     if (!username || !password_hash) {
         return res.status(400).json({ message: "Username and password required" });

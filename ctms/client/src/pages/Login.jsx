@@ -129,7 +129,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       const manager_id = managerData.id;
 
       // Register the new user with the manager_id
-      const registerResponse = await fetch(proxy + "user/add", {
+      const registerResponse = await fetch(proxy + "user/register", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
