@@ -22,8 +22,8 @@ async function setupPgSession() {
 async function setupAssignedTo() {
     try {
         await pool.query(`
-            DROP TABLE IF EXISTS AssignedTo CASCADE;
-            CREATE TABLE AssignedTo (
+            DROP TABLE IF EXISTS assignedto CASCADE;
+            CREATE TABLE assignedto (
                 id SERIAL PRIMARY KEY,
                 assigned_date DATE NOT NULL,
                 user_id INT NOT NULL,
@@ -33,13 +33,13 @@ async function setupAssignedTo() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
-            CREATE INDEX idx_assignedto_user_id ON AssignedTo (user_id);
-            CREATE INDEX idx_assignedto_task_id ON AssignedTo (task_id);
+            CREATE INDEX idx_assignedto_user_id ON assignedto (user_id);
+            CREATE INDEX idx_assignedto_task_id ON assignedto (task_id);
         `);
-        return { message: "AssignedTo table created successfully" };
+        return { message: "assignedto table created successfully" };
     } catch (err) {
-        console.error("Error setting up AssignedTo table:", err.message);
-        throw new Error("Failed to create AssignedTo table: " + err.message);
+        console.error("Error setting up assignedto table:", err.message);
+        throw new Error("Failed to create assignedto table: " + err.message);
     }
 }
 
@@ -54,6 +54,7 @@ async function setupTasks() {
             CREATE TABLE Task(
                 id SERIAL PRIMARY KEY,
                 name VARCHAR(255) NOT NULL,
+                description TEXT,
                 date DATE NOT NULL,
                 status task_status NOT NULL DEFAULT 'pending',
                 priority task_priority NOT NULL DEFAULT 'medium',
@@ -180,7 +181,7 @@ async function resetAllTables() {
                 SET CONSTRAINTS ALL DEFERRED;
                 
                 -- Truncate all tables
-                TRUNCATE TABLE notifications, messages, AssignedTo, Task, user_sessions, users CASCADE;
+                TRUNCATE TABLE notifications, messages, assignedto, task, user_sessions, users CASCADE;
                 
                 -- Re-enable constraints
                 SET CONSTRAINTS ALL IMMEDIATE;
@@ -204,8 +205,8 @@ async function deleteAllTables() {
         await pool.query(`
             DROP TABLE IF EXISTS notifications CASCADE;
             DROP TABLE IF EXISTS messages CASCADE;
-            DROP TABLE IF EXISTS AssignedTo CASCADE;
-            DROP TABLE IF EXISTS Task CASCADE;
+            DROP TABLE IF EXISTS assignedto CASCADE;
+            DROP TABLE IF EXISTS task CASCADE;
             DROP TABLE IF EXISTS user_sessions CASCADE;
             DROP TABLE IF EXISTS users CASCADE;
             

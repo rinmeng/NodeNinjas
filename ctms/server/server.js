@@ -11,7 +11,6 @@ const message = require('./routes/message');
 const notification = require('./routes/notification');
 const PORT = 5001;
 const app = express();
-
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:13000'];
 
 app.use(express.json());
