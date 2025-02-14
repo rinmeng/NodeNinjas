@@ -22,6 +22,10 @@ const Admin = ({ sessionUser, devMode }) => {
     fetchUsers();
   }, []);
 
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -35,6 +39,21 @@ const Admin = ({ sessionUser, devMode }) => {
       </div>
     );
   }
+
+  //Here is my data for the table which view all created tasks under Managing Roles.
+  const columns = [
+    { header: "Task Name", key: "name" },
+    { header: "Task Description", key: "description" },
+    { header: "Task Priority", key: "priority" },
+    { header: "Due Date", key: "date" },
+  ];
+
+  const usersColumns = [
+    { header: "User Id", key: "id" },
+    { header: "Username", key: "username" },
+    { header: "Email Address", key: "email" },
+    { header: "Role", key: "role" },
+  ];
 
   //Our function will check the new task that is added when the user presses the "Add" button on the Add Task form
   const HandleAddandViewTask = () => {
@@ -56,21 +75,6 @@ const Admin = ({ sessionUser, devMode }) => {
     setTaskPriority("1");
     setTaskDue("");
   };
-
-  //Here is my data for the table which view all created tasks under Managing Roles.
-  const columns = [
-    { header: "Task Name", key: "name" },
-    { header: "Task Description", key: "description" },
-    { header: "Task Priority", key: "priority" },
-    { header: "Due Date", key: "date" },
-  ];
-
-  const usersColumns = [
-    { header: "User Id", key: "id" },
-    { header: "Username", key: "username" },
-    { header: "Email Address", key: "email" },
-    { header: "Role", key: "role" },
-  ];
 
   //If the user chooses a specific option from the selector, this function will be called and sort our tasks based on their priority or due date
   const FilterDataByOption = () => {
@@ -233,16 +237,6 @@ const Admin = ({ sessionUser, devMode }) => {
                 <option value="inProgress">In Progress</option>
                 <option value="completed">Completed</option>
               </select>
-            </div>
-          </div>
-
-          {/*Buttom for filtering the task by date in view task section*/}
-          <div className="mt-4 flex justify-end">
-            <div className="bg-sky-700 inline-block p-4 rounded-xl mr-5">
-              <label className="text-xl mt-15">Filter From this date:</label>
-              <input type="date" className="mt-15 ml-5 bg-blue-900"></input>
-              <label className="text-xl mt-15"> To this date:</label>
-              <input type="date" className="mt-15 ml-5 bg-blue-900"></input>
             </div>
           </div>
 
