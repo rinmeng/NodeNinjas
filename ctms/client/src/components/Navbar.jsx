@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Mail, X, Bell } from "lucide-react";
 
+// Defines the Notification Panel component
 const NotificationPanel = ({ notifications, onClose }) => {
   return (
     <div className="absolute right-4 top-16 bg-white shadow-lg rounded-lg w-80 z-20">
