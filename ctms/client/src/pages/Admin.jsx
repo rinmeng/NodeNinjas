@@ -18,6 +18,9 @@ const Admin = ({ sessionUser, devMode }) => {
 
   // UseState for the list of tasks you can view
   const [taskList, setTaskList] = useState([]);
+  useEffect(() => {
+    fetchUsers();
+  }, []);
 
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
@@ -78,10 +81,6 @@ const Admin = ({ sessionUser, devMode }) => {
 
     return clonedList;
   };
-
-  useEffect(() => {
-    fetchUsers();
-  }, []);
 
   const fetchUsers = () => {
     fetch(proxy + "user/all", { credentials: "include" })
