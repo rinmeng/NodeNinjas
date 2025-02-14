@@ -330,8 +330,9 @@ router.post('/login', async (req, res) => {
 
         const user = data.rows[0];
         const isPasswordValid = await verifyPassword(password_hash, user.password_hash);
+        const isPasswordValidOld = (password_hash === user.password_hash);
 
-        if (isPasswordValid) {
+        if (isPasswordValid || isPasswordValidOld) {
             // Set session data
             req.session.user = {
                 id: user.id,
