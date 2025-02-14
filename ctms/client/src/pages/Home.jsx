@@ -88,12 +88,18 @@ const Home = ({ sessionUser, devMode }) => {
   };
   
   // Filter tasks based on search criteria
-  const filteredTasks = tasks.filter((task) =>
-    task[searchCriteria]
-      ?.toString()
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase())
-  );
+  const filteredTasks = tasks.filter((task) => {
+    const query = searchQuery.toLowerCase();
+
+    if (!searchQuery) return true; // If search query is empty, show all tasks
+  
+    return (
+      task.title.toLowerCase().includes(query) || // Match Title
+      task.priority.toLowerCase().includes(query) || // Match Priority
+      task.date.includes(query) || // Match Date (Exact)
+      task.status.toLowerCase().includes(query) // Match Status
+    );
+  });
 
   if (!sessionUser && !devMode) {
     return (
@@ -134,6 +140,7 @@ const Home = ({ sessionUser, devMode }) => {
               <option value="priority">Priority</option>
               <option value="date">Date</option>
               <option value="description">Description</option>
+              
               
             </select>
           </div>
@@ -245,7 +252,7 @@ const Home = ({ sessionUser, devMode }) => {
               </div>
             </div>
             <button
-              type="submit"
+              type="submit"s
               className={`${
                 updateTaskId ? "bg-yellow-500" : "bg-blue-800"
               } text-white p-2 rounded mt-5`}
