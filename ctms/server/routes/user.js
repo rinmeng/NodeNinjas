@@ -7,97 +7,168 @@ const pgSession = require('connect-pg-simple')(session);
 const { isAuthenticated } = require('../auth');
 const { isAuthAsAdmin } = require('../auth');
 
-// CREATE TYPE user_role AS ENUM('admin', 'team_member');
-
-// CREATE TABLE
-// users(
-//     id SERIAL PRIMARY KEY,
-//     username VARCHAR(50) UNIQUE NOT NULL,
-//     email VARCHAR(255) UNIQUE NOT NULL,
-//     password_hash VARCHAR(255) NOT NULL,
-//     role user_role NOT NULL DEFAULT 'team_member',
-//     display_name VARCHAR(100)
-// );
-
-// --Create indexes for common search operations
-// CREATE INDEX idx_users_username ON users(username);
-
-// CREATE INDEX idx_users_email ON users(email);
-
-// CREATE INDEX idx_users_role ON users(role);
-
-
-// GET /user
+// GET /user (documentation)
 router.get('/', (req, res) => {
     res.send(`
-        <h1 class="text-3xl">Use 
-            <br> /add to add a user for this endpoint
-            <br> /delete/:id to delete a user by id
-            <br> /all to get all users
-        `);
-});
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Endpoint Documentation</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-900 min-h-screen p-8">
+    <div class="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg p-8">
+        <h1 class="text-3xl font-bold text-gray-100 mb-6">User Endpoint Documentation</h1>
+        
+        <div class="space-y-8">
+            <!-- Authentication Note -->
+            <div class="bg-gray-700 p-4 rounded-lg">
+                <h2 class="text-xl font-semibold text-blue-300 mb-2">Authentication</h2>
+                <p class="text-gray-200">Some endpoints require authentication. Admin-only routes are protected by <code class="bg-gray-600 px-1 rounded">isAuthAsAdmin</code> middleware.</p>
+            </div>
 
+            <!-- Endpoints Section -->
+            <div class="space-y-6">
+                <!-- GET / -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/</h3>
+                    <p class="text-gray-300 mt-2">Returns the main user endpoint navigation page.</p>
+                </div>
 
-// GET /user/add
-router.get('/add', (req, res) => {
-    res.send('<h1>Add a user by sending a POST request to this endpoint</h1>');
-});
+                <!-- GET /user/all -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/all</h3>
+                    <p class="text-gray-300 mt-2">Retrieves all users from the database.</p>
+                    <div class="mt-2">
+                        <span class="bg-red-900 text-red-100 text-sm font-medium px-2 py-1 rounded">Admin Only</span>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "username": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}[]
+                        </pre>
+                    </div>
+                </div>
 
-// POST /user/add
-router.post('/add', async (req, res) => {
-    const { username, email, password_hash, role, display_name, manager_id
-    } = req.body;
-    if (!username || !email || !password_hash || !role || !display_name, !manager_id) {
-        missingFields = [];
-        if (!username) missingFields.push('username');
-        if (!email) missingFields.push('email');
-        if (!password_hash) missingFields.push('password_hash');
-        if (!role) missingFields.push('role');
-        if (!display_name) missingFields.push('display_name');
-        if (!manager_id) missingFields.push('manager_id');
+                <!-- GET /user/userid/:id -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/userid/:id</h3>
+                    <p class="text-gray-300 mt-2">Retrieves a user by their ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - User ID (number)</p>
+                    </div>
+                </div>
 
-        return res.status(400).json({
-            message: "Missing required fields: " + missingFields.join(', ')
-        });
-    }
-    try {
-        const result = await pool.query(
-            'INSERT INTO users (username, email, password_hash, role, display_name, manager_id) VALUES ($1, $2, $3, $4, $5, $6) RETURNING * ',
-            [username, email, password_hash, role, display_name, manager_id]
-        );
-        if (result.rowCount === 0) {
-            return res.status(400).json({ error: "User not added" });
-        }
-        return res.status(201).json({ message: "User added successfully" });
-    } catch (err) {
-        console.error('Error adding user:', err);
+                <!-- GET /user/username/:username -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/username/:username</h3>
+                    <p class="text-gray-300 mt-2">Retrieves a user by their username.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">username</code> - Username (string)</p>
+                    </div>
+                </div>
 
-        // PostgreSQL error codes
-        switch (err.code) {
-            case '23505': // unique_violation
-                const field = err.detail.includes('email') ? 'email' : 'username';
-                return res.status(409).json({
-                    message: `This ${field} is already registered`
-                });
-            case '23514': // check_violation
-                return res.status(400).json({
-                    message: "Invalid role. Must be either 'admin' or 'team_member'"
-                });
-            case '22001': // string_data_right_truncation
-                return res.status(400).json({
-                    message: "One or more fields exceed maximum length"
-                });
-            default:
-                return res.status(500).json({
-                    message: "An error occurred while adding the user"
-                });
-        }
-    }
-});
+                <!-- DELETE /user/delete/:id -->
+                <div class="border-l-4 border-red-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">DELETE /user/delete/:id</h3>
+                    <p class="text-gray-300 mt-2">Deletes a user by their ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - User ID to delete (number)</p>
+                    </div>
+                </div>
 
-// GET /user/delete
-router.get('/delete', (req, res) => {
-    res.send('<h1>Delete a user by sending a DELETE request to this endpoint</h1>');
+                <!-- POST /user/add -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">POST /user/add</h3>
+                    <p class="text-gray-300 mt-2">Adds a new user to the database.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "username": string,
+    "email": string,
+    "password_hash": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "username": string,
+    "email": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                        </pre>  
+                    </div>
+                </div>
+
+                <!-- POST /user/login -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">POST /user/login</h3>
+                    <p class="text-gray-300 mt-2">Authenticates a user and creates a session.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "username": string,
+    "password_hash": string,
+    "isRemembered": boolean
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Notes:</h4>
+                        <ul class="list-disc ml-5 text-gray-300">
+                            <li>Session expires in 30 days if <code class="bg-gray-600 px-1 rounded">isRemembered</code> is true</li>
+                            <li>Session expires in 1 hour if <code class="bg-gray-600 px-1 rounded">isRemembered</code> is false</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- POST /user/logout -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">POST /user/logout</h3>
+                    <p class="text-gray-300 mt-2">Destroys the current user session and clears session cookie.</p>
+                </div>
+
+                <!-- GET /user/session -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/session</h3>
+                    <p class="text-gray-300 mt-2">Retrieves current session information including user details and expiration.</p>
+                </div>
+            </div>
+
+            <!-- Error Handling -->
+            <div class="bg-gray-700 p-4 rounded-lg mt-8">
+                <h2 class="text-xl font-semibold text-yellow-300 mb-2">Error Responses</h2>
+                <div class="space-y-2">
+                    <p class="text-gray-200"><strong>404:</strong> Resource not found</p>
+                    <p class="text-gray-200"><strong>401:</strong> Unauthorized access</p>
+                    <p class="text-gray-200"><strong>500:</strong> Internal server error</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>`);
 });
 
 // DELETE /user/delete/:id
@@ -130,22 +201,25 @@ router.get('/all', isAuthAsAdmin, async (req, res) => {
     }
 });
 
-// GET /user/session
-router.get('/session', (req, res) => {
-    if (req.session && req.session.user) {
-        res.json({
-            isValid: true,
-            expiresIn: req.session.cookie.maxAge,
-            user: req.session.user
-        });
-    } else {
-        res.json({
-            isValid: false,
-            message: "No active session"
-        });
+router.post('/add', async (req, res) => {
+    const { username, email, password_hash, role, display_name, manager_id } = req.body;
+
+    // Add validation for required fields
+    if (!username || !email || !password_hash || !role || !display_name) {
+        return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
+
+    }
+    try {
+        const data = await pool.query(`
+            INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
+            VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
+            [username, email, password_hash, role, display_name, manager_id]);
+        res.status(201).json(data.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ message: 'Error adding user.' });
     }
 });
-
 
 // GET /user/id/:id
 router.get('/userid/:id', async (req, res) => {
@@ -177,11 +251,46 @@ router.get('/username/:username', async (req, res) => {
     }
 });
 
+// PUT /user/update/:id
+router.put('/update/:id', isAuthAsAdmin, async (req, res) => {
+    const id = req.body.id;
+    const { username, email, password_hash, role, display_name, manager_id } = req.body;
 
+    // Add validation for required fields
+    if (!username || !email || !password_hash || !role || !display_name) {
+        return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
+
+    }
+    if (!id) {
+        return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    try {
+        const user = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        if (user.rowCount === 0) {
+            return res.status(404).json({ message: 'User not found' });
+        }
+        const
+            data = await pool.query(`
+            UPDATE users
+            SET username = $1, email = $2, password_hash = $3, role = $4, display_name = $5, manager_id = $6
+            WHERE id = $7 RETURNING *`,
+                [username, email, password_hash, role, display_name, manager_id, id]);
+        res.status(200).json(data.rows[0]);
+    } catch (err) {
+        console.error(err.message);
+        res.status(500).send({ message: 'Error updating user.' });
+    }
+});
 
 // Modified login route with proper session handling
 router.post('/login', async (req, res) => {
     const { username, password_hash, isRemembered } = req.body;
+
+    if (!username || !password_hash) {
+        return res.status(400).json({ message: "Username and password required" });
+    }
+
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
         if (data.rowCount === 0) {
@@ -234,30 +343,47 @@ router.post('/login', async (req, res) => {
         }
     } catch (err) {
         console.error('Login error:', err.message);
-        res.status(500).json({ message: 'Error logging user in.' });
+        res.status(500).json({ message: 'Error logging in user' });
+    }
+});
+
+// GET /user/session
+router.get('/session', (req, res) => {
+    if (req.session && req.session.user) {
+        return res.status(200).json({
+            isValid: true,
+            expiresIn: req.session.cookie.maxAge,
+            user: req.session.user
+        });
+    } else {
+        return res.status(404).json({
+            message: "No active session"
+        });
     }
 });
 
 // Modified logout route
 router.post('/logout', (req, res) => {
-    if (req.session) {
-        req.session.destroy((err) => {
-            if (err) {
-                console.error('Logout error:', err);
-                return res.status(500).json({ message: "Could not log out" });
-            }
-            // Clear the session cookie with the correct name
-            res.clearCookie('CTMS_sessionID', {
-                httpOnly: true,
-                secure: false,
-                sameSite: 'lax'
-            });
-            res.json({ message: "Logged out successfully" });
-        });
-    } else {
-        res.json({ message: "No session to end" });
+    if (!req.session.user) {
+        return res.status(400).json({ message: "No user to log out" });
     }
-});
+    console.log('Session to destroy:', req.session);
 
+    req.session.destroy((err) => {
+        console.log('Session destroyed:', req.sessionID);
+        if (err) {
+            console.error('Logout error:', err);
+            return res.status(500).json({ message: "Error logging out user" });
+        }
+
+        res.clearCookie('CTMS_sessionID', {
+            httpOnly: true,
+            secure: false,  // Set to true in production if using HTTPS
+            sameSite: 'lax'
+        });
+
+        return res.status(200).json({ message: "Logout successful" }); // Now send the success response
+    });
+});
 
 module.exports = router;

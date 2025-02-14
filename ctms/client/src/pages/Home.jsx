@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
+import { FaBell, FaTimes } from "react-icons/fa";
 
-const Home = ({ sessionUser, devMode }) => {
+const Home = ({ sessionUser, devMode, notifications, setNotifications }) => {
   const [tasks, setTasks] = useState([]); // State to manage tasks
   const [searchQuery, setSearchQuery] = useState("");
   const [searchCriteria, setSearchCriteria] = useState("priority"); // Default search by priority
@@ -60,6 +61,16 @@ const Home = ({ sessionUser, devMode }) => {
       console.log("Task Added:", newTask);
     }
 
+    const action = updateTaskId ? 'updated' : 'added';
+    const newNotification = {
+    id: Date.now(),
+    message: `Task "${taskTitle}" ${action} successfully`,
+    timestamp: new Date().toISOString(),
+      };
+  
+  // This should trigger a state update
+  setNotifications(prev => [newNotification, ...prev]);
+
     // Reset the form
     setTaskTitle("");
     setTaskDescription("");
@@ -80,6 +91,15 @@ const Home = ({ sessionUser, devMode }) => {
       setTaskDate(taskToEdit.date);
       setUpdateTaskId(taskToEdit.id);
     }
+  };
+
+  //notificaiton handlers
+  const handleDismissNotification = (id) => {
+    setNotifications((prev) => prev.filter((n) => n.id !== id));
+  };
+
+  const handleClearAllNotifications = () => {
+    setNotifications([]);
   };
 
   // Delete a specific task
@@ -143,6 +163,7 @@ const Home = ({ sessionUser, devMode }) => {
               
               
             </select>
+            <button className="bg-red-700 w-30 ml-10 p-3 rounded-xl">Reset</button>
           </div>
         </div>
       </section>
