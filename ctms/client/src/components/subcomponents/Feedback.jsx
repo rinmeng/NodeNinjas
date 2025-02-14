@@ -19,7 +19,7 @@ const Feedback = ({ icon, message, seconds, isSuccess }) => {
   return (
     <div
       className={`
-            fixed z-40 w-1/2 my-6 left-1/2 translate-y-2/3 -translate-x-1/2 justify-center 
+            fixed z-[60] w-1/2 my-6 left-1/2 translate-y-full -translate-x-1/2 justify-center 
             flex items-center p-4 rounded-lg transition-opacity duration-500 ease-in-out
             ${isSuccess ? "glass-green" : "glass-amber"}
         `}
