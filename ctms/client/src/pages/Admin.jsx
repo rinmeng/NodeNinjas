@@ -194,6 +194,7 @@ const Admin = ({ sessionUser, devMode }) => {
             </div>
           </div>
 
+          {/*Buttom for filtering the task by date in view task section*/}
           <div className="mt-4 flex justify-end">
             <div className="bg-sky-700 inline-block p-4 rounded-xl mr-5">
               <label className="text-xl mt-15">Filter From this date:</label>
