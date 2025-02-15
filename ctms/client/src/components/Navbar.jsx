@@ -1,10 +1,24 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Mail, X, Bell } from "lucide-react";
 
 // Defines the Notification Panel component
 const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
   const [expandedIds, setExpandedIds] = useState(new Set());
+  const panelRef = useRef(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if(panelRef.current && !panelRef.current.contains(event.target)) {
+        onClose();
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+  };
+}, [onClose]);
 
   const toggleDescription = (id) => {
     setExpandedIds((prev) => {
@@ -19,7 +33,7 @@ const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
   };
 
   return (
-    <div className="absolute right-4 top-16 bg-white shadow-lg rounded-lg w-80 z-20">
+    <div ref={panelRef} className="absolute right-4 top-16 bg-white shadow-lg rounded-lg w-80 z-20">
       <div className="p-4 border-b border-slate-200 flex justify-between items-center">
         <h3 className="font-semibold text-slate-800">Notifications</h3>
         <button onClick={onClose} className="text-slate-600 hover:text-slate-800">
@@ -98,7 +112,8 @@ const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [], onMarkAs
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  const handleBellClick = () => {
+  const handleBellClick = (e) => {
+    e.stopPropagation();
     const wasVisible = isNotificationsVisible;
     setIsNotificationsVisible(!wasVisible);
 
