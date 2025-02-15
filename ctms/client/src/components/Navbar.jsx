@@ -3,7 +3,21 @@ import { Link } from "react-router-dom";
 import { Mail, X, Bell } from "lucide-react";
 
 // Defines the Notification Panel component
-const NotificationPanel = ({ notifications, onClose }) => {
+const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
+  const [expandedIds, setExpandedIds] = useState(new Set());
+
+  const toggleDescription = (id) => {
+    setExpandedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(id)) {
+        newSet.delete(id);
+      } else {
+        newSet.add(id);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="absolute right-4 top-16 bg-white shadow-lg rounded-lg w-80 z-20">
       <div className="p-4 border-b border-slate-200 flex justify-between items-center">
@@ -19,28 +33,79 @@ const NotificationPanel = ({ notifications, onClose }) => {
             No new notifications
           </div>
         ) : (
-          notifications.map((notification, index) => (
+          notifications.map((notification) => {
+            const isExpanded = expandedIds.has(notification.id);
+            
+            return (
             <div
-              key={index}
-              className="p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0 flex items-start gap-3"
+              key={notification.id}
+              className="p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0"
             >
-              <Mail size={18} className="flex-shrink-0 text-slate-600 mt-1" />
-              <div>
+              <div className="flex items-start gap-3">
+                {/* Mail icon and read toggle */}
+              <button 
+              onClick={() => onToggleRead(notification.id)}
+              className="flex-shrink-0"
+            >
+              <Mail size={18} className={`mt-1 transition-transform duration-200 ease-in-out ${
+              !notification.read ? 'text-blue-600' : 'text-slate-600'
+              }`} 
+                />
+              </button>
+              
+
+                {/* Main content */}
+                <div
+                  className="flex-1 cursor-pointer"
+                  onClick={() => toggleDescription(notification.id)}
+                >
                 <p className="text-sm text-slate-800">{notification.message}</p>
                 <time className="text-xs text-slate-500 mt-1 block">
-                  {notification.timestamp}
+                  {new Date(notification.timestamp).toLocaleString()}
                 </time>
+
+                {/* Collapisable description */}
+                {isExpanded && (
+                  <div className="mt-2 text-sm text-slate-600 transition-all duration-300 ease-in-out">
+                    {notification.description}
+                  </div>
+                )}
+
+
               </div>
+
+              {/*Mark read/unread button*/}
+              <button
+              onClick={(e) => {
+                e.stopPropagation();  // Prevent the notification from being toggled 
+                onToggleRead(notification.id)
+              }}
+              className="text-sm text-slate-500 hover:text-blue-600 ml-2"
+            >
+              {notification.read ? 'Mark unread' : 'Mark read'}
+            </button>
             </div>
-          ))
+          </div>
+          );
+          })
         )}
       </div>
     </div>
   );
 };
 
-const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [], onShowNotifications }) => {
+const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [], onMarkAsRead, onToggleRead }) => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const handleBellClick = () => {
+    const wasVisible = isNotificationsVisible;
+    setIsNotificationsVisible(!wasVisible);
+
+  if(!wasVisible && unreadCount > 0) {
+    onMarkAsRead();
+    }
+  };
 
   return (
     <nav
@@ -98,13 +163,13 @@ const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [], onShowNo
           {/* Notification Bell */}
           
             <button 
-              onClick={() => setIsNotificationsVisible(!isNotificationsVisible)}
+              onClick={handleBellClick}
               className="text-white hover:text-slate-300 relative p-2"
             >
               <Bell size={24} />
-              {notifications.length > 0 && (
+              {unreadCount > 0 && (
                 <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {notifications.length}
+                  {unreadCount}
                 </span>
               )}
             </button>
@@ -113,6 +178,7 @@ const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [], onShowNo
               <NotificationPanel
                 notifications={notifications}
                 onClose={() => setIsNotificationsVisible(false)}
+                onToggleRead={onToggleRead}
               />
             )}
         </div>

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { FaTimes } from "react-icons/fa";
+import { Mail, X, Bell } from "lucide-react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -47,6 +47,22 @@ function App() {
     return <div>Loading...</div>;
   }
 
+  //mark notifications as read
+  const markNotificationsAsRead = () => {
+    setNotifications(prev => 
+      prev.map(n => ({ ...n, read: true }))
+    );
+  };
+
+  //toggle notification read status
+  const toggleNotificationReadStatus = (id) => {
+    setNotifications(prev => 
+      prev.map(n => 
+        n.id === id ? { ...n, read: !n.read } : n
+      )
+    );
+  };
+
   return (
     <Router>
       <Navbar
@@ -54,37 +70,10 @@ function App() {
         sessionUser={sessionUser}
         devMode={devMode}
         notifications={notifications}
-        onShowNotifications={() => setShowNotifications(!showNotifications)}
+        setNotifications={setNotifications}
+        onMarkAsRead={markNotificationsAsRead}
+        onToggleRead={toggleNotificationReadStatus}
       />
-
-      {/* Add notifications dropdown here */}
-      {showNotifications && (
-        <div className="notification-dropdown">
-          {notifications.length === 0 ? (
-            <div className="p-3 text-gray-500">No notifications</div>
-          ) : (
-            notifications.map(notification => (
-              <div 
-                key={notification.id} 
-                className="notification-item p-3 border-b border-black-200"
-              >
-                <div className="flex justify-between items-center">
-                  <span>{notification.message}</span>
-                  <button 
-                    onClick={() => setNotifications(prev => prev.filter(n => n.id !== notification.id))}
-                    className="text-black hover:text-gray-600"
-                  >
-                    <FaTimes className="text-sm" />
-                  </button>
-                </div>
-                <div className="text-xs text-gray-500 mt-1">
-                  {new Date(notification.timestamp).toLocaleString()}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      )}
 
       <div>
         <Routes>
