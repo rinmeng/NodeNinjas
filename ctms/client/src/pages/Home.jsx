@@ -62,11 +62,14 @@ const Home = ({ sessionUser, devMode, notifications, setNotifications }) => {
     }
 
     const action = updateTaskId ? 'updated' : 'added';
+    // Create a new notification
     const newNotification = {
-    id: Date.now(),
-    message: `Task "${taskTitle}" ${action} successfully`,
-    timestamp: new Date().toISOString(),
-      };
+      id: Date.now(),
+      message: `Task "${taskTitle}" ${action} successfully`,
+      description: taskDescription,
+      timestamp: new Date().toISOString(),
+      read: false // Add read status
+    };
   
   // This should trigger a state update
   setNotifications(prev => [newNotification, ...prev]);
@@ -93,14 +96,7 @@ const Home = ({ sessionUser, devMode, notifications, setNotifications }) => {
     }
   };
 
-  //notificaiton handlers
-  const handleDismissNotification = (id) => {
-    setNotifications((prev) => prev.filter((n) => n.id !== id));
-  };
 
-  const handleClearAllNotifications = () => {
-    setNotifications([]);
-  };
 
   // Delete a specific task
   const handleDeleteTask = (id) => {
