@@ -3,26 +3,9 @@ const pool = require('../db');
 const router = express.Router();
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-const bcrypt = require('bcryptjs');
+const { hashPassword, verifyPassword } = require('../utils/PasswordHasher');
 
-// 10 is the recommended salt rounds
-const BCRYPT_SALT = 10;
-
-
-const { isAuthenticated } = require('../auth');
-const { isAuthAsAdmin } = require('../auth');
-
-// use bcryptjs to hash passwords
-async function hashPassword(password) {
-    const salt = await bcrypt.genSalt(BCRYPT_SALT);
-    const hashedPassword = await bcrypt.hash(password, salt);
-    return hashedPassword;
-}
-
-// use bcryptjs to verify passwords
-async function verifyPassword(inputPassword, storedHash) {
-    return await bcrypt.compare(inputPassword, storedHash);
-}
+const { isAuthenticated, isAuthAsAdmin } = require('../auth');
 
 // GET /user (documentation)
 router.get('/', (req, res) => {

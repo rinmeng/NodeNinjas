@@ -2,6 +2,8 @@ const express = require('express');
 const pool = require('../db');
 const router = express.Router();
 
+const { hashPassword, verifyPassword } = require('../utils/PasswordHasher');
+
 async function setupPgSession() {
     try {
         await pool.query(`
@@ -141,11 +143,41 @@ async function setupUsers() {
         `);
 
         const adminUsers = [
-            { username: 'rin', email: 'rin@example.com', password: 'rin', display_name: 'Rin', manager_id: 1 },
-            { username: 'enock', email: 'enock@example.com', password: 'enock', display_name: 'Enock', manager_id: 2 },
-            { username: 'keeran', email: 'keeran@example.com', password: 'keeran', display_name: 'Keeran', manager_id: 3 },
-            { username: 'madiba', email: 'madiba@example.com', password: 'madiba', display_name: 'Madiba', manager_id: 4 },
-            { username: 'mason', email: 'mason@example.com', password: 'mason', display_name: 'Mason', manager_id: 5 },
+            {
+                username: 'rin',
+                email: 'rin@example.com',
+                password: await hashPassword('rin'),
+                display_name: 'Rin',
+                manager_id: 1
+            },
+            {
+                username: 'enock',
+                email: 'enock@example.com',
+                password: await hashPassword('enock'),
+                display_name: 'Enock',
+                manager_id: 2
+            },
+            {
+                username: 'keeran',
+                email: 'keeran@example.com',
+                password: await hashPassword('keeran'),
+                display_name: 'Keeran',
+                manager_id: 3
+            },
+            {
+                username: 'madiba',
+                email: 'madiba@example.com',
+                password: await hashPassword('madiba'),
+                display_name: 'Madiba',
+                manager_id: 4
+            },
+            {
+                username: 'mason',
+                email: 'mason@example.com',
+                password: await hashPassword('mason'),
+                display_name: 'Mason',
+                manager_id: 5
+            },
         ];
 
         for (const user of adminUsers) {
@@ -159,7 +191,7 @@ async function setupUsers() {
         await pool.query(`
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id)
             VALUES($1, $2, $3, 'team_member', $4, $5)`,
-            ['arnold', 'arnold@example.com', 'arnold', 'Arnold', 1]
+            ['arnold', 'arnold@example.com', await hashPassword('arnold'), 'Arnold', 1]
         );
 
         return { message: "Users table created and populated successfully" };
