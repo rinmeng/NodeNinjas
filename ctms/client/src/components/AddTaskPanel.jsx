@@ -1,4 +1,4 @@
-import { Icon, ListPlus, RefreshCcw, X } from "lucide-react";
+import { ListPlus, X } from "lucide-react";
 import React, { useState } from "react";
 import IconizedButton from "./subcomponents/IconizedButton";
 
@@ -11,6 +11,7 @@ const AddTaskPanel = ({
   setShowFeedbackMessage,
   setAddedTaskSuccessfully,
   sessionUser,
+  taskToEdit,
 }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({

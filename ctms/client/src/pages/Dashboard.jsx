@@ -18,6 +18,8 @@ const Dashboard = ({ sessionUser, devMode }) => {
 
   const [tasks, setTasks] = useState(allTasks);
 
+  const [showEditTaskPanel, setShowEditTaskPanel] = useState(false);
+
   const [filterOptions, setFilterOptions] = useState({
     sortTitleAsc: null,
     sortDateAsc: null,
@@ -156,6 +158,8 @@ const Dashboard = ({ sessionUser, devMode }) => {
         tasks={tasks}
         setTasks={setTasks}
         fetchTaskFromDatabase={fetchTaskFromDatabase}
+        showEditTaskPanel={showEditTaskPanel}
+        setShowEditTaskPanel={setShowEditTaskPanel}
       />
       <AddTaskPanel
         showAddTaskPanel={showAddTaskPanel}

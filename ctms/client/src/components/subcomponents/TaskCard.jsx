@@ -10,12 +10,18 @@ import {
   ClockArrowUp,
   ChevronDown,
   ChevronUp,
-  Calendar,
   CalendarClock,
+  SquarePen,
 } from "lucide-react";
 
 const TaskCard = ({ task }) => {
   const [isDescriptionVisible, setIsDescriptionVisible] = useState(false);
+
+  const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
+
+  const handleEditTask = () => {
+    setShowUpdateTaskPanel(!showUpdateTaskPanel);
+  };
 
   const getDateWithRelativeTime = (dateString) => {
     if (!dateString) return "Invalid Date"; // Handle empty values safely
@@ -192,26 +198,36 @@ const TaskCard = ({ task }) => {
 
       <div className="border-b border-slate-600 my-4"></div>
       <div>
-        <div
-          className="flex items-center justify-between cursor-pointer group"
-          onClick={() => setIsDescriptionVisible(!isDescriptionVisible)}
-        >
-          <h1 className="text-2xl font-semibold text-white mb-2">
+        <div className="flex items-center justify-between cursor-pointer group">
+          <h1
+            className="text-2xl font-semibold text-white mb-2"
+            onClick={() => setIsDescriptionVisible(!isDescriptionVisible)}
+          >
             {task.name}
           </h1>
-          <button className="p-1 rounded-full hover:bg-slate-700 transition-colors">
-            {isDescriptionVisible ? (
-              <ChevronUp
-                className="text-slate-400 group-hover:text-white transition-colors"
-                size={20}
-              />
-            ) : (
-              <ChevronDown
-                className="text-slate-400 group-hover:text-white transition-colors"
-                size={20}
-              />
-            )}
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              className="p-1 rounded-full hover:bg-slate-700 t200e"
+              onClick={() => setIsDescriptionVisible(!isDescriptionVisible)}
+            >
+              {isDescriptionVisible ? (
+                <ChevronUp
+                  className="text-slate-400 hover:text-white t200e"
+                  size={20}
+                />
+              ) : (
+                <ChevronDown
+                  className="text-slate-400 hover:text-white t200e"
+                  size={20}
+                />
+              )}
+            </button>
+            <SquarePen
+              onClick={handleEditTask}
+              size={20}
+              className="text-slate-400 hover:text-white t200e"
+            />
+          </div>
         </div>
         {isDescriptionVisible && (
           <p className="text-md text-slate-300 mb-4 transition-all">
