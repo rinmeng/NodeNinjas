@@ -1,14 +1,16 @@
 import { ListPlus, RefreshCcw } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import TaskCard from "./subcomponents/TaskCard";
-
 import IconizedButton from "./subcomponents/IconizedButton";
 
-const TaskDashboard = ({ showAddTaskPanel, setShowAddTaskPanel, tasks }) => {
-  const fetchTaskFromDatabase = async () => {};
-
+const TaskDashboard = ({
+  showAddTaskPanel,
+  setShowAddTaskPanel,
+  tasks,
+  fetchTaskFromDatabase,
+}) => {
   return (
-    <div className="bg-slate-800 w-full h-full rounded-xl p-5">
+    <div className="bg-slate-900 w-full h-full rounded-xl p-5">
       <div className="title text-center my-6">Task Dashboard</div>
       <div className="flex justify-center items-center space-x-4">
         <IconizedButton
@@ -28,7 +30,7 @@ const TaskDashboard = ({ showAddTaskPanel, setShowAddTaskPanel, tasks }) => {
       <div className="border-b border-slate-700 my-4"></div>
       <div className="flex flex-col space-y-4">
         {tasks.map((task) => (
-          <TaskCard task={task} />
+          <TaskCard key={task.id} task={task} />
         ))}
       </div>
     </div>

@@ -37,6 +37,16 @@ async function setupAssignedTo() {
             );
             CREATE INDEX idx_assignedto_user_id ON assignedto (user_id);
             CREATE INDEX idx_assignedto_task_id ON assignedto (task_id);
+            -- Create some sample assignments
+            INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES
+            (DATE '2025-02-15', 1, 1),  -- Rin - Quarterly Report
+            (DATE '2025-02-15', 2, 2),  -- Enock - Team Building
+            (DATE '2025-02-15', 3, 3),  -- Keeran - Client Presentation
+            (DATE '2025-02-15', 4, 4),  -- Madiba - Software Update
+            (DATE '2025-02-15', 5, 5),  -- Mason - Documentation
+            (DATE '2025-02-15', 6, 6),  -- Arnold - Security Audit
+            (DATE '2025-02-15', 1, 7),  -- Rin - Budget Planning
+            (DATE '2025-02-15', 2, 8);  -- Enock - Training Workshop
         `);
         return { message: "assignedto table created successfully" };
     } catch (err) {
@@ -63,6 +73,16 @@ async function setupTasks() {
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
+            -- Create some sample tasks
+            INSERT INTO Task (name, description, date, status, priority) VALUES
+            ('Quarterly Report Review', 'Review and finalize Q1 2025 financial reports', DATE '2025-03-15', 'pending', 'high'),
+            ('Team Building Event', 'Organize virtual team building activity', DATE '2025-02-28', 'in_progress', 'medium'),
+            ('Client Presentation', 'Prepare presentation for new client pitch', DATE '2025-02-20', 'completed', 'high'),
+            ('Software Update', 'Deploy latest software updates to production', DATE '2025-02-25', 'pending', 'medium'),
+            ('Documentation Review', 'Review and update API documentation', DATE '2025-03-01', 'in_progress', 'low'),
+            ('Security Audit', 'Conduct monthly security audit', DATE '2025-02-18', 'completed', 'high'),
+            ('Budget Planning', 'Create budget plan for Q2 2025', DATE '2025-03-20', 'pending', 'medium'),
+            ('Training Workshop', 'Conduct new employee training workshop', DATE '2025-02-22', 'in_progress', 'low');
         `);
 
         return { message: "Task table created successfully" };

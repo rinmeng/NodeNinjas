@@ -12,6 +12,12 @@ const SearchBar = ({ setSearchCriteria, searchCriteria, onSearch }) => {
     onSearch(""); // Trigger the search with an empty string
   };
 
+  // if search criteria was erased and empty,
+  // trigger search with empty string
+  if (!searchCriteria) {
+    onSearch("");
+  }
+
   return (
     <div className="m-5 w-1/2">
       <div className="task-bg rounded-full">

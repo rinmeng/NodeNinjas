@@ -358,9 +358,11 @@ router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     }
     try {
         const result = await pool.query(`
-            SELECT * from assignedto a
+            SELECT t.id, t.name, t.date, t.description, t.status, t.priority
+            FROM task t
+            JOIN assignedto a ON t.id = a.task_id
             WHERE a.user_id = $1
-            ORDER BY id ASC
+            ORDER BY t.date DESC
         `, [id]);
         if (result.rowCount === 0) {
             return res.status(404).json({ message: 'No tasks found under this user' });

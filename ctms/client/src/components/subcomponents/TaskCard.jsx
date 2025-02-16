@@ -15,21 +15,32 @@ import {
 const TaskCard = ({ task }) => {
   const [isDescriptionVisible, setIsDescriptionVisible] = useState(false);
 
-  const getDateWithRelativeTime = (date) => {
-    const now = new Date();
-    const taskDate = new Date(date);
-    const diff = taskDate.getTime() - now.getTime();
-    const diffDays = Math.ceil(diff / (1000 * 60 * 60 * 24));
+  const getDateWithRelativeTime = (dateString) => {
+    if (!dateString) return "Invalid Date"; // Handle empty values safely
 
-    if (diffDays < 0) {
-      return date + ` (Due ${Math.abs(diffDays)} days ago)`;
-    } else if (diffDays === 0) {
-      return date + " (Due Today)";
-    } else if (diffDays === 1) {
-      return date + " (Due Tomorrow)";
-    } else {
-      return date + ` (Due in ${diffDays} days)`;
-    }
+    // Ensure date is parsed correctly
+    const taskDate = new Date(dateString);
+    if (isNaN(taskDate.getTime())) return "Invalid Date"; // Handle parsing errors
+
+    const now = new Date();
+    const diffInMs = taskDate.getTime() - now.getTime();
+    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+
+    // Format the date properly
+    const formattedDate = taskDate.toLocaleDateString("en-US", {
+      weekday: "short",
+      month: "numeric",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    if (diffInDays === 0) return `${formattedDate} (Today)`;
+    if (diffInDays === 1) return `${formattedDate} (Tomorrow)`;
+    if (diffInDays > 1) return `${formattedDate} (In ${diffInDays} days)`;
+    if (diffInDays < 0)
+      return `${formattedDate} (${Math.abs(diffInDays)} days ago)`;
+
+    return formattedDate;
   };
 
   const getStatusColor = (status) => {
@@ -134,26 +145,10 @@ const TaskCard = ({ task }) => {
   return (
     <div
       key={task.id}
-      className="m-auto w-1/2 flex flex-col bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 rounded-xl shadow-lg hover:shadow-2xl t200e"
+      className="border-2 border-gray-600 m-auto w-1/2 flex flex-col bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 rounded-xl shadow-lg hover:shadow-2xl t200e"
     >
-      <div className="flex flex-row justify-between gap-6">
-        <div className="flex flex-col space-y-1">
-          <h1 className="text-sm text-slate-400">Due Date</h1>
-          <p className={`text-md ${getDateColor(task.date)}`}>
-            {getDateWithRelativeTime(task.date)}
-          </p>
-        </div>
-        <div className="flex flex-col space-y-1">
-          <h1 className="text-sm text-slate-400">Priority</h1>
-          <div
-            className={`flex justify-center items-center text-md space-x-2 ${getPriorityColor(
-              task.priority
-            )}`}
-          >
-            {getPriorityIcon(task.priority)}
-            <p> {getPriorityString(task.priority)}</p>
-          </div>
-        </div>
+      <div className="grid grid-cols-3 gap-4 ">
+        {/* Status */}
         <div className="flex flex-col space-y-1">
           <h1 className="text-sm text-slate-400">Status</h1>
           <div
@@ -165,6 +160,27 @@ const TaskCard = ({ task }) => {
             <p> {getStatusString(task.status)}</p>
           </div>
         </div>
+
+        {/* Priority */}
+        <div className="flex flex-col space-y-1">
+          <h1 className="text-sm text-slate-400">Priority</h1>
+          <div
+            className={`flex justify-center items-center text-md space-x-2 ${getPriorityColor(
+              task.priority
+            )}`}
+          >
+            {getPriorityIcon(task.priority)}
+            <p> {getPriorityString(task.priority)}</p>
+          </div>
+        </div>
+
+        {/* Due Date */}
+        <div className="flex flex-col space-y-1">
+          <h1 className="text-sm text-slate-400">Due Date</h1>
+          <p className={`text-md text-center ${getDateColor(task.date)}`}>
+            {getDateWithRelativeTime(task.date)}
+          </p>
+        </div>
       </div>
 
       <div className="border-b border-slate-600 my-4"></div>
@@ -174,7 +190,7 @@ const TaskCard = ({ task }) => {
           onClick={() => setIsDescriptionVisible(!isDescriptionVisible)}
         >
           <h1 className="text-2xl font-semibold text-white mb-2">
-            {task.title}
+            {task.name}
           </h1>
           <button className="p-1 rounded-full hover:bg-slate-700 transition-colors">
             {isDescriptionVisible ? (
