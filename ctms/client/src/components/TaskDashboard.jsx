@@ -29,7 +29,6 @@ const TaskDashboard = ({
       // set time out for 1 second to simulate refetching
       setTimeout(() => {
         setIsRefetching(false);
-        setFeedbackMessage("Tasks synced successfully!");
       }, 1000);
     }
   }, [needsRefetch, setNeedsRefetch, setFeedbackMessage]);
@@ -62,6 +61,12 @@ const TaskDashboard = ({
           />
         </div>
       </div>
+
+      {isRefetching && (
+        <div className="text-center text-slate-400 mt-2">
+          <p>Refetching tasks...</p>
+        </div>
+      )}
 
       <div className="border-b border-slate-700 my-4"></div>
 
