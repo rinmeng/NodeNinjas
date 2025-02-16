@@ -56,15 +56,6 @@ const SearchBar = ({
     }
   };
 
-  const removeAllFilters = () => {
-    setFilterOptions({
-      sortTitleAsc: null,
-      sortDateAsc: null,
-      sortPriorityAsc: "",
-      sortStatusAsc: "",
-    });
-  };
-
   const filterTaskByStatus = () => {
     if (filterOptions.sortStatusAsc === "") {
       setFilterOptions({ ...filterOptions, sortStatusAsc: "pending" });
@@ -75,6 +66,14 @@ const SearchBar = ({
     } else {
       setFilterOptions({ ...filterOptions, sortStatusAsc: "" });
     }
+  };
+  const removeAllFilters = () => {
+    setFilterOptions({
+      sortTitleAsc: null,
+      sortDateAsc: null,
+      sortPriorityAsc: "",
+      sortStatusAsc: "",
+    });
   };
 
   return (

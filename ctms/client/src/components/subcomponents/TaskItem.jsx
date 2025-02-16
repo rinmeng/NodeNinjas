@@ -55,7 +55,7 @@ const TaskItem = ({
           className="forms"
         >
           <option value="pending">Pending</option>
-          <option value="inprogress">In Progress</option>
+          <option value="in_progress">In Progress</option>
           <option value="completed">Completed</option>
         </select>
         <button onClick={() => handleEditTask(task.id)}>

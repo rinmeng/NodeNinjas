@@ -44,10 +44,6 @@ const Dashboard = ({ sessionUser, devMode }) => {
     [allTasks]
   );
 
-  useEffect(() => {
-    handleSearch(searchCriteria);
-  }, [searchCriteria, handleSearch]);
-
   const fetchTaskFromDatabase = useCallback(async () => {
     // Add null check for sessionUser
     if (!sessionUser && !devMode) {
@@ -72,6 +68,62 @@ const Dashboard = ({ sessionUser, devMode }) => {
   useEffect(() => {
     fetchTaskFromDatabase();
   }, [fetchTaskFromDatabase]);
+
+  useEffect(() => {
+    handleSearch(searchCriteria);
+  }, [searchCriteria, handleSearch]);
+
+  useEffect(() => {
+    const sortTasks = () => {
+      let updatedTasks = [...allTasks]; // Create a new array from allTasks
+
+      if (filterOptions.sortTitleAsc !== null) {
+        updatedTasks.sort((a, b) => {
+          if (filterOptions.sortTitleAsc) {
+            return a.name.localeCompare(b.name);
+          } else {
+            return b.name.localeCompare(a.name);
+          }
+        });
+      }
+
+      if (filterOptions.sortDateAsc !== null) {
+        updatedTasks.sort((a, b) => {
+          if (filterOptions.sortDateAsc) {
+            return new Date(a.date) - new Date(b.date);
+          } else {
+            return new Date(b.date) - new Date(a.date);
+          }
+        });
+      }
+
+      if (filterOptions.sortPriorityAsc !== "") {
+        updatedTasks = updatedTasks.filter(
+          (task) => task.priority === filterOptions.sortPriorityAsc
+        );
+      }
+
+      if (filterOptions.sortStatusAsc !== "") {
+        updatedTasks = updatedTasks.filter(
+          (task) => task.status === filterOptions.sortStatusAsc
+        );
+      }
+
+      // if all filters are removed, show all tasks
+      if (
+        filterOptions.sortTitleAsc === null &&
+        filterOptions.sortDateAsc === null &&
+        filterOptions.sortPriorityAsc === "" &&
+        filterOptions.sortStatusAsc === ""
+      ) {
+        updatedTasks = allTasks;
+      }
+
+      setTasks(updatedTasks);
+    };
+
+    sortTasks();
+  }, [filterOptions, allTasks]);
 
   // if user is not logged in, redirect to login page
   if (!sessionUser && !devMode) {

@@ -13,6 +13,7 @@ import {
   CircleDotDashed,
   CircleDot,
   Filter,
+  ArrowDownZA,
 } from "lucide-react";
 
 const FilterOptionsBar = ({
@@ -51,7 +52,9 @@ const FilterOptionsBar = ({
         }`}
       >
         {filterOptions.sortTitleAsc ? <ArrowDownAZ size={20} /> : null}
-        {filterOptions.sortTitleAsc === false ? <ArrowUpAZ size={20} /> : null}
+        {filterOptions.sortTitleAsc === false ? (
+          <ArrowDownZA size={20} />
+        ) : null}
         {filterOptions.sortTitleAsc === null ? (
           <ChevronsUpDown size={20} />
         ) : null}

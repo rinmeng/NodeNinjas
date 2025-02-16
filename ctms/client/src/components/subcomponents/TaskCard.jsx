@@ -10,6 +10,8 @@ import {
   ClockArrowUp,
   ChevronDown,
   ChevronUp,
+  Calendar,
+  CalendarClock,
 } from "lucide-react";
 
 const TaskCard = ({ task }) => {
@@ -62,7 +64,7 @@ const TaskCard = ({ task }) => {
     switch (formattedStatus) {
       case "pending":
         return <CircleDashed size={20} />;
-      case "inprogress":
+      case "in_progress":
         return <CircleDotDashed size={20} />;
       case "completed":
         return <CircleDot size={20} />;
@@ -177,7 +179,12 @@ const TaskCard = ({ task }) => {
         {/* Due Date */}
         <div className="flex flex-col space-y-1">
           <h1 className="text-sm text-slate-400">Due Date</h1>
-          <p className={`text-md text-center ${getDateColor(task.date)}`}>
+          <p
+            className={`text-md text-center flex justify-center ${getDateColor(
+              task.date
+            )}`}
+          >
+            <CalendarClock size={20} className="mr-2" />
             {getDateWithRelativeTime(task.date)}
           </p>
         </div>
