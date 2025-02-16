@@ -8,8 +8,6 @@ const AddTaskPanel = ({
   showAddTaskPanel,
   setShowAddTaskPanel,
   setFeedbackMessage,
-  setShowFeedbackMessage,
-  setAddedTaskSuccessfully,
   sessionUser,
   setNeedsRefetch,
   notifications,
@@ -29,23 +27,11 @@ const AddTaskPanel = ({
     try {
       await addTaskToDatabase();
       setFeedbackMessage("Task added successfully!");
-      setAddedTaskSuccessfully(true);
-      setShowFeedbackMessage(true);
+      // close the add task panel
       setShowAddTaskPanel(false);
-
-      // Hide the feedback message after 3 seconds
-      setTimeout(() => {
-        setShowFeedbackMessage(false);
-      }, 3000);
     } catch (error) {
       console.error("Failed to add task:", error);
-      setFeedbackMessage(error.message);
-      setAddedTaskSuccessfully(false);
-      setShowFeedbackMessage(true);
-
-      setTimeout(() => {
-        setShowFeedbackMessage(false);
-      }, 3000);
+      setFeedbackMessage(error.message || "Failed to add task.");
     }
   };
 
@@ -77,7 +63,6 @@ const AddTaskPanel = ({
 
     if (!addResponse.ok) {
       setFeedbackMessage(addResponse.message || "Failed to add task.");
-      setShowFeedbackMessage(true);
     } else {
       setTask({
         title: "",
@@ -87,8 +72,6 @@ const AddTaskPanel = ({
         status: "pending",
       });
       setFeedbackMessage("Task added successfully!");
-      setAddedTaskSuccessfully(true);
-      setShowFeedbackMessage(true);
 
       // send a notification to the user
       const newNotification = {

@@ -12,6 +12,7 @@ const TaskDashboard = ({
   notifications,
   setNotifications,
   needsRefetch,
+  setFeedbackMessage,
 }) => {
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
@@ -28,9 +29,10 @@ const TaskDashboard = ({
       // set time out for 1 second to simulate refetching
       setTimeout(() => {
         setIsRefetching(false);
+        setFeedbackMessage("Tasks synced successfully!");
       }, 1000);
     }
-  }, [needsRefetch, setNeedsRefetch]);
+  }, [needsRefetch, setNeedsRefetch, setFeedbackMessage]);
 
   return (
     <div className="bg-slate-950 w-full h-full rounded-xl p-5 mt-28">
@@ -81,6 +83,7 @@ const TaskDashboard = ({
               setNeedsRefetch={setNeedsRefetch}
               notifications={notifications}
               setNotifications={setNotifications}
+              setFeedbackMessage={setFeedbackMessage}
             />
           ))}
         </div>

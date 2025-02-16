@@ -23,6 +23,7 @@ const TaskCard = ({
   setNeedsRefetch,
   notifications,
   setNotifications,
+  setFeedbackMessage,
 }) => {
   const [isDescriptionVisible, setIsDescriptionVisible] = useState(false);
 
@@ -65,7 +66,7 @@ const TaskCard = ({
     switch (formattedStatus) {
       case "pending":
         return "pill-grey";
-      case "inprogress":
+      case "in_progress":
         return "pill-blue";
       case "completed":
         return "pill-green";
@@ -179,8 +180,12 @@ const TaskCard = ({
           timestamp: new Date().toISOString(),
         };
         setNotifications([...notifications, newNotifications]);
+        setFeedbackMessage("Task deleted successfully!");
       })
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        setFeedbackMessage(err.message || "Failed to delete task.");
+      });
   };
 
   return (
@@ -278,6 +283,7 @@ const TaskCard = ({
         setNeedsRefetch={setNeedsRefetch}
         notifications={notifications}
         setNotifications={setNotifications}
+        setFeedbackMessage={setFeedbackMessage}
       />
     </div>
   );

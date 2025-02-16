@@ -83,7 +83,7 @@ const SearchBar = ({
   };
 
   return (
-    <div className="m-5 w-3/4 fixed top-0 translate-y-1/3 z-40 t200e">
+    <div className="m-5 w-3/4 fixed top-0 translate-y-1/3 z-30 t200e">
       <div className="glass-slate mp5 rounded-full t500e">
         <div className="flex flex-col m-auto justify-center items-center space-x-4">
           <form
