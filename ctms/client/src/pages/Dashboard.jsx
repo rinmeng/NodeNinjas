@@ -75,55 +75,57 @@ const Dashboard = ({ sessionUser, devMode }) => {
 
   useEffect(() => {
     const sortTasks = () => {
-      let updatedTasks = [...allTasks]; // Create a new array from allTasks
+      // Start with tasks that match search criteria
+      let updatedTasks = allTasks.filter((task) =>
+        !searchCriteria
+          ? true
+          : task.name.toLowerCase().includes(searchCriteria.toLowerCase()) ||
+            task.description
+              .toLowerCase()
+              .includes(searchCriteria.toLowerCase())
+      );
 
+      // Apply title sort
       if (filterOptions.sortTitleAsc !== null) {
         updatedTasks.sort((a, b) => {
-          if (filterOptions.sortTitleAsc) {
-            return a.name.localeCompare(b.name);
-          } else {
-            return b.name.localeCompare(a.name);
-          }
+          return filterOptions.sortTitleAsc
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
         });
       }
 
+      // Apply date sort
       if (filterOptions.sortDateAsc !== null) {
         updatedTasks.sort((a, b) => {
-          if (filterOptions.sortDateAsc) {
-            return new Date(a.date) - new Date(b.date);
-          } else {
-            return new Date(b.date) - new Date(a.date);
-          }
+          return filterOptions.sortDateAsc
+            ? new Date(a.date) - new Date(b.date)
+            : new Date(b.date) - new Date(a.date);
         });
       }
 
+      // Apply priority filter
       if (filterOptions.sortPriorityAsc !== "") {
         updatedTasks = updatedTasks.filter(
-          (task) => task.priority === filterOptions.sortPriorityAsc
+          (task) =>
+            task.priority.toLowerCase() ===
+            filterOptions.sortPriorityAsc.toLowerCase()
         );
       }
 
+      // Apply status filter
       if (filterOptions.sortStatusAsc !== "") {
         updatedTasks = updatedTasks.filter(
-          (task) => task.status === filterOptions.sortStatusAsc
+          (task) =>
+            task.status.toLowerCase() ===
+            filterOptions.sortStatusAsc.toLowerCase()
         );
-      }
-
-      // if all filters are removed, show all tasks
-      if (
-        filterOptions.sortTitleAsc === null &&
-        filterOptions.sortDateAsc === null &&
-        filterOptions.sortPriorityAsc === "" &&
-        filterOptions.sortStatusAsc === ""
-      ) {
-        updatedTasks = allTasks;
       }
 
       setTasks(updatedTasks);
     };
 
     sortTasks();
-  }, [filterOptions, allTasks]);
+  }, [filterOptions, allTasks, searchCriteria]);
 
   // if user is not logged in, redirect to login page
   if (!sessionUser && !devMode) {

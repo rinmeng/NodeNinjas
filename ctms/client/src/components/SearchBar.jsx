@@ -8,19 +8,25 @@ const SearchBar = ({
   filterOptions,
   setFilterOptions,
 }) => {
+  // Used for setting the search icon to be active or not
+  const [isSearchActive, setIsSearchActive] = useState(false);
+
   const handleSearchSubmit = (e) => {
     e.preventDefault();
     setSearchCriteria(searchCriteria); // Trigger the search with the criteria
+    setIsSearchActive(true);
   };
 
   const handleClearSearch = () => {
     setSearchCriteria("");
+    setIsSearchActive(false);
   };
   // if search criteria was erased and empty, set tasks to all tasks
   // Instead, use useEffect if you need to handle empty search criteria
   useEffect(() => {
     if (!searchCriteria) {
       setSearchCriteria("");
+      setIsSearchActive(false);
     }
   }, [searchCriteria, setSearchCriteria]);
 
@@ -81,26 +87,31 @@ const SearchBar = ({
       <div className="task-bg rounded-full">
         <div className="flex flex-col m-auto justify-center items-center space-x-4">
           <form className="w-3/4 relative" onSubmit={handleSearchSubmit}>
-            <input
-              type="text"
-              value={searchCriteria}
-              placeholder="Search for tasks..."
-              className="forms w-full pl-4 pr-16 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              onChange={(e) => setSearchCriteria(e.target.value)}
-            />
-            <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex space-x-2 items-center">
+            <div className="w-full relative">
+              <input
+                type="text"
+                value={searchCriteria}
+                placeholder="Search for tasks..."
+                className="forms w-full pl-10 pr-16 py-2 focus:bg-slate-900 rounded-full"
+                onChange={(e) => {
+                  setSearchCriteria(e.target.value);
+                  setIsSearchActive(e.target.value.length > 0);
+                }}
+              />
+              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
+                <Search
+                  size={25}
+                  className={`${
+                    isSearchActive ? "text-white" : "text-gray-500"
+                  } t200e`}
+                />
+              </div>
               <button
                 type="button"
                 onClick={handleClearSearch}
-                className="text-gray-500 hover:text-white t200e"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white"
               >
                 <X size={30} />
-              </button>
-              <button
-                type="submit"
-                className="text-gray-500 hover:text-white t200e"
-              >
-                <Search size={25} />
               </button>
             </div>
           </form>
