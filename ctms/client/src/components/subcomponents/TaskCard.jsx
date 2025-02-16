@@ -236,35 +236,45 @@ const TaskCard = ({
 
       <div className="border-b border-slate-600 my-4"></div>
 
-      <div className="group">
+      <div>
         <input
           type="checkbox"
           id={`toggle-${task.id}`}
           className="hidden peer"
         />
         <div className="flex justify-between items-center">
-          <label
-            htmlFor={`toggle-${task.id}`}
-            className="flex items-center justify-between cursor-pointer group flex-grow"
-          >
-            <h1 className="text-2xl font-semibold text-white mb-2 flex-grow">
-              {task.name}
-            </h1>
-            <div className="flex items-center space-x-2">
-              <div className="p-2 rounded-full group-hover:bg-slate-700 t200e text-slate-400 group-hover:text-white">
-                <ChevronDown size={20} className="peer-checked:hidden" />
-                <ChevronUp size={20} className="hidden peer-checked:block" />
+          {/* Separate group for the title and chevron */}
+          <div className="group flex-grow">
+            <label
+              htmlFor={`toggle-${task.id}`}
+              className="flex items-center justify-between cursor-pointer"
+            >
+              <h1 className="text-2xl font-semibold text-white mb-2 flex-grow">
+                {task.name}
+              </h1>
+              <div className="flex items-center space-x-2">
+                <div className="p-2 rounded-full group-hover:bg-slate-700 t200e text-slate-400 group-hover:text-white">
+                  <ChevronDown size={20} className="peer-checked:hidden" />
+                  <ChevronUp size={20} className="hidden peer-checked:block" />
+                </div>
               </div>
-            </div>
-          </label>
-          <div className="p-2 rounded-full hover:bg-slate-700 t200e text-slate-500 hover:text-white cursor-pointer">
-            <SquarePen onClick={handleEditTask} size={20} />
+            </label>
           </div>
-          <div
-            onClick={handleDeleteTask}
-            className="p-2 rounded-full hover:bg-slate-700 t200e text-slate-500 hover:text-white cursor-pointer"
-          >
-            <Trash size={20} />
+
+          {/* Separate individual buttons */}
+          <div className="flex items-center">
+            <button
+              onClick={handleEditTask}
+              className="p-2 rounded-full hover:bg-blue-700 t200e text-slate-500 hover:text-white"
+            >
+              <SquarePen size={20} />
+            </button>
+            <button
+              onClick={handleDeleteTask}
+              className="p-2 rounded-full hover:bg-red-700 t200e text-red-500 hover:text-white"
+            >
+              <Trash size={20} />
+            </button>
           </div>
         </div>
         <p className="hidden peer-checked:block text-md text-slate-300 mb-4 transition-all">
