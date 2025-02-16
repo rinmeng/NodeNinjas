@@ -54,7 +54,7 @@ const TaskDashboard = ({
                 className={`ml-2 t500e ${isRefetching ? "animate-spin" : ""}`}
               />
             }
-            text="Refetch Tasks"
+            text="Sync Tasks"
             onClick={refetchTaskClicked}
             btnStyle={`btn-grey ${isRefetching ? "disabled opacity-50" : ""}`}
           />
