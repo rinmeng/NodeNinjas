@@ -185,6 +185,7 @@ const Dashboard = ({
         setNeedsRefetch={setNeedsRefetch}
         notifications={notifications}
         setNotifications={setNotifications}
+        needsRefetch={needsRefetch}
       />
       <AddTaskPanel
         showAddTaskPanel={showAddTaskPanel}

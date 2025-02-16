@@ -1,5 +1,5 @@
-import React from "react";
-import { ListPlus, RefreshCcw, ClipboardList } from "lucide-react";
+import React, { use, useState, useEffect } from "react";
+import { ListPlus, ClipboardList, RefreshCw } from "lucide-react";
 import TaskCard from "./subcomponents/TaskCard";
 import IconizedButton from "./subcomponents/IconizedButton";
 
@@ -11,13 +11,32 @@ const TaskDashboard = ({
   setNeedsRefetch,
   notifications,
   setNotifications,
+  needsRefetch,
 }) => {
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  const refetchTaskClicked = () => {
+    setIsRefetching(true);
+
+    setNeedsRefetch(true);
+  };
+
+  useEffect(() => {
+    if (!needsRefetch) {
+      // set time out for 1 second to simulate refetching
+      setTimeout(() => {
+        setIsRefetching(false);
+      }, 500);
+    }
+  }, [needsRefetch, setNeedsRefetch]);
 
   return (
     <div className="bg-slate-950 w-full h-full rounded-xl p-5 mt-28">
-      <div className="title text-center mb-6">Task Dashboard</div>
+      <div className="title text-center mb-6">
+        <h1>Task Dashboard</h1>
+      </div>
 
       <div className="flex justify-center items-center space-x-4 ">
         <IconizedButton
@@ -30,18 +49,24 @@ const TaskDashboard = ({
         <div className="group">
           <IconizedButton
             icon={
-              <RefreshCcw
+              <RefreshCw
                 size={24}
-                className="ml-2 rotate-180 group-hover:-rotate-180 t500e
+                className="ml-2 -rotate-180 group-hover:rotate-180 t500e
           "
               />
             }
             text="Refetch Tasks"
-            onClick={() => setNeedsRefetch(true)}
+            onClick={refetchTaskClicked}
             btnStyle="btn-grey"
           />
         </div>
       </div>
+      {isRefetching && (
+        <div className="text-sm text-slate-400 my-4 flex items-center justify-center">
+          <RefreshCw size={16} className="animate-spin" />
+          <span className="ml-2">Refetching tasks...</span>
+        </div>
+      )}
 
       <div className="border-b border-slate-700 my-4"></div>
 

@@ -188,7 +188,7 @@ const TaskCard = ({
       key={task.id}
       className="border-2 border-gray-600 m-auto w-1/2 flex flex-col
       bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 
-      rounded-xl shadow-lg hover:shadow-2xl t200e"
+      rounded-xl shadow-lg hover:shadow-2xl"
     >
       <div className="grid grid-cols-3 gap-4 ">
         {/* Status */}
