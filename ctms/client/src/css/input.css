@@ -79,7 +79,7 @@
     @apply px-6 py-3 bg-white text-black font-bold rounded-full hover:text-white hover:bg-slate-500 t200e;
   }
   .btn-grey {
-    @apply px-6 py-3 bg-gray-400 text-white font-bold rounded-xl hover:text-white hover:bg-slate-500 t200e;
+    @apply px-6 py-3 bg-gray-400 text-white font-bold rounded-full hover:text-white hover:bg-slate-500 t200e;
   }
   .zoomin {
     @apply hover:scale-125;

@@ -64,6 +64,7 @@ async function setupTasks() {
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
+
         return { message: "Task table created successfully" };
     } catch (err) {
         console.error("Error setting up task table:", err.message);

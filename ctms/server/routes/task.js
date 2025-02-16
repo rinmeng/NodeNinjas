@@ -181,6 +181,17 @@ router.get('/', (req, res) => {
         `);
 });
 
+// GET /task/all - Fetch all tasks
+router.get('/all', isAuthenticated, async (req, res) => {
+    try {
+        const result = await pool.query('SELECT * FROM task ORDER BY id ASC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch tasks' });
+    }
+});
+
+
 // POST /task/add - Add a new task
 router.post('/add', isAuthenticated, async (req, res) => {
     const { name, date, description, status, priority, assigned_users } = req.body;
@@ -188,6 +199,7 @@ router.post('/add', isAuthenticated, async (req, res) => {
     if (!name || !date || !status || !priority) {
         return res.status(400).json({
             message: 'Missing required fields'
+
         });
     }
 
@@ -340,17 +352,15 @@ router.get('/id/:id', isAuthenticated, async (req, res) => {
 // GET /assignedto/user/:id - Fetch all tasks assigned to a user
 // Should be used to get all tasks assigned to a specific user
 router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     if (!id) {
         return res.status(400).json({ message: 'User ID is required' });
     }
     try {
         const result = await pool.query(`
-            SELECT t.id, t.name, t.date, t.description, t.status, t.priority
-            FROM task t
-            JOIN assignedto a ON t.id = a.task_id
+            SELECT * from assignedto a
             WHERE a.user_id = $1
-            ORDER BY t.date DESC
+            ORDER BY id ASC
         `, [id]);
         if (result.rowCount === 0) {
             return res.status(404).json({ message: 'No tasks found under this user' });

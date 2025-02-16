@@ -10,6 +10,7 @@ import TestUser from "./pages/testing/TestUser";
 import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
+import Dashboard from "./pages/Dashboard";
 
 const proxy = "http://localhost:15000/";
 
@@ -49,17 +50,13 @@ function App() {
 
   //mark notifications as read
   const markNotificationsAsRead = () => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, read: true }))
-    );
+    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
   //toggle notification read status
   const toggleNotificationReadStatus = (id) => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.id === id ? { ...n, read: !n.read } : n
-      )
+    setNotifications((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
     );
   };
 
@@ -79,7 +76,25 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<Home sessionUser={sessionUser} devMode={devMode} notifications={notifications} setNotifications={setNotifications}/>}
+            element={
+              <Home
+                sessionUser={sessionUser}
+                devMode={devMode}
+                notifications={notifications}
+                setNotifications={setNotifications}
+              />
+            }
+          />
+          <Route
+            path="/dashboard"
+            element={
+              <Dashboard
+                sessionUser={sessionUser}
+                devMode={devMode}
+                notifications={notifications}
+                setNotifications={setNotifications}
+              />
+            }
           />
           <Route
             path="/admin"
