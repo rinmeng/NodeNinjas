@@ -162,7 +162,7 @@ const Dashboard = ({ sessionUser, devMode }) => {
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-20 mp5">
+    <div className="flex flex-col items-center justify-center py-20 mp5 animate-fadein">
       <SearchBar
         setSearchCriteria={setSearchCriteria}
         searchCriteria={searchCriteria}
