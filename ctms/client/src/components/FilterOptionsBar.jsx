@@ -12,37 +12,49 @@ import {
   CircleDashed,
   CircleDotDashed,
   CircleDot,
+  Filter,
 } from "lucide-react";
 
 const FilterOptionsBar = ({
-  sortTitleAsc,
-  sortDateAsc,
-  sortPriorityAsc,
-  sortStatusAsc,
+  filterOptions,
   removeAllFilters,
   filterTaskByTitle,
   filterTaskByDate,
   filterTaskByPriority,
   filterTaskByStatus,
 }) => {
+  const isAnyFilterActive =
+    filterOptions.sortDateAsc !== null ||
+    filterOptions.sortTitleAsc !== null ||
+    filterOptions.sortPriorityAsc !== "" ||
+    filterOptions.sortStatusAsc !== "";
   return (
     <div className="flex justify-center items-center space-x-4 border-4 border-gray-700 px-14 py-4 rounded-full w-fit m-auto">
-      <button onClick={removeAllFilters} className="pill-red">
-        <FilterX size={20} />
+      <button
+        onClick={removeAllFilters}
+        className={
+          isAnyFilterActive
+            ? "pill-red border-white border-4"
+            : "pill-grey border-slate-700 border-4"
+        }
+      >
+        {isAnyFilterActive ? <FilterX size={20} /> : <Filter size={20} />}
       </button>
 
       {/* Title Filter */}
       <button
         onClick={filterTaskByTitle}
         className={`flex items-center space-x-2 ${
-          sortTitleAsc === null
-            ? "pill-grey border-slate-700 border-2"
-            : "pill-green border-white border-2"
+          filterOptions.sortTitleAsc === null
+            ? "pill-grey border-slate-700 border-4"
+            : "pill-green border-white border-4"
         }`}
       >
-        {sortTitleAsc ? <ArrowDownAZ size={20} /> : null}
-        {sortTitleAsc === false ? <ArrowUpAZ size={20} /> : null}
-        {sortTitleAsc === null ? <ChevronsUpDown size={20} /> : null}
+        {filterOptions.sortTitleAsc ? <ArrowDownAZ size={20} /> : null}
+        {filterOptions.sortTitleAsc === false ? <ArrowUpAZ size={20} /> : null}
+        {filterOptions.sortTitleAsc === null ? (
+          <ChevronsUpDown size={20} />
+        ) : null}
         <div>Title</div>
       </button>
 
@@ -50,14 +62,18 @@ const FilterOptionsBar = ({
       <button
         onClick={filterTaskByDate}
         className={`flex items-center space-x-2 ${
-          sortDateAsc === null
-            ? "pill-grey border-slate-700 border-2"
-            : "pill-green border-white border-2"
+          filterOptions.sortDateAsc === null
+            ? "pill-grey border-slate-700 border-4"
+            : "pill-green border-white border-4"
         }`}
       >
-        {sortDateAsc ? <CalendarArrowUp size={20} /> : null}
-        {sortDateAsc === false ? <CalendarArrowDown size={20} /> : null}
-        {sortDateAsc === null ? <ChevronsUpDown size={20} /> : null}
+        {filterOptions.sortDateAsc ? <CalendarArrowUp size={20} /> : null}
+        {filterOptions.sortDateAsc === false ? (
+          <CalendarArrowDown size={20} />
+        ) : null}
+        {filterOptions.sortDateAsc === null ? (
+          <ChevronsUpDown size={20} />
+        ) : null}
         <div>Date</div>
       </button>
 
@@ -65,15 +81,23 @@ const FilterOptionsBar = ({
       <button
         onClick={filterTaskByPriority}
         className={`flex items-center space-x-2 ${
-          sortPriorityAsc === ""
-            ? "pill-grey border-slate-700 border-2"
-            : "pill-green border-white border-2"
+          filterOptions.sortPriorityAsc === ""
+            ? "pill-grey border-slate-700 border-4"
+            : "pill-green border-white border-4"
         }`}
       >
-        {sortPriorityAsc === "high" ? <ClockAlert size={20} /> : null}
-        {sortPriorityAsc === "medium" ? <ClockArrowUp size={20} /> : null}
-        {sortPriorityAsc === "low" ? <ClockArrowDown size={20} /> : null}
-        {sortPriorityAsc === "" ? <ChevronsUpDown size={20} /> : null}
+        {filterOptions.sortPriorityAsc === "high" ? (
+          <ClockAlert size={20} />
+        ) : null}
+        {filterOptions.sortPriorityAsc === "medium" ? (
+          <ClockArrowUp size={20} />
+        ) : null}
+        {filterOptions.sortPriorityAsc === "low" ? (
+          <ClockArrowDown size={20} />
+        ) : null}
+        {filterOptions.sortPriorityAsc === "" ? (
+          <ChevronsUpDown size={20} />
+        ) : null}
         <div>Priority</div>
       </button>
 
@@ -81,15 +105,23 @@ const FilterOptionsBar = ({
       <button
         onClick={filterTaskByStatus}
         className={`flex items-center space-x-2 ${
-          sortStatusAsc === ""
-            ? "pill-grey border-slate-700 border-2"
-            : "pill-green border-white border-2"
+          filterOptions.sortStatusAsc === ""
+            ? "pill-grey border-slate-700 border-4"
+            : "pill-green border-white border-4"
         }`}
       >
-        {sortStatusAsc === "pending" ? <CircleDashed size={20} /> : null}
-        {sortStatusAsc === "inprogress" ? <CircleDotDashed size={20} /> : null}
-        {sortStatusAsc === "completed" ? <CircleDot size={20} /> : null}
-        {sortStatusAsc === "" ? <ChevronsUpDown size={20} /> : null}
+        {filterOptions.sortStatusAsc === "pending" ? (
+          <CircleDashed size={20} />
+        ) : null}
+        {filterOptions.sortStatusAsc === "in_progress" ? (
+          <CircleDotDashed size={20} />
+        ) : null}
+        {filterOptions.sortStatusAsc === "completed" ? (
+          <CircleDot size={20} />
+        ) : null}
+        {filterOptions.sortStatusAsc === "" ? (
+          <ChevronsUpDown size={20} />
+        ) : null}
         <div>Status</div>
       </button>
     </div>

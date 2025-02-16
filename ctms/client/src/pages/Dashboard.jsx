@@ -4,7 +4,7 @@ import SearchBar from "../components/SearchBar";
 import TaskDashboard from "../components/TaskDashboard";
 import AddTaskPanel from "../components/AddTaskPanel";
 import Feedback2 from "../components/subcomponents/Feedback2";
-import { ListMinus, ListPlus, ListX } from "lucide-react";
+import { ListPlus, ListX } from "lucide-react";
 const proxy = "http://localhost:15000";
 
 const Dashboard = ({ sessionUser, devMode }) => {
@@ -18,21 +18,43 @@ const Dashboard = ({ sessionUser, devMode }) => {
 
   const [tasks, setTasks] = useState(allTasks);
 
-  const handleSearch = (criteria) => {
-    console.log("Searching for tasks with criteria:", criteria);
-    if (!criteria) {
-      setTasks(allTasks);
+  const [filterOptions, setFilterOptions] = useState({
+    sortTitleAsc: null,
+    sortDateAsc: null,
+    sortPriorityAsc: "",
+    sortStatusAsc: "",
+  });
+
+  const handleSearch = useCallback(
+    (criteria) => {
+      setSearchCriteria(criteria); // Update the search criteria first
+
+      // Use useEffect to handle the filtering after the state update
+      if (!criteria) {
+        setTasks(allTasks);
+      } else {
+        const filteredTasks = allTasks.filter(
+          (task) =>
+            task.name.toLowerCase().includes(criteria.toLowerCase()) ||
+            task.description.toLowerCase().includes(criteria.toLowerCase())
+        );
+        setTasks(filteredTasks);
+      }
+    },
+    [allTasks]
+  );
+
+  useEffect(() => {
+    handleSearch(searchCriteria);
+  }, [searchCriteria, handleSearch]);
+
+  const fetchTaskFromDatabase = useCallback(async () => {
+    // Add null check for sessionUser
+    if (!sessionUser && !devMode) {
+      console.log("No user session found");
       return;
     }
 
-    const filteredTasks = allTasks.filter((task) =>
-      task.name.toLowerCase().includes(criteria.toLowerCase())
-    );
-
-    setTasks(filteredTasks);
-  };
-
-  const fetchTaskFromDatabase = useCallback(async () => {
     try {
       const response = await fetch(
         `${proxy}/task/assignedto/user/${sessionUser.id}`
@@ -44,19 +66,35 @@ const Dashboard = ({ sessionUser, devMode }) => {
     } catch (error) {
       console.error("Error fetching tasks from database:", error.message);
     }
-  }, [sessionUser.id]);
+  }, [sessionUser, devMode]);
 
   // fetch task when first loaded
   useEffect(() => {
     fetchTaskFromDatabase();
   }, [fetchTaskFromDatabase]);
 
+  // if user is not logged in, redirect to login page
+  if (!sessionUser && !devMode) {
+    return (
+      <div className="mp5 my-16 animate-fadein">
+        <h1 className="title text-center">Welcome to your Dashboard!</h1>
+        <p className="text-center text-xl">
+          Please log in to view this page, or enable <code>devMode</code> to
+          bypass authentication in <code>App.jsx</code>
+        </p>
+        {/* redirect to /login */}
+        <Navigate to="/login" />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col items-center justify-center py-20 mp5">
       <SearchBar
         setSearchCriteria={setSearchCriteria}
         searchCriteria={searchCriteria}
-        onSearch={handleSearch}
+        filterOptions={filterOptions}
+        setFilterOptions={setFilterOptions}
       />
       <TaskDashboard
         showAddTaskPanel={showAddTaskPanel}

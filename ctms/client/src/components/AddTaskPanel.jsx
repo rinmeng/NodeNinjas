@@ -50,7 +50,7 @@ const AddTaskPanel = ({
     if (!task.title || !task.date || !task.priority || !task.status) {
       throw new Error("Please fill in all required fields.");
     }
-    const assignedUserIDs = [2, 3];
+    const assignedUserIDs = [];
     // check if user is signed in
     if (sessionUser) {
       assignedUserIDs.push(sessionUser.id);

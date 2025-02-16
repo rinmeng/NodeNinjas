@@ -22,7 +22,7 @@ const TaskDashboard = ({
 
         <IconizedButton
           icon={<RefreshCcw size={24} className="ml-2" />}
-          text="Refetch Tasks"
+          text={"Refetch Tasks"}
           onClick={fetchTaskFromDatabase}
           btnStyle="btn-grey"
         />

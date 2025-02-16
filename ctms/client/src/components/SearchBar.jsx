@@ -1,77 +1,79 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, X } from "lucide-react";
 import FilterOptionsBar from "./FilterOptionsBar";
 
-const SearchBar = ({ setSearchCriteria, searchCriteria, onSearch }) => {
+const SearchBar = ({
+  setSearchCriteria,
+  searchCriteria,
+  filterOptions,
+  setFilterOptions,
+}) => {
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    onSearch(searchCriteria); // Trigger the search with the criteria
+    setSearchCriteria(searchCriteria); // Trigger the search with the criteria
   };
 
   const handleClearSearch = () => {
     setSearchCriteria("");
-    onSearch(""); // Trigger the search with an empty string
   };
-
-  const [sortTitleAsc, setSortTitleAsc] = useState(null);
-  const [sortDateAsc, setSortDateAsc] = useState(null);
-  const [sortPriorityAsc, setSortPriorityAsc] = useState("");
-  const [sortStatusAsc, setSortStatusAsc] = useState("");
-
-  // if search criteria was erased and empty,
-  // trigger search with empty string
-  if (!searchCriteria) {
-    onSearch("");
-  }
+  // if search criteria was erased and empty, set tasks to all tasks
+  // Instead, use useEffect if you need to handle empty search criteria
+  useEffect(() => {
+    if (!searchCriteria) {
+      setSearchCriteria("");
+    }
+  }, [searchCriteria, setSearchCriteria]);
 
   const filterTaskByTitle = () => {
-    if (sortTitleAsc === null) {
-      setSortTitleAsc(true);
-    } else if (sortTitleAsc === true) {
-      setSortTitleAsc(false);
+    if (filterOptions.sortTitleAsc === null) {
+      setFilterOptions({ ...filterOptions, sortTitleAsc: true });
+    } else if (filterOptions.sortTitleAsc === true) {
+      setFilterOptions({ ...filterOptions, sortTitleAsc: false });
     } else {
-      setSortTitleAsc(null);
+      setFilterOptions({ ...filterOptions, sortTitleAsc: null });
     }
   };
 
   const filterTaskByDate = () => {
-    if (sortDateAsc === null) {
-      setSortDateAsc(true);
-    } else if (sortDateAsc === true) {
-      setSortDateAsc(false);
+    if (filterOptions.sortDateAsc === null) {
+      setFilterOptions({ ...filterOptions, sortDateAsc: true });
+    } else if (filterOptions.sortDateAsc === true) {
+      setFilterOptions({ ...filterOptions, sortDateAsc: false });
     } else {
-      setSortDateAsc(null);
+      setFilterOptions({ ...filterOptions, sortDateAsc: null });
     }
   };
 
   const filterTaskByPriority = () => {
-    if (sortPriorityAsc === "") {
-      setSortPriorityAsc("high");
-    } else if (sortPriorityAsc === "high") {
-      setSortPriorityAsc("medium");
-    } else if (sortPriorityAsc === "medium") {
-      setSortPriorityAsc("low");
+    if (filterOptions.sortPriorityAsc === "") {
+      setFilterOptions({ ...filterOptions, sortPriorityAsc: "high" });
+    } else if (filterOptions.sortPriorityAsc === "high") {
+      setFilterOptions({ ...filterOptions, sortPriorityAsc: "medium" });
+    } else if (filterOptions.sortPriorityAsc === "medium") {
+      setFilterOptions({ ...filterOptions, sortPriorityAsc: "low" });
     } else {
-      setSortPriorityAsc("");
+      setFilterOptions({ ...filterOptions, sortPriorityAsc: "" });
     }
   };
 
   const removeAllFilters = () => {
-    setSortTitleAsc(null);
-    setSortDateAsc(null);
-    setSortPriorityAsc("");
-    setSortStatusAsc("");
+    setFilterOptions({
+      sortTitleAsc: null,
+      sortDateAsc: null,
+      sortPriorityAsc: "",
+      sortStatusAsc: "",
+    });
   };
 
   const filterTaskByStatus = () => {
-    if (sortStatusAsc === "") {
-      setSortStatusAsc("pending");
-    } else if (sortStatusAsc === "pending") {
-      setSortStatusAsc("inprogress");
-    } else if (sortStatusAsc === "inprogress") {
-      setSortStatusAsc("completed");
+    if (filterOptions.sortStatusAsc === "") {
+      setFilterOptions({ ...filterOptions, sortStatusAsc: "pending" });
+    } else if (filterOptions.sortStatusAsc === "pending") {
+      setFilterOptions({ ...filterOptions, sortStatusAsc: "in_progress" });
+    } else if (filterOptions.sortStatusAsc === "in_progress") {
+      setFilterOptions({ ...filterOptions, sortStatusAsc: "completed" });
     } else {
-      setSortStatusAsc("");
+      setFilterOptions({ ...filterOptions, sortStatusAsc: "" });
     }
   };
 
@@ -108,10 +110,7 @@ const SearchBar = ({ setSearchCriteria, searchCriteria, onSearch }) => {
         {/* Filter options */}
         <div className="mt-4">
           <FilterOptionsBar
-            sortTitleAsc={sortTitleAsc}
-            sortDateAsc={sortDateAsc}
-            sortPriorityAsc={sortPriorityAsc}
-            sortStatusAsc={sortStatusAsc}
+            filterOptions={filterOptions}
             removeAllFilters={removeAllFilters}
             filterTaskByTitle={filterTaskByTitle}
             filterTaskByDate={filterTaskByDate}
