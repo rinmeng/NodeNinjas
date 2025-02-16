@@ -28,7 +28,7 @@ const TaskDashboard = ({
       // set time out for 1 second to simulate refetching
       setTimeout(() => {
         setIsRefetching(false);
-      }, 500);
+      }, 1000);
     }
   }, [needsRefetch, setNeedsRefetch]);
 
@@ -51,22 +51,15 @@ const TaskDashboard = ({
             icon={
               <RefreshCw
                 size={24}
-                className="ml-2 -rotate-180 group-hover:rotate-180 t500e
-          "
+                className={`ml-2 t500e ${isRefetching ? "animate-spin" : ""}`}
               />
             }
             text="Refetch Tasks"
             onClick={refetchTaskClicked}
-            btnStyle="btn-grey"
+            btnStyle={`btn-grey ${isRefetching ? "disabled opacity-50" : ""}`}
           />
         </div>
       </div>
-      {isRefetching && (
-        <div className="text-sm text-slate-400 my-4 flex items-center justify-center">
-          <RefreshCw size={16} className="animate-spin" />
-          <span className="ml-2">Refetching tasks...</span>
-        </div>
-      )}
 
       <div className="border-b border-slate-700 my-4"></div>
 

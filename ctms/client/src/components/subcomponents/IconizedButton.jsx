@@ -5,6 +5,7 @@ const IconizedButton = ({ icon, text, btnStyle, onClick }) => {
     <button
       className={`${btnStyle}  flex justify-center items-center `}
       onClick={onClick}
+      disabled={btnStyle.includes("disabled")} // disable button if it has the disabled class
     >
       <span>{text}</span>
       {icon}
