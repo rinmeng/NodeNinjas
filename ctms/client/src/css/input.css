@@ -78,6 +78,9 @@
   .btn-white {
     @apply px-6 py-3 bg-white text-black font-bold rounded-full hover:text-white hover:bg-slate-500 t200e;
   }
+  .btn-grey {
+    @apply px-6 py-3 bg-gray-400 text-white font-bold rounded-xl hover:text-white hover:bg-slate-500 t200e;
+  }
   .zoomin {
     @apply hover:scale-125;
   }
@@ -97,6 +100,17 @@
     @apply p-2 border border-gray-700 rounded w-full mb-4 bg-black text-white placeholder-gray-500 focus:outline-none focus:border-blue-500;
   }
   .task-bg {
-    @apply bg-gray-900 p-6 rounded-lg shadow-lg;
+    @apply bg-slate-800 p-6 rounded-lg shadow-lg;
+  }
+
+  .pill-grey {
+    @apply bg-slate-600 text-white px-8 py-2 rounded-full hover:bg-slate-700 t200e;
+  }
+  .pill-green {
+    @apply bg-green-600 text-white px-8 py-2 rounded-full hover:bg-green-700 t200e;
+  }
+
+  .pill-red {
+    @apply bg-red-600 text-white px-8 py-2 rounded-full hover:bg-red-700 t200e;
   }
 }
