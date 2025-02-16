@@ -159,7 +159,7 @@ const Navbar = ({
 
           {(sessionUser || devMode) && (
             <Link
-              to="/dashboard"
+              to="/"
               className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
             >
               Your Dashboard

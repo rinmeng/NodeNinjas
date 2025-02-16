@@ -16,7 +16,7 @@ const TaskDashboard = ({
   const taskList = Array.isArray(tasks) ? tasks : [];
 
   return (
-    <div className="bg-slate-900 w-full h-full rounded-xl p-5">
+    <div className="bg-slate-950 w-full h-full rounded-xl p-5">
       <div className="title text-center mb-6">Task Dashboard</div>
 
       <div className="flex justify-center items-center space-x-4">

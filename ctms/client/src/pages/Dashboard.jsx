@@ -167,7 +167,7 @@ const Dashboard = ({
   }
 
   return (
-    <div className="flex flex-col items-center justify-center py-20 mp5 animate-fadein">
+    <div className="bg-slate-900 flex flex-col items-center justify-center py-20 p-10 animate-fadein">
       <SearchBar
         setSearchCriteria={setSearchCriteria}
         searchCriteria={searchCriteria}

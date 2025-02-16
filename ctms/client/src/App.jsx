@@ -77,17 +77,6 @@ function App() {
           <Route
             path="/"
             element={
-              <Home
-                sessionUser={sessionUser}
-                devMode={devMode}
-                notifications={notifications}
-                setNotifications={setNotifications}
-              />
-            }
-          />
-          <Route
-            path="/dashboard"
-            element={
               <Dashboard
                 sessionUser={sessionUser}
                 devMode={devMode}
