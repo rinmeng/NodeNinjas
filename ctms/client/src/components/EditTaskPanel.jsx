@@ -3,7 +3,13 @@ import { ClipboardX, Save, X } from "lucide-react";
 import IconizedButton from "./subcomponents/IconizedButton";
 import proxy from "../utils/proxy";
 
-const EditTaskPanel = ({ sessionUser, taskToEdit, isOpen, onClose }) => {
+const EditTaskPanel = ({
+  sessionUser,
+  taskToEdit,
+  isOpen,
+  onClose,
+  setNeedsRefetch,
+}) => {
   const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit);
 
   const handleOnChange = (e) => {
@@ -20,7 +26,7 @@ const EditTaskPanel = ({ sessionUser, taskToEdit, isOpen, onClose }) => {
   };
 
   const updateTaskToDatabase = async () => {
-    // TODO: Make a PUT request to update the task in the database
+    // Make a PUT request to update the task in the database
     // using the taskAfterEdit state.
     const assignedUserIDs = [];
     if (sessionUser) {
@@ -39,11 +45,14 @@ const EditTaskPanel = ({ sessionUser, taskToEdit, isOpen, onClose }) => {
         date: taskAfterEdit.date,
         priority: taskAfterEdit.priority,
         status: taskAfterEdit.status,
-        assignedTo: assignedUserIDs,
+        assigned_users: assignedUserIDs,
       }),
     })
       .then((response) => response.json())
-      .then((data) => console.log("Task updated:", data))
+      .then((data) => {
+        console.log("Updated task:", data);
+        setNeedsRefetch(true);
+      })
       .catch((error) => console.error("Failed to update task:", error));
   };
 

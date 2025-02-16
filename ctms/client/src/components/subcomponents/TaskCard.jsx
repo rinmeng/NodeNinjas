@@ -12,10 +12,12 @@ import {
   ChevronUp,
   CalendarClock,
   SquarePen,
+  Trash,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
+import proxy from "../../utils/proxy";
 
-const TaskCard = ({ task, sessionUser }) => {
+const TaskCard = ({ task, sessionUser, setNeedsRefetch }) => {
   const [isDescriptionVisible, setIsDescriptionVisible] = useState(false);
 
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
@@ -151,6 +153,23 @@ const TaskCard = ({ task, sessionUser }) => {
     }
   };
 
+  const handleDeleteTask = () => {
+    // Implement delete task functionality here
+    fetch(`${proxy}/task/delete/:id`, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: task.id }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(data);
+        setNeedsRefetch(true);
+      })
+      .catch((err) => console.log(err));
+  };
+
   return (
     <div
       key={task.id}
@@ -225,6 +244,12 @@ const TaskCard = ({ task, sessionUser }) => {
           <div className="p-2 rounded-full hover:bg-slate-700 t200e text-slate-500 hover:text-white cursor-pointer">
             <SquarePen onClick={handleEditTask} size={20} />
           </div>
+          <div
+            onClick={handleDeleteTask}
+            className="p-2 rounded-full hover:bg-slate-700 t200e text-slate-500 hover:text-white cursor-pointer"
+          >
+            <Trash size={20} />
+          </div>
         </div>
         {isDescriptionVisible && (
           <p className="text-md text-slate-300 mb-4 transition-all">
@@ -237,6 +262,7 @@ const TaskCard = ({ task, sessionUser }) => {
         taskToEdit={task}
         isOpen={showUpdateTaskPanel}
         onClose={handleEditTask}
+        setNeedsRefetch={setNeedsRefetch}
       />
     </div>
   );

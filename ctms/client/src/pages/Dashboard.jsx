@@ -19,6 +19,8 @@ const Dashboard = ({ sessionUser, devMode }) => {
   const [tasks, setTasks] = useState([]);
   const [showEditTaskPanel, setShowEditTaskPanel] = useState(false);
 
+  const [needsRefetch, setNeedsRefetch] = useState(false);
+
   const [filterOptions, setFilterOptions] = useState({
     sortTitleAsc: null,
     sortDateAsc: null,
@@ -47,6 +49,7 @@ const Dashboard = ({ sessionUser, devMode }) => {
   );
 
   const fetchTaskFromDatabase = useCallback(async () => {
+    console.log("Fetching tasks from database...");
     if (!sessionUser && !devMode) {
       console.log("No user session found");
       return;
@@ -70,6 +73,13 @@ const Dashboard = ({ sessionUser, devMode }) => {
       setTasks([]);
     }
   }, [sessionUser, devMode]);
+
+  useEffect(() => {
+    if (needsRefetch) {
+      fetchTaskFromDatabase();
+      setNeedsRefetch(false);
+    }
+  }, [needsRefetch, fetchTaskFromDatabase]);
 
   useEffect(() => {
     fetchTaskFromDatabase();
@@ -165,9 +175,9 @@ const Dashboard = ({ sessionUser, devMode }) => {
         setShowAddTaskPanel={setShowAddTaskPanel}
         tasks={tasks}
         setTasks={setTasks}
-        fetchTaskFromDatabase={fetchTaskFromDatabase}
         showEditTaskPanel={showEditTaskPanel}
         setShowEditTaskPanel={setShowEditTaskPanel}
+        setNeedsRefetch={setNeedsRefetch}
       />
       <AddTaskPanel
         showAddTaskPanel={showAddTaskPanel}
@@ -176,6 +186,7 @@ const Dashboard = ({ sessionUser, devMode }) => {
         setFeedbackMessage={setFeedbackMessage}
         setAddedTaskSuccessfully={setAddedTaskSuccessfully}
         sessionUser={sessionUser}
+        setNeedsRefetch={setNeedsRefetch}
       />
       {showFeedbackMessage && (
         <Feedback2

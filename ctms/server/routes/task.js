@@ -246,14 +246,23 @@ router.delete('/delete/:id', isAuthenticated, async (req, res) => {
         return res.status(400).json({ message: 'Task ID is required' });
     }
     try {
+        await pool.query('BEGIN');
+
+        // Delete assignments first due to foreign key constraint
+        await pool.query('DELETE FROM assignedto WHERE task_id = $1', [id]);
+
+        // Then delete the task
         const deleteTask = await pool.query('DELETE FROM task WHERE id = $1 RETURNING *', [id]);
 
         if (deleteTask.rowCount === 0) {
+            await pool.query('ROLLBACK');
             return res.status(404).json({ message: 'Task not found' });
         }
 
+        await pool.query('COMMIT');
         res.json({ message: 'Task deleted successfully' });
     } catch (err) {
+        await pool.query('ROLLBACK');
         res.status(500).json({ message: 'Failed to delete task' });
     }
 });
@@ -263,7 +272,6 @@ router.put('/update/:id', isAuthenticated, async (req, res) => {
     const { id, name, date, description, status, priority, assigned_users } = req.body;
 
     try {
-        // Start transaction
         await pool.query('BEGIN');
 
         // Update task
@@ -284,22 +292,25 @@ router.put('/update/:id', isAuthenticated, async (req, res) => {
 
         // Assign users if provided
         if (assigned_users && assigned_users.length > 0) {
-            const assignValues = assigned_users.map(userId => {
-                return `(${userId}, ${id}, CURRENT_DATE)`;
-            }).join(',');
-
-            await pool.query(`
+            // Use parameterized query for safety
+            const assignQuery = `
                 INSERT INTO AssignedTo (user_id, task_id, assigned_date)
-                VALUES ${assignValues}
-            `);
+                VALUES ($1, $2, CURRENT_DATE)
+            `;
+
+            // Execute assignments in parallel
+            await Promise.all(
+                assigned_users.map(userId =>
+                    pool.query(assignQuery, [userId, id])
+                )
+            );
         }
 
-        // Commit transaction
         await pool.query('COMMIT');
-
         res.json(taskResult.rows[0]);
     } catch (err) {
         await pool.query('ROLLBACK');
+        console.error('Error updating task:', err);
         res.status(500).json({ message: 'Failed to update task' });
     }
 });

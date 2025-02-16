@@ -7,8 +7,8 @@ const TaskDashboard = ({
   showAddTaskPanel,
   setShowAddTaskPanel,
   tasks,
-  fetchTaskFromDatabase,
   sessionUser,
+  setNeedsRefetch,
 }) => {
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
@@ -30,7 +30,7 @@ const TaskDashboard = ({
         <IconizedButton
           icon={<RefreshCcw size={24} className="ml-2" />}
           text="Refetch Tasks"
-          onClick={fetchTaskFromDatabase}
+          onClick={() => setNeedsRefetch(true)}
           btnStyle="btn-grey"
         />
       </div>
@@ -48,7 +48,12 @@ const TaskDashboard = ({
       ) : (
         <div className="flex flex-col space-y-4">
           {taskList.map((task) => (
-            <TaskCard key={task.id} task={task} sessionUser={sessionUser} />
+            <TaskCard
+              key={task.id}
+              task={task}
+              sessionUser={sessionUser}
+              setNeedsRefetch={setNeedsRefetch}
+            />
           ))}
         </div>
       )}

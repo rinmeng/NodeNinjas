@@ -11,6 +11,7 @@ const AddTaskPanel = ({
   setShowFeedbackMessage,
   setAddedTaskSuccessfully,
   sessionUser,
+  setNeedsRefetch,
 }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
@@ -87,6 +88,8 @@ const AddTaskPanel = ({
       setAddedTaskSuccessfully(true);
       setShowFeedbackMessage(true);
     }
+    // fetch tasks from database
+    setNeedsRefetch(true);
   };
   return (
     <div
