@@ -1,8 +1,44 @@
 import { ListPlus, RefreshCcw } from "lucide-react";
-import React from "react";
+import React, { useState, useEffect } from "react";
+import TaskCard from "./subcomponents/TaskCard";
+
 import IconizedButton from "./subcomponents/IconizedButton";
 
 const TaskDashboard = ({ showAddTaskPanel, setShowAddTaskPanel }) => {
+  const [tasks, setTasks] = useState([
+    {
+      id: 1,
+      title: "Task 1",
+      description: "This is task 1",
+      date: "2025-02-16",
+      status: "pending",
+      priority: "high",
+    },
+    {
+      id: 2,
+      title: "Task 2",
+      description: "This is task 2",
+      date: "2025-02-17",
+      status: "in progress",
+      priority: "medium",
+    },
+    {
+      id: 3,
+      title: "Task 3",
+      description: "This is task 3",
+      date: "2025-02-18",
+      status: "completed",
+      priority: "low",
+    },
+    {
+      id: 4,
+      title: "Task 4",
+      description: "This is task 4",
+      date: "2025-02-11",
+      status: "pending",
+      priority: "high",
+    },
+  ]);
   const fetchTaskFromDatabase = async () => {};
 
   return (
@@ -24,7 +60,11 @@ const TaskDashboard = ({ showAddTaskPanel, setShowAddTaskPanel }) => {
         />
       </div>
       <div className="border-b border-slate-700 my-4"></div>
-      <div className="flex flex-col space-y-4">{/* Task list goes here */}</div>
+      <div className="flex flex-col space-y-4">
+        {tasks.map((task) => (
+          <TaskCard task={task} />
+        ))}
+      </div>
     </div>
   );
 };

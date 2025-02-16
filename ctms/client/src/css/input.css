@@ -104,13 +104,19 @@
   }
 
   .pill-grey {
-    @apply bg-slate-600 text-white px-8 py-2 rounded-full hover:bg-slate-700 t200e;
+    @apply bg-slate-400 text-white px-4 py-2 rounded-full hover:bg-slate-700 t200e;
   }
   .pill-green {
-    @apply bg-green-600 text-white px-8 py-2 rounded-full hover:bg-green-700 t200e;
+    @apply bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 t200e;
+  }
+  .pill-yellow {
+    @apply bg-yellow-600 text-white px-4 py-2 rounded-full hover:bg-yellow-700 t200e;
   }
 
   .pill-red {
-    @apply bg-red-600 text-white px-8 py-2 rounded-full hover:bg-red-700 t200e;
+    @apply bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 t200e;
+  }
+  .pill-blue {
+    @apply bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 t200e;
   }
 }
