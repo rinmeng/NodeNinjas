@@ -13,8 +13,9 @@ import {
   CalendarClock,
   SquarePen,
 } from "lucide-react";
+import EditTaskPanel from "../EditTaskPanel";
 
-const TaskCard = ({ task }) => {
+const TaskCard = ({ task, sessionUser }) => {
   const [isDescriptionVisible, setIsDescriptionVisible] = useState(false);
 
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
@@ -153,7 +154,9 @@ const TaskCard = ({ task }) => {
   return (
     <div
       key={task.id}
-      className="border-2 border-gray-600 m-auto w-1/2 flex flex-col bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 rounded-xl shadow-lg hover:shadow-2xl t200e"
+      className="border-2 border-gray-600 m-auto w-1/2 flex flex-col
+      bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 
+      rounded-xl shadow-lg hover:shadow-2xl t200e"
     >
       <div className="grid grid-cols-3 gap-4 ">
         {/* Status */}
@@ -198,35 +201,29 @@ const TaskCard = ({ task }) => {
 
       <div className="border-b border-slate-600 my-4"></div>
       <div>
-        <div className="flex items-center justify-between cursor-pointer group">
-          <h1
-            className="text-2xl font-semibold text-white mb-2"
-            onClick={() => setIsDescriptionVisible(!isDescriptionVisible)}
-          >
-            {task.name}
-          </h1>
-          <div className="flex items-center space-x-2">
-            <button
-              className="p-1 rounded-full hover:bg-slate-700 t200e"
+        <div className="flex justify-between items-center">
+          <div className="flex items-center justify-between cursor-pointer group flex-grow">
+            <h1
+              className="text-2xl font-semibold text-white mb-2 flex-grow"
               onClick={() => setIsDescriptionVisible(!isDescriptionVisible)}
             >
-              {isDescriptionVisible ? (
-                <ChevronUp
-                  className="text-slate-400 hover:text-white t200e"
-                  size={20}
-                />
-              ) : (
-                <ChevronDown
-                  className="text-slate-400 hover:text-white t200e"
-                  size={20}
-                />
-              )}
-            </button>
-            <SquarePen
-              onClick={handleEditTask}
-              size={20}
-              className="text-slate-400 hover:text-white t200e"
-            />
+              {task.name}
+            </h1>
+            <div className="flex items-center space-x-2">
+              <button
+                className="p-2 rounded-full group-hover:bg-slate-700 t200e text-slate-400 group-hover:text-white"
+                onClick={() => setIsDescriptionVisible(!isDescriptionVisible)}
+              >
+                {isDescriptionVisible ? (
+                  <ChevronUp size={20} />
+                ) : (
+                  <ChevronDown size={20} />
+                )}
+              </button>
+            </div>
+          </div>
+          <div className="p-2 rounded-full hover:bg-slate-700 t200e text-slate-500 hover:text-white cursor-pointer">
+            <SquarePen onClick={handleEditTask} size={20} />
           </div>
         </div>
         {isDescriptionVisible && (
@@ -235,6 +232,12 @@ const TaskCard = ({ task }) => {
           </p>
         )}
       </div>
+      <EditTaskPanel
+        sessionUser={sessionUser}
+        taskToEdit={task}
+        isOpen={showUpdateTaskPanel}
+        onClose={handleEditTask}
+      />
     </div>
   );
 };

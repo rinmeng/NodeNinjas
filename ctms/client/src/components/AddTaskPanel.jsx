@@ -2,7 +2,7 @@ import { ListPlus, X } from "lucide-react";
 import React, { useState } from "react";
 import IconizedButton from "./subcomponents/IconizedButton";
 
-const proxy = "http://localhost:15000/";
+import proxy from "../utils/proxy";
 
 const AddTaskPanel = ({
   showAddTaskPanel,
@@ -11,7 +11,6 @@ const AddTaskPanel = ({
   setShowFeedbackMessage,
   setAddedTaskSuccessfully,
   sessionUser,
-  taskToEdit,
 }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
@@ -57,7 +56,7 @@ const AddTaskPanel = ({
       assignedUserIDs.push(sessionUser.id);
     }
     // make post request to add task to database
-    const addResponse = await fetch(proxy + "task/add", {
+    const addResponse = await fetch(`${proxy}/task/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

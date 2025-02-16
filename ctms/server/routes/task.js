@@ -260,8 +260,7 @@ router.delete('/delete/:id', isAuthenticated, async (req, res) => {
 
 // PUT /task/update/:id - Update a task by ID
 router.put('/update/:id', isAuthenticated, async (req, res) => {
-    const { id } = req.body;
-    const { name, date, description, status, priority, assigned_users } = req.body;
+    const { id, name, date, description, status, priority, assigned_users } = req.body;
 
     try {
         // Start transaction
@@ -372,5 +371,17 @@ router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
         res.status(500).json({ message: 'Failed to fetch tasks' });
     }
 });
+
+router.get('/assignedto/all', isAuthenticated, async (req, res) => {
+    try {
+        const result = await pool.query(`
+            SELECT * FROM assignedto;
+        `);
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to fetch tasks' });
+    }
+}
+);
 
 module.exports = router;

@@ -5,7 +5,7 @@ import TaskDashboard from "../components/TaskDashboard";
 import AddTaskPanel from "../components/AddTaskPanel";
 import Feedback2 from "../components/subcomponents/Feedback2";
 import { ListPlus, ListX } from "lucide-react";
-const proxy = "http://localhost:15000";
+import proxy from "../utils/proxy";
 
 const Dashboard = ({ sessionUser, devMode }) => {
   const [searchCriteria, setSearchCriteria] = useState("");
@@ -14,10 +14,9 @@ const Dashboard = ({ sessionUser, devMode }) => {
   const [showFeedbackMessage, setShowFeedbackMessage] = useState(false);
   const [addedTaskSuccessfully, setAddedTaskSuccessfully] = useState(false);
 
+  // Initialize with empty array to prevent filter errors
   const [allTasks, setAllTasks] = useState([]);
-
-  const [tasks, setTasks] = useState(allTasks);
-
+  const [tasks, setTasks] = useState([]);
   const [showEditTaskPanel, setShowEditTaskPanel] = useState(false);
 
   const [filterOptions, setFilterOptions] = useState({
@@ -29,13 +28,14 @@ const Dashboard = ({ sessionUser, devMode }) => {
 
   const handleSearch = useCallback(
     (criteria) => {
-      setSearchCriteria(criteria); // Update the search criteria first
+      setSearchCriteria(criteria);
 
-      // Use useEffect to handle the filtering after the state update
       if (!criteria) {
         setTasks(allTasks);
       } else {
-        const filteredTasks = allTasks.filter(
+        // Guard against null/undefined allTasks
+        const tasksToFilter = Array.isArray(allTasks) ? allTasks : [];
+        const filteredTasks = tasksToFilter.filter(
           (task) =>
             task.name.toLowerCase().includes(criteria.toLowerCase()) ||
             task.description.toLowerCase().includes(criteria.toLowerCase())
@@ -47,7 +47,6 @@ const Dashboard = ({ sessionUser, devMode }) => {
   );
 
   const fetchTaskFromDatabase = useCallback(async () => {
-    // Add null check for sessionUser
     if (!sessionUser && !devMode) {
       console.log("No user session found");
       return;
@@ -59,14 +58,19 @@ const Dashboard = ({ sessionUser, devMode }) => {
       );
       const data = await response.json();
       console.log("Fetched tasks from database:", data);
-      setAllTasks(data);
-      setTasks(data);
+
+      // Ensure we always set an array
+      const tasksArray = Array.isArray(data) ? data : [];
+      setAllTasks(tasksArray);
+      setTasks(tasksArray);
     } catch (error) {
       console.error("Error fetching tasks from database:", error.message);
+      // Set empty arrays on error
+      setAllTasks([]);
+      setTasks([]);
     }
   }, [sessionUser, devMode]);
 
-  // fetch task when first loaded
   useEffect(() => {
     fetchTaskFromDatabase();
   }, [fetchTaskFromDatabase]);
@@ -75,21 +79,26 @@ const Dashboard = ({ sessionUser, devMode }) => {
     handleSearch(searchCriteria);
   }, [searchCriteria, handleSearch]);
 
+  // Sort tasks based on filter options
   useEffect(() => {
     const sortTasks = () => {
-      // Start with tasks that match search criteria
-      let updatedTasks = allTasks.filter((task) =>
-        !searchCriteria
-          ? true
-          : task.name.toLowerCase().includes(searchCriteria.toLowerCase()) ||
+      // Guard against null/undefined allTasks
+      let tasksToSort = Array.isArray(allTasks) ? [...allTasks] : [];
+
+      // Apply search filter
+      if (searchCriteria) {
+        tasksToSort = tasksToSort.filter(
+          (task) =>
+            task.name.toLowerCase().includes(searchCriteria.toLowerCase()) ||
             task.description
               .toLowerCase()
               .includes(searchCriteria.toLowerCase())
-      );
+        );
+      }
 
       // Apply title sort
       if (filterOptions.sortTitleAsc !== null) {
-        updatedTasks.sort((a, b) => {
+        tasksToSort.sort((a, b) => {
           return filterOptions.sortTitleAsc
             ? a.name.localeCompare(b.name)
             : b.name.localeCompare(a.name);
@@ -98,7 +107,7 @@ const Dashboard = ({ sessionUser, devMode }) => {
 
       // Apply date sort
       if (filterOptions.sortDateAsc !== null) {
-        updatedTasks.sort((a, b) => {
+        tasksToSort.sort((a, b) => {
           return filterOptions.sortDateAsc
             ? new Date(a.date) - new Date(b.date)
             : new Date(b.date) - new Date(a.date);
@@ -107,7 +116,7 @@ const Dashboard = ({ sessionUser, devMode }) => {
 
       // Apply priority filter
       if (filterOptions.sortPriorityAsc !== "") {
-        updatedTasks = updatedTasks.filter(
+        tasksToSort = tasksToSort.filter(
           (task) =>
             task.priority.toLowerCase() ===
             filterOptions.sortPriorityAsc.toLowerCase()
@@ -116,20 +125,19 @@ const Dashboard = ({ sessionUser, devMode }) => {
 
       // Apply status filter
       if (filterOptions.sortStatusAsc !== "") {
-        updatedTasks = updatedTasks.filter(
+        tasksToSort = tasksToSort.filter(
           (task) =>
             task.status.toLowerCase() ===
             filterOptions.sortStatusAsc.toLowerCase()
         );
       }
 
-      setTasks(updatedTasks);
+      setTasks(tasksToSort);
     };
 
     sortTasks();
   }, [filterOptions, allTasks, searchCriteria]);
 
-  // if user is not logged in, redirect to login page
   if (!sessionUser && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -138,7 +146,6 @@ const Dashboard = ({ sessionUser, devMode }) => {
           Please log in to view this page, or enable <code>devMode</code> to
           bypass authentication in <code>App.jsx</code>
         </p>
-        {/* redirect to /login */}
         <Navigate to="/login" />
       </div>
     );
@@ -153,6 +160,7 @@ const Dashboard = ({ sessionUser, devMode }) => {
         setFilterOptions={setFilterOptions}
       />
       <TaskDashboard
+        sessionUser={sessionUser}
         showAddTaskPanel={showAddTaskPanel}
         setShowAddTaskPanel={setShowAddTaskPanel}
         tasks={tasks}
