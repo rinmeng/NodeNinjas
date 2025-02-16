@@ -74,17 +74,18 @@ const EditTaskPanel = ({
   if (!isOpen) return null;
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 text-white">
-      <div className="bg-slate-600 rounded-lg shadow-lg w-1/2 h-auto">
+      <div className="bg-slate-800 rounded-lg shadow-lg w-1/2 h-auto">
         {/* Panel Header */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-400">
-          <h2 className="text-xl font-semibold">Edit Task</h2>
+        <div className="flex items-center justify-between p-4 ">
+          <h2 className="title-sm">Edit Task</h2>
           <button
             onClick={onClose}
-            className="p-1 hover:bg-gray-100 hover:text-black rounded-full transition-colors"
+            className="p-1 hover:bg-gray-100 hover:text-black rounded-full t200e"
           >
-            <X className="w-5 h-5" />
+            <X size={30} />
           </button>
         </div>
+        <div className="border-b border-slate-600"></div>
 
         {/* Panel Content */}
         <div className="p-4">
@@ -152,8 +153,9 @@ const EditTaskPanel = ({
           </div>
         </div>
 
+        <div className="border-b border-slate-600"></div>
         {/* Panel Footer */}
-        <div className="flex justify-end gap-2 p-4 border-t border-gray-400">
+        <div className="flex justify-end space-x-4 p-5">
           <IconizedButton
             text="Cancel"
             icon={<ClipboardX size={24} className="ml-2" />}

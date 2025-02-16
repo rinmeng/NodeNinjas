@@ -100,12 +100,16 @@ const AddTaskPanel = ({
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4">
         <div className="flex flex-row justify-between items-center">
           <div className="title-sm">Add Task</div>
-          <button onClick={() => setShowAddTaskPanel(false)}>
+          <button
+            onClick={() => setShowAddTaskPanel(false)}
+            className="p-1 hover:bg-gray-100 hover:text-black rounded-full t200e"
+          >
             <X size={30} />
           </button>
         </div>
+        <div className="border-b border-slate-600 my-4"></div>
 
-        <form className="flex flex-col space-y-2">
+        <form className="flex flex-col space-y-4">
           <h1 className="text-md">Title</h1>
           <input
             type="text"
@@ -161,6 +165,7 @@ const AddTaskPanel = ({
             </div>
           </div>
 
+          <div className="border-b border-slate-600"></div>
           <div className="flex justify-center items-center">
             <IconizedButton
               icon={<ListPlus size={24} className="ml-2" />}

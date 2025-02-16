@@ -15,9 +15,7 @@ const TaskDashboard = ({
 
   return (
     <div className="bg-slate-900 w-full h-full rounded-xl p-5">
-      <div className="text-center my-6 text-xl font-semibold">
-        Task Dashboard
-      </div>
+      <div className="title text-center mb-6">Task Dashboard</div>
 
       <div className="flex justify-center items-center space-x-4">
         <IconizedButton
@@ -57,6 +55,8 @@ const TaskDashboard = ({
           ))}
         </div>
       )}
+
+      <div className="border-b border-slate-700 my-4"></div>
     </div>
   );
 };

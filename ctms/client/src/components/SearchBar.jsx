@@ -83,7 +83,7 @@ const SearchBar = ({
   };
 
   return (
-    <div className="m-5 w-1/2">
+    <div className="m-5 w-3/4">
       <div className="task-bg rounded-full">
         <div className="flex flex-col m-auto justify-center items-center space-x-4">
           <form className="w-3/4 relative" onSubmit={handleSearchSubmit}>
