@@ -4,41 +4,7 @@ import TaskCard from "./subcomponents/TaskCard";
 
 import IconizedButton from "./subcomponents/IconizedButton";
 
-const TaskDashboard = ({ showAddTaskPanel, setShowAddTaskPanel }) => {
-  const [tasks, setTasks] = useState([
-    {
-      id: 1,
-      title: "Task 1",
-      description: "This is task 1",
-      date: "2025-02-16",
-      status: "pending",
-      priority: "high",
-    },
-    {
-      id: 2,
-      title: "Task 2",
-      description: "This is task 2",
-      date: "2025-02-17",
-      status: "in progress",
-      priority: "medium",
-    },
-    {
-      id: 3,
-      title: "Task 3",
-      description: "This is task 3",
-      date: "2025-02-18",
-      status: "completed",
-      priority: "low",
-    },
-    {
-      id: 4,
-      title: "Task 4",
-      description: "This is task 4",
-      date: "2025-02-11",
-      status: "pending",
-      priority: "high",
-    },
-  ]);
+const TaskDashboard = ({ showAddTaskPanel, setShowAddTaskPanel, tasks }) => {
   const fetchTaskFromDatabase = async () => {};
 
   return (

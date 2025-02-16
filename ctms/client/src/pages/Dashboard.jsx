@@ -13,11 +13,55 @@ const Dashboard = ({ sessionUser, devMode }) => {
   const [showFeedbackMessage, setShowFeedbackMessage] = useState(false);
   const [addedTaskSuccessfully, setAddedTaskSuccessfully] = useState(false);
 
-  // The search function, triggered when the search button is clicked in
-  // the SearchBar component
+  const [allTasks, setAllTasks] = useState([
+    {
+      id: 1,
+      title: "Task 1",
+      description: "This is task 1",
+      date: "2025-02-16",
+      status: "pending",
+      priority: "high",
+    },
+    {
+      id: 2,
+      title: "Task 2",
+      description: "This is task 2",
+      date: "2025-02-17",
+      status: "in progress",
+      priority: "medium",
+    },
+    {
+      id: 3,
+      title: "Task 3",
+      description: "This is task 3",
+      date: "2025-02-18",
+      status: "completed",
+      priority: "low",
+    },
+    {
+      id: 4,
+      title: "Task 4",
+      description: "This is task 4",
+      date: "2025-02-11",
+      status: "pending",
+      priority: "high",
+    },
+  ]);
+
+  const [tasks, setTasks] = useState(allTasks);
+
   const handleSearch = (criteria) => {
     console.log("Searching for tasks with criteria:", criteria);
-    // Add actual search logic here (e.g., filtering tasks, API call, etc.)
+    if (!criteria) {
+      setTasks(allTasks);
+      return;
+    }
+
+    const filteredTasks = allTasks.filter((task) =>
+      task.title.toLowerCase().includes(criteria.toLowerCase())
+    );
+
+    setTasks(filteredTasks);
   };
 
   return (
@@ -30,6 +74,8 @@ const Dashboard = ({ sessionUser, devMode }) => {
       <TaskDashboard
         showAddTaskPanel={showAddTaskPanel}
         setShowAddTaskPanel={setShowAddTaskPanel}
+        tasks={tasks}
+        setTasks={setTasks}
       />
       <AddTaskPanel
         showAddTaskPanel={showAddTaskPanel}
