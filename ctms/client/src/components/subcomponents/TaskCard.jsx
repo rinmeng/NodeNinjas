@@ -17,7 +17,13 @@ import {
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
 
-const TaskCard = ({ task, sessionUser, setNeedsRefetch }) => {
+const TaskCard = ({
+  task,
+  sessionUser,
+  setNeedsRefetch,
+  notifications,
+  setNotifications,
+}) => {
   const [isDescriptionVisible, setIsDescriptionVisible] = useState(false);
 
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
@@ -166,6 +172,13 @@ const TaskCard = ({ task, sessionUser, setNeedsRefetch }) => {
       .then((data) => {
         console.log(data);
         setNeedsRefetch(true);
+        const newNotifications = {
+          id: notifications.length + 1,
+          message: `Task "${task.name}" deleted successfully!`,
+          description: task.description,
+          timestamp: new Date().toISOString(),
+        };
+        setNotifications([...notifications, newNotifications]);
       })
       .catch((err) => console.log(err));
   };
@@ -263,6 +276,8 @@ const TaskCard = ({ task, sessionUser, setNeedsRefetch }) => {
         isOpen={showUpdateTaskPanel}
         onClose={handleEditTask}
         setNeedsRefetch={setNeedsRefetch}
+        notifications={notifications}
+        setNotifications={setNotifications}
       />
     </div>
   );

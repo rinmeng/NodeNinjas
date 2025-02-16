@@ -7,7 +7,12 @@ import Feedback2 from "../components/subcomponents/Feedback2";
 import { ListPlus, ListX } from "lucide-react";
 import proxy from "../utils/proxy";
 
-const Dashboard = ({ sessionUser, devMode }) => {
+const Dashboard = ({
+  sessionUser,
+  devMode,
+  notifications,
+  setNotifications,
+}) => {
   const [searchCriteria, setSearchCriteria] = useState("");
   const [showAddTaskPanel, setShowAddTaskPanel] = useState(false);
   const [feedbackMessage, setFeedbackMessage] = useState("");
@@ -178,6 +183,8 @@ const Dashboard = ({ sessionUser, devMode }) => {
         showEditTaskPanel={showEditTaskPanel}
         setShowEditTaskPanel={setShowEditTaskPanel}
         setNeedsRefetch={setNeedsRefetch}
+        notifications={notifications}
+        setNotifications={setNotifications}
       />
       <AddTaskPanel
         showAddTaskPanel={showAddTaskPanel}
@@ -187,6 +194,8 @@ const Dashboard = ({ sessionUser, devMode }) => {
         setAddedTaskSuccessfully={setAddedTaskSuccessfully}
         sessionUser={sessionUser}
         setNeedsRefetch={setNeedsRefetch}
+        notifications={notifications}
+        setNotifications={setNotifications}
       />
       {showFeedbackMessage && (
         <Feedback2

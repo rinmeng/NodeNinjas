@@ -9,6 +9,8 @@ const TaskDashboard = ({
   tasks,
   sessionUser,
   setNeedsRefetch,
+  notifications,
+  setNotifications,
 }) => {
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
@@ -51,6 +53,8 @@ const TaskDashboard = ({
               task={task}
               sessionUser={sessionUser}
               setNeedsRefetch={setNeedsRefetch}
+              notifications={notifications}
+              setNotifications={setNotifications}
             />
           ))}
         </div>

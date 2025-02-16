@@ -12,6 +12,8 @@ const AddTaskPanel = ({
   setAddedTaskSuccessfully,
   sessionUser,
   setNeedsRefetch,
+  notifications,
+  setNotifications,
 }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
@@ -87,6 +89,16 @@ const AddTaskPanel = ({
       setFeedbackMessage("Task added successfully!");
       setAddedTaskSuccessfully(true);
       setShowFeedbackMessage(true);
+
+      // send a notification to the user
+      const newNotification = {
+        id: notifications.length + 1,
+        message: `Task "${task.title}" added successfully!`,
+        description: task.description,
+        timestamp: new Date().toISOString(),
+        read: false, // Add read status
+      };
+      setNotifications([...notifications, newNotification]);
     }
     // fetch tasks from database
     setNeedsRefetch(true);
