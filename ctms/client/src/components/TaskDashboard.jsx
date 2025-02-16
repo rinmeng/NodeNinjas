@@ -16,10 +16,10 @@ const TaskDashboard = ({
   const taskList = Array.isArray(tasks) ? tasks : [];
 
   return (
-    <div className="bg-slate-950 w-full h-full rounded-xl p-5">
+    <div className="bg-slate-950 w-full h-full rounded-xl p-5 mt-28">
       <div className="title text-center mb-6">Task Dashboard</div>
 
-      <div className="flex justify-center items-center space-x-4">
+      <div className="flex justify-center items-center space-x-4 ">
         <IconizedButton
           text="Create Task"
           icon={<ListPlus size={24} className="ml-2" />}
@@ -27,12 +27,20 @@ const TaskDashboard = ({
           btnStyle="btn-blue"
         />
 
-        <IconizedButton
-          icon={<RefreshCcw size={24} className="ml-2" />}
-          text="Refetch Tasks"
-          onClick={() => setNeedsRefetch(true)}
-          btnStyle="btn-grey"
-        />
+        <div className="group">
+          <IconizedButton
+            icon={
+              <RefreshCcw
+                size={24}
+                className="ml-2 rotate-180 group-hover:-rotate-180 t500e
+          "
+              />
+            }
+            text="Refetch Tasks"
+            onClick={() => setNeedsRefetch(true)}
+            btnStyle="btn-grey"
+          />
+        </div>
       </div>
 
       <div className="border-b border-slate-700 my-4"></div>

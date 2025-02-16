@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Search, X } from "lucide-react";
+import { ChevronDown, Search, X } from "lucide-react";
 import FilterOptionsBar from "./FilterOptionsBar";
 
 const SearchBar = ({
@@ -83,11 +83,14 @@ const SearchBar = ({
   };
 
   return (
-    <div className="m-5 w-3/4">
-      <div className="task-bg rounded-full">
+    <div className="m-5 w-3/4 fixed top-0 translate-y-1/3 z-40 t200e">
+      <div className="glass-slate mp5 rounded-full t500e">
         <div className="flex flex-col m-auto justify-center items-center space-x-4">
-          <form className="w-3/4 relative" onSubmit={handleSearchSubmit}>
-            <div className="w-full relative">
+          <form
+            className="w-1/4 relative hover:w-2/4 t500e"
+            onSubmit={handleSearchSubmit}
+          >
+            <div className="relative flex items-center">
               <input
                 type="text"
                 value={searchCriteria}
@@ -129,6 +132,7 @@ const SearchBar = ({
           />
         </div>
       </div>
+      {/* <ChevronDown size={30} className="text-white" /> */}
     </div>
   );
 };
