@@ -103,13 +103,14 @@ async function setupTasks() {
             DROP TABLE IF EXISTS Task CASCADE;
             CREATE TABLE Task(
                 id SERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
+                name VARCHAR(255) UNIQUE NOT NULL,
                 description TEXT,
                 date DATE NOT NULL,
                 status task_status NOT NULL DEFAULT 'pending',
                 priority task_priority NOT NULL DEFAULT 'medium',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT unique_description UNIQUE (description)
             );
             -- Create some sample tasks
             INSERT INTO Task (name, description, date, status, priority) VALUES
