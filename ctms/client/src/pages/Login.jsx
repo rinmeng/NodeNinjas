@@ -270,7 +270,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
             <IconizedButton
               text="Logout"
               btnStyle="btn-red w-1/2"
-              icon={<LogIn className="ml-2" size={20} strokeWidth={3} />}
+              icon={<LogIn className="ml-2" size={20} strokeWidth={2} />}
               onClick={userLogout}
             />
           </div>
@@ -282,7 +282,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
 
               <form className="flex flex-col space-y-4 w-1/2 m-auto">
                 <IconizedTextField
-                  icon={<User strokeWidth={3} className="text-field-icon" />}
+                  icon={<User strokeWidth={2} className="text-field-icon" />}
                   inputDisplay="Username"
                   inputStyle="text-field"
                   name="username"
@@ -293,7 +293,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                 />
 
                 <IconizedTextField
-                  icon={<Lock strokeWidth={3} className="text-field-icon" />}
+                  icon={<Lock strokeWidth={2} className="text-field-icon" />}
                   inputDisplay="Password"
                   inputStyle="text-field"
                   name="password"
@@ -313,7 +313,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                   <IconizedButton
                     text="Login"
                     btnStyle="btn-blue w-3/4"
-                    icon={<LogIn className="ml-2" size={20} strokeWidth={3} />}
+                    icon={<LogIn className="ml-2" size={20} strokeWidth={2} />}
                     onClick={loginUser}
                   />
                 </div>
@@ -327,7 +327,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                 <IconizedButton
                   text="Sign Up"
                   btnStyle="btn-white w-full space-x-2"
-                  icon={<ChartSpline size={20} strokeWidth={3} />}
+                  icon={<ChartSpline size={20} strokeWidth={2} />}
                   onClick={registerPopup}
                 />
               </form>
@@ -362,7 +362,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
           <hr className="my-4 w-1/2 m-auto" />
           <form className="flex flex-col space-y-4">
             <IconizedTextField
-              icon={<User strokeWidth={3} className="text-field-icon" />}
+              icon={<User strokeWidth={2} className="text-field-icon" />}
               inputDisplay="Username"
               inputStyle="text-field"
               name="username"
@@ -372,7 +372,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
               inputPlaceholder="Enter your unique username"
             />
             <IconizedTextField
-              icon={<Lock strokeWidth={3} className="text-field-icon" />}
+              icon={<Lock strokeWidth={2} className="text-field-icon" />}
               inputDisplay="Password"
               inputStyle="text-field"
               name="password"
@@ -382,7 +382,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
               inputPlaceholder="Enter your password"
             />
             <IconizedTextField
-              icon={<Contact strokeWidth={3} className="text-field-icon" />}
+              icon={<Contact strokeWidth={2} className="text-field-icon" />}
               inputDisplay="Display Name*"
               inputStyle="text-field"
               name="displayName"
@@ -392,7 +392,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
               inputPlaceholder="Enter your display name"
             />
             <IconizedTextField
-              icon={<Mail strokeWidth={3} className="text-field-icon" />}
+              icon={<Mail strokeWidth={2} className="text-field-icon" />}
               inputDisplay="Email*"
               inputStyle="text-field"
               name="email"
@@ -421,7 +421,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                            flex justify-center items-center space-x-2"
                 >
                   <p>Team Member</p>
-                  <CircleUserRound size={20} strokeWidth={3} />
+                  <CircleUserRound size={20} strokeWidth={2} />
                 </div>
               </label>
 
@@ -441,21 +441,24 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
                             flex justify-center items-center space-x-2"
                 >
                   <p>Admin</p>
-                  <Shield size={20} strokeWidth={3} />
+                  <Shield size={20} strokeWidth={2} />
                 </div>
               </label>
             </div>
 
             <div>
               <IconizedTextField
-                icon={<UserCog strokeWidth={3} className="text-field-icon" />}
+                icon={<UserCog strokeWidth={2} className={`text-field-icon`} />}
                 inputDisplay="Admin's Username"
-                inputStyle="text-field"
+                inputStyle={`text-field  ${
+                  formData.role === "admin" ? "opacity-50" : "opacity-100"
+                }`}
                 name="manager_username"
                 value={formData.manager_username}
                 onChange={handleInputChange}
                 maxLength={255}
                 inputPlaceholder="Enter your Admin's username"
+                disabled={formData.role === "admin"}
               />
             </div>
             <hr className="my-4 w-1/4 m-auto" />
@@ -463,7 +466,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
               <IconizedButton
                 text="Register"
                 btnStyle="btn-white space-x-2 w-full hover:bg-green-600"
-                icon={<TrendingUp size={20} strokeWidth={3} />}
+                icon={<TrendingUp size={20} strokeWidth={2} />}
                 onClick={registerUser}
               />
             </div>
