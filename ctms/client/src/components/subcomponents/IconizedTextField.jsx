@@ -9,6 +9,7 @@ const IconizedTextField = ({
   maxLength,
   name,
   inputPlaceholder,
+  disabled,
 }) => {
   return (
     <div className="flex flex-col space-y-2 text-lg">
@@ -27,6 +28,7 @@ const IconizedTextField = ({
           onChange={(e) => onChange(e)} // Pass the entire event
           maxLength={maxLength}
           name={name}
+          disabled={disabled}
         />
       </div>
     </div>
