@@ -13,7 +13,7 @@ import Dashboard from "./pages/Dashboard";
 const proxy = "http://localhost:15000/";
 
 function App() {
-  const [devMode, setDevMode] = useState(false);
+  const [devMode, setDevMode] = useState(true);
 
   const [showNavbar, setShowNavbar] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);

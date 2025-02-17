@@ -73,8 +73,13 @@ const AddTaskPanel = ({
           priority: "low",
           status: "pending",
         });
-
-        setFeedbackMessage("Task added successfully!");
+        if (!sessionUser) {
+          setFeedbackMessage(
+            "Task will be added with no asignees, please sign in to assign users to the task."
+          );
+        } else {
+          setFeedbackMessage("Task added successfully!");
+        }
 
         // Send a notification to the user
         const newNotification = {
