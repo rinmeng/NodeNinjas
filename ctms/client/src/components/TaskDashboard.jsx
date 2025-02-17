@@ -1,5 +1,5 @@
-import React from "react";
-import { ListPlus, RefreshCcw, ClipboardList } from "lucide-react";
+import React, { use, useState, useEffect } from "react";
+import { ListPlus, ClipboardList, RefreshCw } from "lucide-react";
 import TaskCard from "./subcomponents/TaskCard";
 import IconizedButton from "./subcomponents/IconizedButton";
 
@@ -11,15 +11,35 @@ const TaskDashboard = ({
   setNeedsRefetch,
   notifications,
   setNotifications,
+  needsRefetch,
+  setFeedbackMessage,
 }) => {
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  const refetchTaskClicked = () => {
+    setIsRefetching(true);
+
+    setNeedsRefetch(true);
+  };
+
+  useEffect(() => {
+    if (!needsRefetch) {
+      // set time out for 1 second to simulate refetching
+      setTimeout(() => {
+        setIsRefetching(false);
+      }, 1000);
+    }
+  }, [needsRefetch, setNeedsRefetch, setFeedbackMessage]);
 
   return (
-    <div className="bg-slate-900 w-full h-full rounded-xl p-5">
-      <div className="title text-center mb-6">Task Dashboard</div>
+    <div className="bg-slate-950 w-full h-full rounded-xl p-5 mt-28">
+      <div className="title text-center mb-6">
+        <h1>Task Dashboard</h1>
+      </div>
 
-      <div className="flex justify-center items-center space-x-4">
+      <div className="flex justify-center items-center space-x-4 ">
         <IconizedButton
           text="Create Task"
           icon={<ListPlus size={24} className="ml-2" />}
@@ -27,13 +47,26 @@ const TaskDashboard = ({
           btnStyle="btn-blue"
         />
 
-        <IconizedButton
-          icon={<RefreshCcw size={24} className="ml-2" />}
-          text="Refetch Tasks"
-          onClick={() => setNeedsRefetch(true)}
-          btnStyle="btn-grey"
-        />
+        <div className="group">
+          <IconizedButton
+            icon={
+              <RefreshCw
+                size={24}
+                className={`ml-2 t500e ${isRefetching ? "animate-spin" : ""}`}
+              />
+            }
+            text="Sync Tasks"
+            onClick={refetchTaskClicked}
+            btnStyle={`btn-grey ${isRefetching ? "disabled opacity-50" : ""}`}
+          />
+        </div>
       </div>
+
+      {isRefetching && (
+        <div className="text-center text-slate-400 mt-2">
+          <p>Refetching tasks...</p>
+        </div>
+      )}
 
       <div className="border-b border-slate-700 my-4"></div>
 
@@ -55,6 +88,7 @@ const TaskDashboard = ({
               setNeedsRefetch={setNeedsRefetch}
               notifications={notifications}
               setNotifications={setNotifications}
+              setFeedbackMessage={setFeedbackMessage}
             />
           ))}
         </div>

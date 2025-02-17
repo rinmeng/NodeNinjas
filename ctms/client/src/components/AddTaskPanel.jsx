@@ -8,8 +8,6 @@ const AddTaskPanel = ({
   showAddTaskPanel,
   setShowAddTaskPanel,
   setFeedbackMessage,
-  setShowFeedbackMessage,
-  setAddedTaskSuccessfully,
   sessionUser,
   setNeedsRefetch,
   notifications,
@@ -28,24 +26,9 @@ const AddTaskPanel = ({
     e.preventDefault();
     try {
       await addTaskToDatabase();
-      setFeedbackMessage("Task added successfully!");
-      setAddedTaskSuccessfully(true);
-      setShowFeedbackMessage(true);
-      setShowAddTaskPanel(false);
-
-      // Hide the feedback message after 3 seconds
-      setTimeout(() => {
-        setShowFeedbackMessage(false);
-      }, 3000);
     } catch (error) {
       console.error("Failed to add task:", error);
-      setFeedbackMessage(error.message);
-      setAddedTaskSuccessfully(false);
-      setShowFeedbackMessage(true);
-
-      setTimeout(() => {
-        setShowFeedbackMessage(false);
-      }, 3000);
+      setFeedbackMessage(error.message || "Failed to add task.");
     }
   };
 
@@ -59,7 +42,7 @@ const AddTaskPanel = ({
       assignedUserIDs.push(sessionUser.id);
     }
     // make post request to add task to database
-    const addResponse = await fetch(`${proxy}/task/add`, {
+    fetch(`${proxy}/task/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -73,35 +56,44 @@ const AddTaskPanel = ({
         assigned_users: assignedUserIDs,
       }),
       credentials: "include",
-    });
+    })
+      .then((addResponse) => {
+        if (!addResponse.ok) {
+          return addResponse.json().then((err) => {
+            throw new Error(err.message || "Failed to add task.");
+          });
+        }
+        return addResponse.json();
+      })
+      .then(() => {
+        setTask({
+          title: "",
+          description: "",
+          date: today,
+          priority: "low",
+          status: "pending",
+        });
 
-    if (!addResponse.ok) {
-      setFeedbackMessage(addResponse.message || "Failed to add task.");
-      setShowFeedbackMessage(true);
-    } else {
-      setTask({
-        title: "",
-        description: "",
-        date: today,
-        priority: "low",
-        status: "pending",
+        setFeedbackMessage("Task added successfully!");
+
+        // Send a notification to the user
+        const newNotification = {
+          id: notifications.length + 1,
+          message: `Task "${task.title}" added successfully!`,
+          description: task.description,
+          timestamp: new Date().toISOString(),
+          read: false,
+        };
+
+        setNotifications([...notifications, newNotification]);
+        setNeedsRefetch(true);
+
+        setShowAddTaskPanel(false);
+      })
+      .catch((err) => {
+        setFeedbackMessage(err.message);
+        // dont close the add task panel
       });
-      setFeedbackMessage("Task added successfully!");
-      setAddedTaskSuccessfully(true);
-      setShowFeedbackMessage(true);
-
-      // send a notification to the user
-      const newNotification = {
-        id: notifications.length + 1,
-        message: `Task "${task.title}" added successfully!`,
-        description: task.description,
-        timestamp: new Date().toISOString(),
-        read: false, // Add read status
-      };
-      setNotifications([...notifications, newNotification]);
-    }
-    // fetch tasks from database
-    setNeedsRefetch(true);
   };
   return (
     <div

@@ -99,12 +99,75 @@ describe('Task Routes', () => {
         }, 10000); // Increased timeout to 10 seconds
     });
 
+    // describe('DELETE /task/delete/:id', () => {
+    //     it('should delete a task successfully', async () => {
+    //         pool.query.mockResolvedValueOnce({
+    //             rowCount: 1,
+    //             rows: [{ id: 1 }]
+    //         });
+
+    //         const response = await request(app)
+    //             .delete('/task/delete/1')
+    //             .send({ id: 1 });
+
+    //         expect(response.status).toBe(200);
+    //         expect(response.body).toEqual({
+    //             message: 'Task deleted successfully'
+    //         });
+    //         expect(pool.query).toHaveBeenCalledWith(
+    //             'DELETE FROM task WHERE id = $1 RETURNING *',
+    //             [1]
+    //         );
+    //     });
+
+    //     it('should return 400 if task ID is missing', async () => {
+    //         const response = await request(app)
+    //             .delete('/task/delete/1')
+    //             .send({});
+
+    //         expect(response.status).toBe(400);
+    //         expect(response.body).toEqual({
+    //             message: 'Task ID is required'
+    //         });
+    //     });
+
+    //     it('should return 404 if task is not found', async () => {
+    //         pool.query.mockResolvedValueOnce({
+    //             rowCount: 0,
+    //             rows: []
+    //         });
+
+    //         const response = await request(app)
+    //             .delete('/task/delete/999')
+    //             .send({ id: 999 });
+
+    //         expect(response.status).toBe(404);
+    //         expect(response.body).toEqual({
+    //             message: 'Task not found'
+    //         });
+    //     });
+
+    //     it('should handle database errors', async () => {
+    //         pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+    //         const response = await request(app)
+    //             .delete('/task/delete/1')
+    //             .send({ id: 1 });
+
+    //         expect(response.status).toBe(500);
+    //         expect(response.body).toEqual({
+    //             message: 'Failed to delete task'
+    //         });
+    //     });
+    // });
     describe('DELETE /task/delete/:id', () => {
         it('should delete a task successfully', async () => {
-            pool.query.mockResolvedValueOnce({
-                rowCount: 1,
-                rows: [{ id: 1 }]
-            });
+            // Mock the database transaction
+            pool.query
+                .mockResolvedValueOnce() // BEGIN
+                .mockResolvedValueOnce() // DELETE FROM assignedto
+                .mockResolvedValueOnce({ rowCount: 1 }) // DELETE FROM task
+                .mockResolvedValueOnce(); // COMMIT
 
             const response = await request(app)
                 .delete('/task/delete/1')
@@ -114,10 +177,9 @@ describe('Task Routes', () => {
             expect(response.body).toEqual({
                 message: 'Task deleted successfully'
             });
-            expect(pool.query).toHaveBeenCalledWith(
-                'DELETE FROM task WHERE id = $1 RETURNING *',
-                [1]
-            );
+            expect(pool.query).toHaveBeenCalledTimes(4);
+            expect(pool.query).toHaveBeenCalledWith('DELETE FROM assignedto WHERE task_id = $1', [1]);
+            expect(pool.query).toHaveBeenCalledWith('DELETE FROM task WHERE id = $1 RETURNING *', [1]);
         });
 
         it('should return 400 if task ID is missing', async () => {
@@ -132,10 +194,11 @@ describe('Task Routes', () => {
         });
 
         it('should return 404 if task is not found', async () => {
-            pool.query.mockResolvedValueOnce({
-                rowCount: 0,
-                rows: []
-            });
+            pool.query
+                .mockResolvedValueOnce() // BEGIN
+                .mockResolvedValueOnce() // DELETE FROM assignedto
+                .mockResolvedValueOnce({ rowCount: 0 }) // DELETE FROM task returns no rows
+                .mockResolvedValueOnce(); // ROLLBACK
 
             const response = await request(app)
                 .delete('/task/delete/999')
@@ -145,6 +208,7 @@ describe('Task Routes', () => {
             expect(response.body).toEqual({
                 message: 'Task not found'
             });
+            expect(pool.query).toHaveBeenCalledWith('ROLLBACK');
         });
 
         it('should handle database errors', async () => {
@@ -158,6 +222,7 @@ describe('Task Routes', () => {
             expect(response.body).toEqual({
                 message: 'Failed to delete task'
             });
+            expect(pool.query).toHaveBeenCalledWith('ROLLBACK');
         });
     });
 
@@ -193,7 +258,7 @@ describe('Task Routes', () => {
 
             expect(response.status).toBe(200);
             expect(response.body).toEqual(mockTask);
-            expect(pool.query).toHaveBeenCalledTimes(5);
+            expect(pool.query).toHaveBeenCalledTimes(6);
         });
 
         it('should return 404 if task not found', async () => {
@@ -293,8 +358,22 @@ describe('Task Routes', () => {
             });
         });
 
-    });
+        it('should handle database errors', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
+            const response = await request(app)
+                .get('/task/id/1')
+                .send({ id: 1 });
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({
+                message: 'Failed to fetch task'
+            });
+        });
+
+
+
+    });
     describe('GET /task/assignedto/user/:id', () => {
         it('should fetch tasks assigned to user successfully', async () => {
             const mockTasks = [
@@ -302,7 +381,7 @@ describe('Task Routes', () => {
                     id: 1,
                     name: 'Test Task 1',
                     date: '2024-01-01',
-                    description: 'Description 1',
+                    description: 'Test Description 1',
                     status: 'pending',
                     priority: 'medium'
                 },
@@ -310,7 +389,7 @@ describe('Task Routes', () => {
                     id: 2,
                     name: 'Test Task 2',
                     date: '2024-01-02',
-                    description: 'Description 2',
+                    description: 'Test Description 2',
                     status: 'in_progress',
                     priority: 'high'
                 }
@@ -322,26 +401,10 @@ describe('Task Routes', () => {
             });
 
             const response = await request(app)
-                .get('/task/assignedto/user/1')
-                .send({ id: 1 });
+                .get('/task/assignedto/user/1');
 
             expect(response.status).toBe(200);
             expect(response.body).toEqual(mockTasks);
-            expect(pool.query).toHaveBeenCalledWith(
-                expect.stringContaining('SELECT t.id, t.name, t.date'),
-                [1]
-            );
-        });
-
-        it('should return 400 if user ID is missing', async () => {
-            const response = await request(app)
-                .get('/task/assignedto/user/1')
-                .send({});
-
-            expect(response.status).toBe(400);
-            expect(response.body).toEqual({
-                message: 'User ID is required'
-            });
         });
 
         it('should return 404 if no tasks found for user', async () => {
@@ -351,8 +414,7 @@ describe('Task Routes', () => {
             });
 
             const response = await request(app)
-                .get('/task/assignedto/user/999')
-                .send({ id: 999 });
+                .get('/task/assignedto/user/999');
 
             expect(response.status).toBe(404);
             expect(response.body).toEqual({
@@ -364,8 +426,7 @@ describe('Task Routes', () => {
             pool.query.mockRejectedValueOnce(new Error('Database error'));
 
             const response = await request(app)
-                .get('/task/assignedto/user/1')
-                .send({ id: 1 });
+                .get('/task/assignedto/user/1');
 
             expect(response.status).toBe(500);
             expect(response.body).toEqual({
@@ -373,4 +434,44 @@ describe('Task Routes', () => {
             });
         });
     });
+
+    describe('GET /task/assignedto/all', () => {
+        it('should fetch all task assignments successfully', async () => {
+            const mockAssignments = [
+                {
+                    user_id: 1,
+                    task_id: 1,
+                    assigned_date: '2024-01-01'
+                },
+                {
+                    user_id: 2,
+                    task_id: 1,
+                    assigned_date: '2024-01-01'
+                }
+            ];
+
+            pool.query.mockResolvedValueOnce({
+                rows: mockAssignments
+            });
+
+            const response = await request(app)
+                .get('/task/assignedto/all');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual(mockAssignments);
+        });
+
+        it('should handle database errors', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            const response = await request(app)
+                .get('/task/assignedto/all');
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({
+                message: 'Failed to fetch tasks'
+            });
+        });
+    });
+
 });

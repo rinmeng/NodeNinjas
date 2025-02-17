@@ -30,7 +30,7 @@ const FilterOptionsBar = ({
     filterOptions.sortPriorityAsc !== "" ||
     filterOptions.sortStatusAsc !== "";
   return (
-    <div className="flex justify-center items-center space-x-4 border-4 border-gray-700 px-14 py-4 rounded-full w-fit m-auto">
+    <div className="flex justify-center items-center space-x-4  m-auto">
       <button
         onClick={removeAllFilters}
         className={

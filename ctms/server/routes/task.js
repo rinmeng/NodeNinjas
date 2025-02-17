@@ -203,6 +203,17 @@ router.post('/add', isAuthenticated, async (req, res) => {
         });
     }
 
+    // check to see if name and description is unique or not
+    const checkName = await pool.query('SELECT * FROM task WHERE name = $1', [name]);
+    const checkDescription = await pool.query('SELECT * FROM task WHERE description = $1', [description]);
+
+    if (checkName.rowCount > 0) {
+        return res.status(400).json({ message: 'Task name already exists' });
+    }
+    if (checkDescription.rowCount > 0) {
+        return res.status(400).json({ message: 'Task description already exists' });
+    }
+
     try {
         // Start transaction
         await pool.query('BEGIN');

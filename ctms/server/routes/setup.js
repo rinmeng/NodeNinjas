@@ -47,6 +47,44 @@ async function setupAssignedTo() {
             (DATE '2025-02-15', 6, 6),  -- Arnold - Security Audit
             (DATE '2025-02-15', 1, 7),  -- Rin - Budget Planning
             (DATE '2025-02-15', 2, 8);  -- Enock - Training Workshop
+            
+            -- Assign all tasks (including previous ones)
+            INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES
+            -- Rin's assignments (id: 1)
+            ('2025-02-15', 1, 9),   -- Marketing Strategy (medium, pending)
+            ('2025-02-15', 1, 10),  -- Employee Reviews (high, in_progress)
+            ('2025-02-15', 1, 11),  -- Office Supply Inventory (low, completed)
+            ('2025-02-15', 1, 12),  -- Vendor Contract Review (medium, in_progress)
+
+            -- Enock's assignments (id: 2)
+            ('2025-02-15', 2, 13),  -- Project Timeline (high, completed)
+            ('2025-02-15', 2, 14),  -- Customer Survey (low, pending)
+            ('2025-02-15', 2, 15),  -- Department Budget (medium, in_progress)
+            ('2025-02-15', 2, 16),  -- Equipment Maintenance (low, completed)
+
+            -- Keeran's assignments (id: 3)
+            ('2025-02-15', 3, 17),  -- Sales Report (high, pending)
+            ('2025-02-15', 3, 18),  -- Team Schedule (medium, in_progress)
+            ('2025-02-15', 3, 19),  -- Client Follow-up (low, completed)
+            ('2025-02-15', 3, 20),  -- Product Launch (high, pending)
+
+            -- Madiba's assignments (id: 4)
+            ('2025-02-15', 4, 21),  -- Code Review (high, in_progress)
+            ('2025-02-15', 4, 22),  -- System Backup (medium, completed)
+            ('2025-02-15', 4, 23),  -- Bug Fixes (high, pending)
+            ('2025-02-15', 4, 24),  -- Performance Testing (low, in_progress)
+
+            -- Mason's assignments (id: 5)
+            ('2025-02-15', 5, 25),  -- API Updates (high, completed)
+            ('2025-02-15', 5, 26),  -- User Guide (medium, pending)
+            ('2025-02-15', 5, 27),  -- Technical Review (low, in_progress)
+            ('2025-02-15', 5, 28),  -- Documentation Template (medium, completed)
+
+            -- Arnold's assignments (id: 6)
+            ('2025-02-15', 6, 29),  -- Security Review (high, pending)
+            ('2025-02-15', 6, 30),  -- Access Control (medium, in_progress)
+            ('2025-02-15', 6, 31),  -- Vulnerability Scan (low, completed)
+            ('2025-02-15', 6, 32);  -- Incident Response (high, pending)
         `);
         return { message: "assignedto table created successfully" };
     } catch (err) {
@@ -65,13 +103,14 @@ async function setupTasks() {
             DROP TABLE IF EXISTS Task CASCADE;
             CREATE TABLE Task(
                 id SERIAL PRIMARY KEY,
-                name VARCHAR(255) NOT NULL,
+                name VARCHAR(255) UNIQUE NOT NULL,
                 description TEXT,
                 date DATE NOT NULL,
                 status task_status NOT NULL DEFAULT 'pending',
                 priority task_priority NOT NULL DEFAULT 'medium',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT unique_description UNIQUE (description)
             );
             -- Create some sample tasks
             INSERT INTO Task (name, description, date, status, priority) VALUES
@@ -83,7 +122,45 @@ async function setupTasks() {
             ('Security Audit', 'Conduct monthly security audit', DATE '2025-02-18', 'completed', 'high'),
             ('Budget Planning', 'Create budget plan for Q2 2025', DATE '2025-03-20', 'pending', 'medium'),
             ('Training Workshop', 'Conduct new employee training workshop', DATE '2025-02-22', 'in_progress', 'low');
-        `);
+            
+            -- New Tasks (adding to existing ones)
+            INSERT INTO Task (name, description, date, status, priority) VALUES
+            -- Rin's additional tasks
+            ('Marketing Strategy', 'Develop Q2 marketing strategy', '2025-03-10', 'pending', 'medium'),
+            ('Employee Reviews', 'Conduct annual employee reviews', '2025-03-25', 'in_progress', 'high'),
+            ('Office Supply Inventory', 'Update office supply tracking system', '2025-02-28', 'completed', 'low'),
+            ('Vendor Contract Review', 'Review and renew vendor contracts', '2025-03-15', 'in_progress', 'medium'),
+
+            -- Enock's additional tasks
+            ('Project Timeline', 'Create project timeline for Q2', '2025-03-05', 'completed', 'high'),
+            ('Customer Survey', 'Analyze customer satisfaction survey results', '2025-03-12', 'pending', 'low'),
+            ('Department Budget', 'Review department budget allocation', '2025-03-20', 'in_progress', 'medium'),
+            ('Equipment Maintenance', 'Schedule regular equipment maintenance', '2025-02-25', 'completed', 'low'),
+
+            -- Keeran's additional tasks
+            ('Sales Report', 'Compile monthly sales report', '2025-03-01', 'pending', 'high'),
+            ('Team Schedule', 'Optimize team work schedule', '2025-03-08', 'in_progress', 'medium'),
+            ('Client Follow-up', 'Follow up with potential clients', '2025-02-28', 'completed', 'low'),
+            ('Product Launch', 'Coordinate new product launch', '2025-03-15', 'pending', 'high'),
+
+            -- Madiba's additional tasks
+            ('Code Review', 'Review pull requests for new features', '2025-03-02', 'in_progress', 'high'),
+            ('System Backup', 'Perform system backup and verification', '2025-02-25', 'completed', 'medium'),
+            ('Bug Fixes', 'Address high-priority bug reports', '2025-03-10', 'pending', 'high'),
+            ('Performance Testing', 'Conduct application performance tests', '2025-03-05', 'in_progress', 'low'),
+
+            -- Mason's additional tasks
+            ('API Updates', 'Update API endpoint documentation', '2025-03-01', 'completed', 'high'),
+            ('User Guide', 'Create user guide for new features', '2025-03-10', 'pending', 'medium'),
+            ('Technical Review', 'Review technical specifications', '2025-02-28', 'in_progress', 'low'),
+            ('Documentation Template', 'Create new documentation templates', '2025-03-15', 'completed', 'medium'),
+
+            -- Arnold's additional tasks
+            ('Security Review', 'Review security protocols', '2025-03-05', 'pending', 'high'),
+            ('Access Control', 'Update access control systems', '2025-03-12', 'in_progress', 'medium'),
+            ('Vulnerability Scan', 'Run quarterly vulnerability scan', '2025-02-28', 'completed', 'low'),
+            ('Incident Response', 'Update incident response plan', '2025-03-15', 'pending', 'high');
+            `);
 
         return { message: "Task table created successfully" };
     } catch (err) {

@@ -11,6 +11,7 @@ const EditTaskPanel = ({
   setNeedsRefetch,
   notifications,
   setNotifications,
+  setFeedbackMessage,
 }) => {
   const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit);
 
@@ -62,8 +63,12 @@ const EditTaskPanel = ({
           timestamp: new Date().toISOString(),
         };
         setNotifications([...notifications, newNotification]);
+        setFeedbackMessage("Task updated successfully!");
       })
-      .catch((error) => console.error("Failed to update task:", error));
+      .catch((error) => {
+        console.error("Failed to update task:", error);
+        setFeedbackMessage(error.message || "Failed to update task.");
+      });
   };
 
   const getDateFromDateString = (dateString) => {

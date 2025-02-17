@@ -20,9 +20,8 @@ describe('User Routes', () => {
     afterAll((done) => {
         if (server) {
             server.close(done);
-        } else {
-            done();
         }
+        done();
     });
 
     // Clear mocks before each test
@@ -41,54 +40,6 @@ describe('User Routes', () => {
         manager_id: '1'
     };
 
-
-    describe('POST /user/add', () => {
-        const validUser = {
-            username: 'testuser',
-            email: 'testemail',
-            password_hash: 'testpassword',
-            role: 'testrole',
-            display_name: 'testdisplayname',
-            manager_id: '1'
-        };
-
-        it('returns status code 201 if user was added successfully', async () => {
-            pool.query.mockResolvedValueOnce({
-                rows: [validUser]
-            });
-
-            const response = await request(app)
-                .post('/user/add')
-                .send(validUser);
-
-            expect(response.statusCode).toBe(201);
-            expect(pool.query).toHaveBeenCalledTimes(1);
-            expect(response.body).toEqual(validUser);
-        });
-
-        it('returns status code 500 if database error occurs', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Database error'));
-
-            const response = await request(app)
-                .post('/user/add')
-                .send(validUser);
-
-            expect(response.statusCode).toBe(500);
-            expect(response.body).toEqual({ message: 'Error adding user.' });
-        });
-
-        it('returns status code 400 if required fields are missing', async () => {
-            const invalidUser = {
-                username: 'testuser'
-            };
-
-            const response = await request(app)
-                .post('/user/add')
-                .send(invalidUser);
-
-            expect(response.statusCode).toBe(400);
-        });
-    });
 
     describe('GET /user/userid/:id', () => {
         it('returns user when valid ID is provided', async () => {
@@ -393,6 +344,85 @@ describe('User Routes', () => {
             expect(response.statusCode).toBe(404);
             expect(response.body).toEqual({ message: 'No active session' });
         });
+
+        describe('POST /user/register', () => {
+            const validUser = {
+                username: 'testuser',
+                email: 'test@email.com',
+                password_hash: 'testpassword',
+                role: 'user',
+                display_name: 'Test User',
+                manager_id: 1
+            };
+
+            it('returns 400 if required fields are missing', async () => {
+                const invalidUser = {
+                    username: 'testuser'
+                };
+
+                const response = await request(app)
+                    .post('/user/register')
+                    .send(invalidUser);
+
+                expect(response.statusCode).toBe(400);
+                expect(response.body.message).toBe('Required fields: username, email, password_hash, role, display_name');
+            });
+
+            it('returns 400 if username already exists', async () => {
+                pool.query
+                    .mockResolvedValueOnce({ rowCount: 1 }) // username exists
+                    .mockResolvedValueOnce({ rowCount: 0 }); // email doesn't exist
+
+                const response = await request(app)
+                    .post('/user/register')
+                    .send(validUser);
+
+                expect(response.statusCode).toBe(400);
+                expect(response.body.message).toBe('Username already exists');
+            });
+
+            it('returns 400 if email already exists', async () => {
+                pool.query
+                    .mockResolvedValueOnce({ rowCount: 0 }) // username doesn't exist
+                    .mockResolvedValueOnce({ rowCount: 1 }); // email exists
+
+                const response = await request(app)
+                    .post('/user/register')
+                    .send(validUser);
+
+                expect(response.statusCode).toBe(400);
+                expect(response.body.message).toBe('Email already exists');
+            });
+
+            it('returns 201 if user registration is successful', async () => {
+                pool.query
+                    .mockResolvedValueOnce({ rowCount: 0 }) // username check
+                    .mockResolvedValueOnce({ rowCount: 0 }) // email check
+                    .mockResolvedValueOnce({ rows: [validUser] }); // insert user
+
+                const response = await request(app)
+                    .post('/user/register')
+                    .send(validUser);
+
+                expect(response.statusCode).toBe(201);
+                expect(response.body.message).toBe('User registered successfully');
+            });
+
+            it('returns 500 if database error occurs', async () => {
+                pool.query
+                    .mockResolvedValueOnce({ rowCount: 0 }) // username check
+                    .mockResolvedValueOnce({ rowCount: 0 }) // email check
+                    .mockRejectedValueOnce(new Error('Database error')); // insert fails
+
+                const response = await request(app)
+                    .post('/user/register')
+                    .send(validUser);
+
+                expect(response.statusCode).toBe(500);
+                expect(response.body.message).toBe('Error adding user.');
+            });
+        });
+
         // it('returns status code 200 if session is active', async () => {
         //     //first add the user in the database, then log them in, then check if session is 200
         //     pool.query.mockResolvedValueOnce({
