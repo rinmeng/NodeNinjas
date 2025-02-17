@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { Mail, X, Bell } from "lucide-react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
-import Home from "./pages/Home";
 import About from "./pages/About";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
@@ -15,14 +13,13 @@ import Dashboard from "./pages/Dashboard";
 const proxy = "http://localhost:15000/";
 
 function App() {
-  const [devMode, setDevMode] = useState(true);
+  const [devMode, setDevMode] = useState(false);
 
   const [showNavbar, setShowNavbar] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);
 
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
-  const [showNotifications, setShowNotifications] = useState(false);
 
   useEffect(() => {
     fetch(proxy + "user/session", {
