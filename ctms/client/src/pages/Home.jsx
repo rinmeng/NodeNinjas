@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
-import {
+import Chat from "./Chat";
   Search,
   Filter,
   RefreshCw,
@@ -28,6 +28,7 @@ import {
   X,
 } from "lucide-react";
 import TaskItem from "../components/subcomponents/TaskItem";
+import Chat from "./Chat";
 
 const Home = ({ sessionUser, devMode, notifications, setNotifications }) => {
   // Create dummy tasks
@@ -563,6 +564,10 @@ const Home = ({ sessionUser, devMode, notifications, setNotifications }) => {
           </form>
         </div>
       </div>
+      <div className="mt-10">
+      <h2 className="text-2xl font-bold text-white mb-4">Live Chat</h2>
+      <Chat />
+    </div>
     </div>
   );
 };

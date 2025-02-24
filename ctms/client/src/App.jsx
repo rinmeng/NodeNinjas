@@ -9,6 +9,8 @@ import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
 import Dashboard from "./pages/Dashboard";
+import Chat from "./pages/Chat";
+
 
 const proxy = "http://localhost:15000/";
 
@@ -82,6 +84,7 @@ function App() {
               />
             }
           />
+         
           <Route
             path="/admin"
             element={<Admin sessionUser={sessionUser} devMode={devMode} />}
@@ -101,6 +104,7 @@ function App() {
             path="/test"
             element={<Test sessionUser={sessionUser} devMode={devMode} />}
           />
+          <Route path="/message" element={<Chat />} />
           <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

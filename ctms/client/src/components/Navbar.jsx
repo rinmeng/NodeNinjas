@@ -188,7 +188,14 @@ const Navbar = ({
           >
             {sessionUser ? "Profile" : "Login"}
           </Link>
-
+          {(sessionUser || devMode) && (
+            <Link
+              to="/message"
+              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
+            >
+              Message
+            </Link>
+          )}
           {/* Notification Bell */}
 
           <button
