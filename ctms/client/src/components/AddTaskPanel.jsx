@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import IconizedButton from "./subcomponents/IconizedButton";
 
 import proxy from "../utils/proxy";
+import IconButton from "./subcomponents/IconButton";
 
 const AddTaskPanel = ({
   showAddTaskPanel,
@@ -113,12 +114,11 @@ const AddTaskPanel = ({
       >
         <div className="flex flex-row justify-between items-center">
           <div className="title-sm">Add Task</div>
-          <button
+          <IconButton
+            icon={<X size={30} />}
             onClick={() => setShowAddTaskPanel(false)}
-            className="p-1 hover:bg-gray-100 hover:text-black rounded-full t200e"
-          >
-            <X size={30} />
-          </button>
+            color="hover:bg-white hover:text-black"
+          />
         </div>
         <div className="border-b border-slate-600 my-4"></div>
 

@@ -12,7 +12,7 @@ const IconButton = ({ onClick, icon, hoverIcon, color, tooltip }) => {
         onClick={onClick}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
-        className={`p-2 rounded-full transition-all duration-200 text-slate-500 hover:text-white ${color}`}
+        className={`p-2 rounded-full transition-all duration-200 text-slate-500  ${color}`}
       >
         {displayIcon}
       </button>
