@@ -246,7 +246,9 @@ router.post('/add', isAuthenticated, async (req, res) => {
         res.status(201).json(taskResult.rows[0]);
     } catch (err) {
         await pool.query('ROLLBACK');
-        res.status(500).json({ message: 'Failed to create task' });
+        res.status(500).json({
+            message: 'Failed to create task'
+        });
     }
 });
 

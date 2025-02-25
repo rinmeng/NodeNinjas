@@ -182,6 +182,7 @@ const Dashboard = ({
         setNotifications={setNotifications}
         needsRefetch={needsRefetch}
         setFeedbackMessage={setFeedbackMessage}
+        devMode={devMode}
       />
       <AddTaskPanel
         showAddTaskPanel={showAddTaskPanel}

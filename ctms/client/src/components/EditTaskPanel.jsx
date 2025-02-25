@@ -113,6 +113,7 @@ const EditTaskPanel = ({
                 name="name"
                 defaultValue={taskToEdit?.name}
                 onChange={handleOnChange}
+                maxLength="255"
               />
             </div>
             <div className="flex flex-col space-y-1">

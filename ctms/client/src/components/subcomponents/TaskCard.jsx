@@ -27,9 +27,11 @@ const TaskCard = ({
   notifications,
   setNotifications,
   setFeedbackMessage,
+  devMode,
 }) => {
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
   const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
+  const [isExpanded, setIsExpanded] = useState(false); // Add this state to track expanded state
 
   useEffect(() => {
     // Update the local state when the task prop changes
@@ -42,6 +44,10 @@ const TaskCard = ({
       return;
     }
     setShowUpdateTaskPanel(!showUpdateTaskPanel);
+  };
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const getDateWithRelativeTime = (dateString) => {
@@ -229,12 +235,11 @@ const TaskCard = ({
       key={task.id}
       className={`border-2 ${
         isTaskLocked ? "border-red-500" : "border-gray-600"
-      } m-auto w-3/5 flex flex-col
-      bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 
+      } m-auto w-full md:w-3/5 flex flex-col
+      bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-4 md:p-6 
       rounded-xl shadow-lg hover:shadow-2xl my-4 ${
         isTaskLocked ? "opacity-70" : "opacity-100"
-      }
-      }
+      }}
       }`}
     >
       {isTaskLocked && (
@@ -275,12 +280,14 @@ const TaskCard = ({
         <div className="flex flex-col space-y-1">
           <h1 className="text-sm text-slate-400">Due Date</h1>
           <p
-            className={`text-md text-center flex justify-center ${getDateColor(
+            className={`text-md text-center flex flex-wrap justify-center items-center ${getDateColor(
               task.date
             )}`}
           >
-            <CalendarClock size={20} className="mr-2" />
-            {getDateWithRelativeTime(task.date)}
+            <CalendarClock size={20} className="mr-2 flex-shrink-0" />
+            <span className="break-words">
+              {getDateWithRelativeTime(task.date)}
+            </span>
           </p>
         </div>
       </div>
@@ -288,37 +295,37 @@ const TaskCard = ({
       <div className="border-b border-slate-600 my-4"></div>
 
       <div>
-        <input
-          type="checkbox"
-          id={`toggle-${task.id}`}
-          className="hidden peer"
-        />
         <div className="flex justify-between items-center">
           {/* Lock/Unlock button */}
-          <div className="mr-2">
-            {isTaskLocked && <Lock size={20} className="text-red-500 ml-2" />}
-          </div>
+          {isTaskLocked && (
+            <div className="mr-2">
+              <Lock size={20} className="text-red-500 ml-2" />
+            </div>
+          )}
 
           {/* Title and toggle */}
           <div className="group flex-grow">
-            <label
-              htmlFor={`toggle-${task.id}`}
-              className={`flex items-center justify-between cursor-pointer`}
+            <button
+              onClick={toggleExpanded}
+              className="flex items-center justify-between cursor-pointer w-full"
             >
               <h1
                 className={`text-2xl font-semibold flex-grow ${
                   isTaskLocked ? "text-slate-300" : "text-white"
-                }`}
+                } break-all overflow-hidden text-left`}
               >
                 {task.name}
               </h1>
               <div className="flex items-center space-x-2">
                 <div className="p-2 rounded-full group-hover:bg-slate-700 t200e text-slate-400 group-hover:text-white">
-                  <ChevronDown size={20} className="peer-checked:hidden" />
-                  <ChevronUp size={20} className="hidden peer-checked:block" />
+                  {isExpanded ? (
+                    <ChevronUp size={20} />
+                  ) : (
+                    <ChevronDown size={20} />
+                  )}
                 </div>
               </div>
-            </label>
+            </button>
           </div>
 
           {/* Action buttons */}
@@ -326,6 +333,7 @@ const TaskCard = ({
             <IconButton
               onClick={handleEditTask}
               icon={<SquarePen size={20} />}
+              tooltip="Edit Task"
               color={`${
                 isTaskLocked
                   ? "opacity-50 cursor-not-allowed text-slate-500"
@@ -333,19 +341,30 @@ const TaskCard = ({
               }`}
               disabled={isTaskLocked}
             />
-            <IconButton
-              onClick={handleToggleLock}
-              icon={isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />}
-              hoverIcon={
-                isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
-              }
-              color={`${
-                isTaskLocked ? "hover:bg-green-500" : "hover:bg-red-500"
-              }`}
-            />
+            {/* if user is admin or devMode is active, show lock/unlock button */}
+            {(sessionUser.role === "admin" || devMode) && (
+              <IconButton
+                onClick={handleToggleLock}
+                // Show the OPPOSITE icon on hover to indicate the action that will happen
+                icon={
+                  isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />
+                }
+                hoverIcon={
+                  isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
+                }
+                tooltip={isTaskLocked ? "Unlock this task" : "Lock this task"}
+                color={`${
+                  isTaskLocked
+                    ? "hover:bg-green-500 hover:text-white"
+                    : "hover:bg-red-500 hover:text-white"
+                }`}
+              />
+            )}
+
             <IconButton
               onClick={handleDeleteTask}
               icon={<Trash size={20} />}
+              tooltip="Delete this task"
               color={`${
                 isTaskLocked
                   ? "opacity-50 cursor-not-allowed text-slate-500"
@@ -357,13 +376,15 @@ const TaskCard = ({
         </div>
 
         {/* Description */}
-        <p
-          className={`hidden peer-checked:block text-md text-slate-300 mb-4 transition-all ${
-            isTaskLocked ? "select-none" : ""
-          }`}
-        >
-          {task.description}
-        </p>
+        {isExpanded && (
+          <p
+            className={`text-md text-slate-300 mb-4 transition-all break-words whitespace-normal ${
+              isTaskLocked ? "select-none" : ""
+            }`}
+          >
+            {task.description}
+          </p>
+        )}
       </div>
 
       {/* Only show edit panel if not locked */}

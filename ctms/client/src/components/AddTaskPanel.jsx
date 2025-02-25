@@ -126,6 +126,7 @@ const AddTaskPanel = ({
             className="forms text-left"
             value={task.title}
             onChange={(e) => setTask({ ...task, title: e.target.value })}
+            maxLength="255"
           />
 
           <h1 className="text-md">Description</h1>
