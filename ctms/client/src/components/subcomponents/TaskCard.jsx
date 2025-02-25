@@ -44,7 +44,7 @@ const TaskCard = ({
         setFeedbackMessage("Task is locked. Unlock it first to edit.");
       } else {
         setFeedbackMessage(
-          "Task is locked. Contact the admin to make changes."
+          "Task is locked. Contact your admin to make changes."
         );
       }
       return;
@@ -189,7 +189,7 @@ const TaskCard = ({
         setFeedbackMessage("Task is locked. Unlock it first to delete.");
       } else {
         setFeedbackMessage(
-          "Task is locked. Contact the admin to make changes."
+          "Task is locked. Contact your admin to make changes."
         );
       }
       return;
