@@ -13,9 +13,12 @@ import {
   CalendarClock,
   SquarePen,
   Trash,
+  Lock,
+  LockOpen,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
+import IconButton from "./IconButton";
 
 const TaskCard = ({
   task,
@@ -26,6 +29,8 @@ const TaskCard = ({
   setFeedbackMessage,
 }) => {
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
+
+  const [isTaskLocked, setIsTaskLocked] = useState(false);
 
   const handleEditTask = () => {
     setShowUpdateTaskPanel(!showUpdateTaskPanel);
@@ -186,6 +191,10 @@ const TaskCard = ({
       });
   };
 
+  const handleLockTask = () => {
+    setIsTaskLocked(!isTaskLocked);
+  };
+
   return (
     <div
       key={task.id}
@@ -193,9 +202,9 @@ const TaskCard = ({
       bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 
       rounded-xl shadow-lg hover:shadow-2xl my-4"
     >
-      <div className="grid grid-cols-3 gap-4 ">
+      <div className="grid grid-cols-3 gap-4 space-y-1">
         {/* Status */}
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col ">
           <h1 className="text-sm text-slate-400">Status</h1>
           <div
             className={`flex justify-center items-center text-md space-x-2 ${getStatusColor(
@@ -208,7 +217,7 @@ const TaskCard = ({
         </div>
 
         {/* Priority */}
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col ">
           <h1 className="text-sm text-slate-400">Priority</h1>
           <div
             className={`flex justify-center items-center text-md space-x-2 ${getPriorityColor(
@@ -221,7 +230,7 @@ const TaskCard = ({
         </div>
 
         {/* Due Date */}
-        <div className="flex flex-col space-y-1">
+        <div className="flex flex-col ">
           <h1 className="text-sm text-slate-400">Due Date</h1>
           <p
             className={`text-md text-center flex justify-center ${getDateColor(
@@ -244,12 +253,23 @@ const TaskCard = ({
         />
         <div className="flex justify-between items-center">
           {/* Separate group for the title and chevron */}
+          <div className="mr-2">
+            <IconButton
+              onClick={handleLockTask}
+              icon={isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />}
+              color={`${
+                isTaskLocked
+                  ? "hover:bg-red-500 hover:text-white"
+                  : "hover:bg-green-500 hover:text-white"
+              }`}
+            />
+          </div>
           <div className="group flex-grow">
             <label
               htmlFor={`toggle-${task.id}`}
               className="flex items-center justify-between cursor-pointer"
             >
-              <h1 className="text-2xl font-semibold text-white mb-2 flex-grow">
+              <h1 className="text-2xl font-semibold text-white flex-grow">
                 {task.name}
               </h1>
               <div className="flex items-center space-x-2">
@@ -263,18 +283,16 @@ const TaskCard = ({
 
           {/* Separate individual buttons */}
           <div className="flex items-center">
-            <button
+            <IconButton
               onClick={handleEditTask}
-              className="p-2 rounded-full hover:bg-blue-700 t200e text-slate-500 hover:text-white"
-            >
-              <SquarePen size={20} />
-            </button>
-            <button
+              icon={<SquarePen size={20} />}
+              color="hover:bg-blue-500 hover:text-white"
+            />
+            <IconButton
               onClick={handleDeleteTask}
-              className="p-2 rounded-full hover:bg-red-700 t200e text-red-500 hover:text-white"
-            >
-              <Trash size={20} />
-            </button>
+              icon={<Trash size={20} />}
+              color="hover:bg-red-500 hover:text-white"
+            />
           </div>
         </div>
         <p className="hidden peer-checked:block text-md text-slate-300 mb-4 transition-all">
