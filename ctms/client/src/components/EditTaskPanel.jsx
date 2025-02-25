@@ -88,11 +88,10 @@ const EditTaskPanel = ({
 
   if (!isOpen) return null;
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 text-white">
-      <div className="bg-slate-800 rounded-lg shadow-lg w-1/2 h-auto">
-        {/* Panel Header */}
-        <div className="flex items-center justify-between p-4 ">
-          <h2 className="title-sm">Edit Task</h2>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4 border-2 border-slate-600">
+        <div className="flex flex-row justify-between items-center">
+          <div className="title-sm">Edit Task</div>
           <button
             onClick={onClose}
             className="p-1 hover:bg-gray-100 hover:text-black rounded-full t200e"
@@ -100,91 +99,86 @@ const EditTaskPanel = ({
             <X size={30} />
           </button>
         </div>
-        <div className="border-b border-slate-600"></div>
+        <div className="border-b border-slate-600 my-4"></div>
 
-        {/* Panel Content */}
-        <div className="p-4">
-          <div className="space-y-4">
-            <div className="flex flex-col space-y-1">
-              <label className="text-md text-gray-300">Task Name</label>
+        <form className="flex flex-col space-y-4">
+          <h1 className="text-md">Title</h1>
+          <input
+            type="text"
+            placeholder="Task Title"
+            className="forms text-left"
+            name="name"
+            value={taskAfterEdit?.name || ""}
+            onChange={handleOnChange}
+            maxLength="255"
+          />
+
+          <h1 className="text-md">Description</h1>
+          <textarea
+            placeholder="Task Description"
+            className="forms text-left"
+            name="description"
+            value={taskAfterEdit?.description || ""}
+            onChange={handleOnChange}
+          />
+
+          <div className="flex flex-row justify-between space-x-4">
+            <div className="flex flex-col space-y-2 w-full">
+              <h1 className="text-md">Due Date</h1>
               <input
-                type="text"
-                className="forms text-left"
-                name="name"
-                defaultValue={taskToEdit?.name}
-                onChange={handleOnChange}
-                maxLength="255"
-              />
-            </div>
-            <div className="flex flex-col space-y-1">
-              <label className="text-md text-gray-300">Description</label>
-              <textarea
-                className="forms text-left"
-                rows="4"
-                name="description"
-                defaultValue={taskToEdit?.description}
+                type="date"
+                className="forms"
+                name="date"
+                value={getDateFromDateString(taskAfterEdit?.date)}
                 onChange={handleOnChange}
               />
             </div>
-            <div className="flex flex-row justify-between space-x-4">
-              <div className="flex flex-col space-y-2 w-full">
-                <h1 className="text-md">Due Date</h1>
-                <input
-                  type="date"
-                  className="forms"
-                  name="date"
-                  defaultValue={getDateFromDateString(taskToEdit?.date)}
-                  onChange={handleOnChange}
-                />
-              </div>
 
-              <div className="flex flex-col space-y-2 w-full">
-                <h1 className="text-md">Priority</h1>
-                <select
-                  className="forms"
-                  name="priority"
-                  defaultValue={taskToEdit?.priority}
-                  onChange={handleOnChange}
-                >
-                  <option value="low">Low</option>
-                  <option value="medium">Medium</option>
-                  <option value="high">High</option>
-                </select>
-              </div>
+            <div className="flex flex-col space-y-2 w-full">
+              <h1 className="text-md">Priority</h1>
+              <select
+                className="forms"
+                name="priority"
+                value={taskAfterEdit?.priority || "low"}
+                onChange={handleOnChange}
+              >
+                <option value="low">Low</option>
+                <option value="medium">Medium</option>
+                <option value="high">High</option>
+              </select>
+            </div>
 
-              <div className="flex flex-col space-y-2 w-full">
-                <h1 className="text-md">Status</h1>
-                <select
-                  className="forms"
-                  name="status"
-                  defaultValue={taskToEdit?.status}
-                  onChange={handleOnChange}
-                >
-                  <option value="pending">Pending</option>
-                  <option value="in_progress">In Progress</option>
-                  <option value="completed">Completed</option>
-                </select>
-              </div>
+            <div className="flex flex-col space-y-2 w-full">
+              <h1 className="text-md">Status</h1>
+              <select
+                className="forms"
+                name="status"
+                value={taskAfterEdit?.status || "pending"}
+                onChange={handleOnChange}
+              >
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="completed">Completed</option>
+              </select>
             </div>
           </div>
-        </div>
 
-        <div className="border-b border-slate-600"></div>
-        {/* Panel Footer */}
-        <div className="flex justify-end space-x-4 p-5">
-          <IconizedButton
-            text="Cancel"
-            icon={<ClipboardX size={24} className="ml-2" />}
-            btnStyle="btn-white"
-            onClick={onClose}
-          />
-          <IconizedButton
-            text="Save Changes"
-            icon={<Save size={24} className="ml-2" />}
-            btnStyle="btn-blue"
-            onClick={handleUpdateTask}
-          />
-        </div>
+          <div className="border-b border-slate-600"></div>
+          <div className="flex justify-end space-x-4">
+            <IconizedButton
+              text="Cancel"
+              icon={<ClipboardX size={24} className="ml-2" />}
+              btnStyle="btn-white"
+              onClick={onClose}
+            />
+            <IconizedButton
+              text="Save Changes"
+              icon={<Save size={24} className="ml-2" />}
+              btnStyle="btn-blue"
+              onClick={handleUpdateTask}
+            />
+          </div>
+        </form>
       </div>
     </div>
   );
