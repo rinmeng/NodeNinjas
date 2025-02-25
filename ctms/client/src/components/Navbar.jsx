@@ -148,14 +148,15 @@ const Navbar = ({
           </h1>
         </div>
         <div className="space-x-4">
-          {(sessionUser?.role === "admin" || devMode) && (
+          {/* Deprecated */}
+          {/* {(sessionUser?.role === "admin" || devMode) && (
             <Link
               to="/test"
               className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
             >
               Test Database Connection
             </Link>
-          )}
+          )} */}
 
           {(sessionUser || devMode) && (
             <Link

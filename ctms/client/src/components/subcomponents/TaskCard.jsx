@@ -189,7 +189,7 @@ const TaskCard = ({
   return (
     <div
       key={task.id}
-      className="border-2 border-gray-600 m-auto w-1/2 flex flex-col
+      className="border-2 border-gray-600 m-auto w-3/5 flex flex-col
       bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 
       rounded-xl shadow-lg hover:shadow-2xl my-4"
     >
