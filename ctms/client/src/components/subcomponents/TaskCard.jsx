@@ -15,6 +15,8 @@ import {
   Trash,
   Lock,
   LockOpen,
+  Icon,
+  UserRoundPlus,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
@@ -346,24 +348,31 @@ const TaskCard = ({
               }`}
               disabled={isTaskLocked}
             />
-            {/* if user is admin or devMode is active, show lock/unlock button */}
+            {/* if user is admin or devMode is active, show lock/unlock button and assign to users button */}
             {(sessionUser.role === "admin" || devMode) && (
-              <IconButton
-                onClick={handleToggleLock}
-                // Show the OPPOSITE icon on hover to indicate the action that will happen
-                icon={
-                  isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />
-                }
-                hoverIcon={
-                  isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
-                }
-                tooltip={isTaskLocked ? "Unlock this task" : "Lock this task"}
-                color={`${
-                  isTaskLocked
-                    ? "hover:bg-green-500 hover:text-white"
-                    : "hover:bg-red-500 hover:text-white"
-                }`}
-              />
+              <div>
+                <IconButton
+                  icon={<UserRoundPlus size={20} />}
+                  tooltip="Assign to users"
+                  color="hover:bg-blue-500 hover:text-white"
+                />
+                <IconButton
+                  onClick={handleToggleLock}
+                  // Show the OPPOSITE icon on hover to indicate the action that will happen
+                  icon={
+                    isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />
+                  }
+                  hoverIcon={
+                    isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
+                  }
+                  tooltip={isTaskLocked ? "Unlock this task" : "Lock this task"}
+                  color={`${
+                    isTaskLocked
+                      ? "hover:bg-green-500 hover:text-white"
+                      : "hover:bg-red-500 hover:text-white"
+                  }`}
+                />
+              </div>
             )}
 
             <IconButton
