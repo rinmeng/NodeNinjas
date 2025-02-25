@@ -246,7 +246,9 @@ router.post('/add', isAuthenticated, async (req, res) => {
         res.status(201).json(taskResult.rows[0]);
     } catch (err) {
         await pool.query('ROLLBACK');
-        res.status(500).json({ message: 'Failed to create task' });
+        res.status(500).json({
+            message: 'Failed to create task'
+        });
     }
 });
 
@@ -379,7 +381,7 @@ router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     }
     try {
         const result = await pool.query(`
-            SELECT t.id, t.name, t.date, t.description, t.status, t.priority
+            SELECT t.id, t.name, t.date, t.description, t.status, t.priority, t.is_locked
             FROM task t
             JOIN assignedto a ON t.id = a.task_id
             WHERE a.user_id = $1
@@ -394,6 +396,8 @@ router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+// GET /assignedto/all - Fetch all assignedto records
+// Should be used to get all assignedto records
 router.get('/assignedto/all', isAuthenticated, async (req, res) => {
     try {
         const result = await pool.query(`
@@ -405,5 +409,49 @@ router.get('/assignedto/all', isAuthenticated, async (req, res) => {
     }
 }
 );
+
+// PUT /task/lock/:id - Lock a task by ID
+router.put('/lock/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+        return res.status(400).json({ message: 'Task ID is required' });
+    }
+    try {
+        const result = await pool.query(`
+            UPDATE task
+            SET is_locked = true
+            WHERE id = $1
+            RETURNING *
+        `, [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to lock task' });
+    }
+});
+
+// PUT /task/unlock/:id - Unlock a task by ID
+router.put('/unlock/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.body;
+    if (!id) {
+        return res.status(400).json({ message: 'Task ID is required' });
+    }
+    try {
+        const result = await pool.query(`
+            UPDATE task
+            SET is_locked = false
+            WHERE id = $1
+            RETURNING *
+        `, [id]);
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'Task not found' });
+        }
+        res.json(result.rows[0]);
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to unlock task' });
+    }
+});
 
 module.exports = router;

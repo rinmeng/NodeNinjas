@@ -40,6 +40,8 @@ async function setupAssignedTo() {
             -- Create some sample assignments
             INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES
             (DATE '2025-02-15', 1, 1),  -- Rin - Quarterly Report
+            (DATE '2025-02-15', 2, 1),  -- Enock - Quarterly Report
+            (DATE '2025-02-15', 6, 1),  -- Arnold - Quarterly Report
             (DATE '2025-02-15', 2, 2),  -- Enock - Team Building
             (DATE '2025-02-15', 3, 3),  -- Keeran - Client Presentation
             (DATE '2025-02-15', 4, 4),  -- Madiba - Software Update
@@ -47,6 +49,7 @@ async function setupAssignedTo() {
             (DATE '2025-02-15', 6, 6),  -- Arnold - Security Audit
             (DATE '2025-02-15', 1, 7),  -- Rin - Budget Planning
             (DATE '2025-02-15', 2, 8);  -- Enock - Training Workshop
+
             
             -- Assign all tasks (including previous ones)
             INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES
@@ -108,6 +111,7 @@ async function setupTasks() {
                 date DATE NOT NULL,
                 status task_status NOT NULL DEFAULT 'pending',
                 priority task_priority NOT NULL DEFAULT 'medium',
+                is_locked BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 CONSTRAINT unique_description UNIQUE (description)
