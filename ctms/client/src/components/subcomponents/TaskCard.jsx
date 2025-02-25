@@ -40,7 +40,13 @@ const TaskCard = ({
 
   const handleEditTask = () => {
     if (isTaskLocked) {
-      setFeedbackMessage("Task is locked. Unlock it first to edit.");
+      if (sessionUser.role === "admin") {
+        setFeedbackMessage("Task is locked. Unlock it first to edit.");
+      } else {
+        setFeedbackMessage(
+          "Task is locked. Contact the admin to make changes."
+        );
+      }
       return;
     }
     setShowUpdateTaskPanel(!showUpdateTaskPanel);
@@ -179,7 +185,13 @@ const TaskCard = ({
 
   const handleDeleteTask = () => {
     if (isTaskLocked) {
-      setFeedbackMessage("Task is locked. Unlock it first to delete.");
+      if (sessionUser.role === "admin") {
+        setFeedbackMessage("Task is locked. Unlock it first to delete.");
+      } else {
+        setFeedbackMessage(
+          "Task is locked. Contact the admin to make changes."
+        );
+      }
       return;
     }
 

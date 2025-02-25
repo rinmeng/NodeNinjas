@@ -396,6 +396,8 @@ router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+// GET /assignedto/all - Fetch all assignedto records
+// Should be used to get all assignedto records
 router.get('/assignedto/all', isAuthenticated, async (req, res) => {
     try {
         const result = await pool.query(`
