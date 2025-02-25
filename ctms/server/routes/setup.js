@@ -108,6 +108,7 @@ async function setupTasks() {
                 date DATE NOT NULL,
                 status task_status NOT NULL DEFAULT 'pending',
                 priority task_priority NOT NULL DEFAULT 'medium',
+                is_locked BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 CONSTRAINT unique_description UNIQUE (description)

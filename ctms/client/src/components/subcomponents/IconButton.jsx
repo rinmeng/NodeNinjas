@@ -1,10 +1,19 @@
-const IconButton = ({ onClick, icon, color }) => {
+import React, { useState } from "react";
+
+const IconButton = ({ onClick, icon, hoverIcon, color }) => {
+  const [isHovering, setIsHovering] = useState(false);
+
+  // Determine which icon to display - use hoverIcon if provided and hovering, otherwise use default icon
+  const displayIcon = isHovering && hoverIcon ? hoverIcon : icon;
+
   return (
     <button
       onClick={onClick}
-      className={`p-2 rounded-full  t200e text-slate-500 hover:text-white ${color}`}
+      onMouseEnter={() => setIsHovering(true)}
+      onMouseLeave={() => setIsHovering(false)}
+      className={`p-2 rounded-full transition-all duration-200 text-slate-500 hover:text-white ${color}`}
     >
-      {icon}
+      {displayIcon}
     </button>
   );
 };

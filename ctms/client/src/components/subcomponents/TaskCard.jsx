@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CircleDashed,
   CircleDot,
@@ -6,8 +6,8 @@ import {
   CircleEllipsis,
   Clock,
   ClockAlert,
-  ClockArrowDown,
   ClockArrowUp,
+  ClockArrowDown,
   ChevronDown,
   ChevronUp,
   CalendarClock,
@@ -29,10 +29,18 @@ const TaskCard = ({
   setFeedbackMessage,
 }) => {
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
+  const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
 
-  const [isTaskLocked, setIsTaskLocked] = useState(false);
+  useEffect(() => {
+    // Update the local state when the task prop changes
+    setIsTaskLocked(task.is_locked || false);
+  }, [task.is_locked]);
 
   const handleEditTask = () => {
+    if (isTaskLocked) {
+      setFeedbackMessage("Task is locked. Unlock it first to edit.");
+      return;
+    }
     setShowUpdateTaskPanel(!showUpdateTaskPanel);
   };
 
@@ -164,7 +172,11 @@ const TaskCard = ({
   };
 
   const handleDeleteTask = () => {
-    // Implement delete task functionality here
+    if (isTaskLocked) {
+      setFeedbackMessage("Task is locked. Unlock it first to delete.");
+      return;
+    }
+
     fetch(`${proxy}/task/delete/:id`, {
       method: "DELETE",
       headers: {
@@ -174,15 +186,8 @@ const TaskCard = ({
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
+        console.log("Task deleted successfully:", data);
         setNeedsRefetch(true);
-        const newNotifications = {
-          id: notifications.length + 1,
-          message: `Task "${task.name}" deleted successfully!`,
-          description: task.description,
-          timestamp: new Date().toISOString(),
-        };
-        setNotifications([...notifications, newNotifications]);
         setFeedbackMessage("Task deleted successfully!");
       })
       .catch((err) => {
@@ -191,20 +196,57 @@ const TaskCard = ({
       });
   };
 
-  const handleLockTask = () => {
-    setIsTaskLocked(!isTaskLocked);
+  const handleToggleLock = () => {
+    const lockEndpoint = isTaskLocked ? "unlock" : "lock";
+
+    fetch(`${proxy}/task/${lockEndpoint}/:id`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: task.id }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(
+          `Task ${isTaskLocked ? "unlocked" : "locked"} successfully:`,
+          data
+        );
+        setIsTaskLocked(!isTaskLocked);
+        setNeedsRefetch(true);
+        setFeedbackMessage(
+          `Task ${isTaskLocked ? "unlocked" : "locked"} successfully!`
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+        setFeedbackMessage(err.message || "Failed to lock/unlock task.");
+      });
   };
 
   return (
     <div
       key={task.id}
-      className="border-2 border-gray-600 m-auto w-3/5 flex flex-col
+      className={`border-2 ${
+        isTaskLocked ? "border-red-500" : "border-gray-600"
+      } m-auto w-3/5 flex flex-col
       bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 
-      rounded-xl shadow-lg hover:shadow-2xl my-4"
+      rounded-xl shadow-lg hover:shadow-2xl my-4 ${
+        isTaskLocked ? "opacity-70" : "opacity-100"
+      }
+      }
+      }`}
     >
-      <div className="grid grid-cols-3 gap-4 space-y-1">
+      {isTaskLocked && (
+        <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs flex items-center">
+          <Lock size={14} className="mr-1" />
+          Locked
+        </div>
+      )}
+
+      <div className="grid grid-cols-3 gap-4 ">
         {/* Status */}
-        <div className="flex flex-col ">
+        <div className="flex flex-col space-y-1">
           <h1 className="text-sm text-slate-400">Status</h1>
           <div
             className={`flex justify-center items-center text-md space-x-2 ${getStatusColor(
@@ -217,7 +259,7 @@ const TaskCard = ({
         </div>
 
         {/* Priority */}
-        <div className="flex flex-col ">
+        <div className="flex flex-col space-y-1">
           <h1 className="text-sm text-slate-400">Priority</h1>
           <div
             className={`flex justify-center items-center text-md space-x-2 ${getPriorityColor(
@@ -230,7 +272,7 @@ const TaskCard = ({
         </div>
 
         {/* Due Date */}
-        <div className="flex flex-col ">
+        <div className="flex flex-col space-y-1">
           <h1 className="text-sm text-slate-400">Due Date</h1>
           <p
             className={`text-md text-center flex justify-center ${getDateColor(
@@ -252,24 +294,22 @@ const TaskCard = ({
           className="hidden peer"
         />
         <div className="flex justify-between items-center">
-          {/* Separate group for the title and chevron */}
+          {/* Lock/Unlock button */}
           <div className="mr-2">
-            <IconButton
-              onClick={handleLockTask}
-              icon={isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />}
-              color={`${
-                isTaskLocked
-                  ? "hover:bg-red-500 hover:text-white"
-                  : "hover:bg-green-500 hover:text-white"
-              }`}
-            />
+            {isTaskLocked && <Lock size={20} className="text-red-500 ml-2" />}
           </div>
+
+          {/* Title and toggle */}
           <div className="group flex-grow">
             <label
               htmlFor={`toggle-${task.id}`}
-              className="flex items-center justify-between cursor-pointer"
+              className={`flex items-center justify-between cursor-pointer`}
             >
-              <h1 className="text-2xl font-semibold text-white flex-grow">
+              <h1
+                className={`text-2xl font-semibold flex-grow ${
+                  isTaskLocked ? "text-slate-300" : "text-white"
+                }`}
+              >
                 {task.name}
               </h1>
               <div className="flex items-center space-x-2">
@@ -281,35 +321,64 @@ const TaskCard = ({
             </label>
           </div>
 
-          {/* Separate individual buttons */}
+          {/* Action buttons */}
           <div className="flex items-center">
             <IconButton
               onClick={handleEditTask}
               icon={<SquarePen size={20} />}
-              color="hover:bg-blue-500 hover:text-white"
+              color={`${
+                isTaskLocked
+                  ? "opacity-50 cursor-not-allowed text-slate-500"
+                  : "hover:bg-blue-500 hover:text-white"
+              }`}
+              disabled={isTaskLocked}
+            />
+            <IconButton
+              onClick={handleToggleLock}
+              icon={isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />}
+              hoverIcon={
+                isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
+              }
+              color={`${
+                isTaskLocked ? "hover:bg-green-500" : "hover:bg-red-500"
+              }`}
             />
             <IconButton
               onClick={handleDeleteTask}
               icon={<Trash size={20} />}
-              color="hover:bg-red-500 hover:text-white"
+              color={`${
+                isTaskLocked
+                  ? "opacity-50 cursor-not-allowed text-slate-500"
+                  : "hover:bg-red-500 hover:text-white"
+              }`}
+              disabled={isTaskLocked}
             />
           </div>
         </div>
-        <p className="hidden peer-checked:block text-md text-slate-300 mb-4 transition-all">
+
+        {/* Description */}
+        <p
+          className={`hidden peer-checked:block text-md text-slate-300 mb-4 transition-all ${
+            isTaskLocked ? "select-none" : ""
+          }`}
+        >
           {task.description}
         </p>
       </div>
 
-      <EditTaskPanel
-        sessionUser={sessionUser}
-        taskToEdit={task}
-        isOpen={showUpdateTaskPanel}
-        onClose={handleEditTask}
-        setNeedsRefetch={setNeedsRefetch}
-        notifications={notifications}
-        setNotifications={setNotifications}
-        setFeedbackMessage={setFeedbackMessage}
-      />
+      {/* Only show edit panel if not locked */}
+      {!isTaskLocked && (
+        <EditTaskPanel
+          sessionUser={sessionUser}
+          taskToEdit={task}
+          isOpen={showUpdateTaskPanel}
+          onClose={handleEditTask}
+          setNeedsRefetch={setNeedsRefetch}
+          notifications={notifications}
+          setNotifications={setNotifications}
+          setFeedbackMessage={setFeedbackMessage}
+        />
+      )}
     </div>
   );
 };
