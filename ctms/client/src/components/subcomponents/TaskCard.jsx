@@ -292,7 +292,7 @@ const TaskCard = ({
           {/* Lock/Unlock button */}
           {isTaskLocked && (
             <div className="mr-2">
-              <Lock size={20} className="text-red-500 ml-2" />
+              <Lock size={20} className="text-red-500 " />
             </div>
           )}
 
