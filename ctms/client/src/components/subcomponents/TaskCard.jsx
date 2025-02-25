@@ -242,13 +242,6 @@ const TaskCard = ({
       }}
       }`}
     >
-      {isTaskLocked && (
-        <div className="absolute top-2 right-2 bg-red-500 text-white px-2 py-1 rounded-lg text-xs flex items-center">
-          <Lock size={14} className="mr-1" />
-          Locked
-        </div>
-      )}
-
       <div className="grid grid-cols-3 gap-4 ">
         {/* Status */}
         <div className="flex flex-col space-y-1">
