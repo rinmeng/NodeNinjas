@@ -203,6 +203,8 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
         if (statusCode === 200) {
           showFeedbackMessage("Login successful!", true);
           setSessionUser(data.session.user);
+        } else if (statusCode === 401 || statusCode === 404) {
+          showFeedbackMessage("Invalid Credentials", false);
         } else {
           showFeedbackMessage(data.message || "Login failed.", false);
         }
