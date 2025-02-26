@@ -69,44 +69,46 @@ const Login = ({
     const { displayName, email, username, password, role, manager_username } =
       formData;
 
-    if (
-      !displayName ||
-      !email ||
-      !username ||
-      !password ||
-      !role ||
-      !manager_username
-    ) {
+    // In the addUser function
+    if (!displayName || !email || !username || !password || !role) {
       setFeedbackMessage("Please fill in all required fields.");
       return;
     } else if (password.length < 8) {
       setFeedbackMessage("Password must be at least 8 characters long.");
       return;
+    } else if (role === "team_member" && !manager_username) {
+      setFeedbackMessage("Team members must provide their admin's username.");
+      return;
     }
 
     try {
-      // Fetch the manager's user ID
-      const managerResponse = await fetch(
-        proxy + `user/username/${manager_username}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
+      // Only fetch manager's ID if the user is a team member
+      let manager_id = null;
+
+      if (role === "team_member") {
+        // Fetch the manager's user ID
+        const managerResponse = await fetch(
+          proxy + `user/username/${manager_username}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        const managerData = await managerResponse.json();
+
+        if (managerResponse.status !== 200) {
+          setFeedbackMessage(managerData.message || "Manager not found.");
+          return;
         }
-      );
 
-      const managerData = await managerResponse.json();
-
-      if (managerResponse.status !== 200) {
-        setFeedbackMessage(managerData.message || "Manager not found.");
-        return;
+        manager_id = managerData.id;
       }
 
-      const manager_id = managerData.id;
-
-      // Register the new user with the manager_id
+      // Register the new user with the manager_id (null for admins)
       const registerResponse = await fetch(proxy + "user/register", {
         method: "POST",
         headers: {
