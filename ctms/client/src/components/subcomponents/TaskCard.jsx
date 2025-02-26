@@ -15,12 +15,12 @@ import {
   Trash,
   Lock,
   LockOpen,
-  Icon,
   UserRoundPlus,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
 import IconButton from "./IconButton";
+import AssignTaskPanel from "../AssignTaskPanel";
 
 const TaskCard = ({
   task,
@@ -34,6 +34,7 @@ const TaskCard = ({
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
   const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
   const [isExpanded, setIsExpanded] = useState(false); // Add this state to track expanded state
+  const [showAssignTaskPanel, setShowAssignTaskPanel] = useState(false);
 
   useEffect(() => {
     // Update the local state when the task prop changes
@@ -244,6 +245,10 @@ const TaskCard = ({
       });
   };
 
+  const handleAssignTask = () => {
+    setShowAssignTaskPanel(!showAssignTaskPanel);
+  };
+
   return (
     <div
       key={task.id}
@@ -348,7 +353,7 @@ const TaskCard = ({
             {(sessionUser.role === "admin" || devMode) && (
               <div>
                 <IconButton
-                  onClick={() => console.log("Assign to users clicked")}
+                  onClick={handleAssignTask}
                   icon={<UserRoundPlus size={20} />}
                   tooltip="Assign this task to users"
                   isDisabled={isTaskLocked}
@@ -409,6 +414,16 @@ const TaskCard = ({
           setFeedbackMessage={setFeedbackMessage}
         />
       )}
+
+      {/* Only show assign panel if not locked */}
+      <AssignTaskPanel
+        task={task}
+        isOpen={showAssignTaskPanel}
+        onClose={() => setShowAssignTaskPanel(false)}
+        setNeedsRefetch={setNeedsRefetch}
+        setFeedbackMessage={setFeedbackMessage}
+        sessionUser={sessionUser}
+      />
     </div>
   );
 };

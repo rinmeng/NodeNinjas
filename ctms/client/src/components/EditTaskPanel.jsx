@@ -96,7 +96,7 @@ const EditTaskPanel = ({
           <IconButton
             icon={<X size={30} />}
             onClick={onClose}
-            color="hover:bg-white hover:text-black"
+            color="hover:bg-white hover:text-slate-950"
           />
         </div>
         <div className="border-b border-slate-600 my-4"></div>
