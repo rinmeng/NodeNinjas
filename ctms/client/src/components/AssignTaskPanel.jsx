@@ -315,7 +315,7 @@ const AssignTaskPanel = ({
                     {sessionUser.role !== "admin" && (
                       <div
                         key={user.id}
-                        className="flex items-center mb-2 mr-2 w-fit pill-grey"
+                        className="flex items-center m-2 w-fit pill-grey"
                       >
                         <span>
                           @{user.username} ({user.display_name})
@@ -356,7 +356,7 @@ const AssignTaskPanel = ({
                   filteredUsers.map((user) => (
                     <div
                       key={user.id}
-                      className={`flex items-center mb-2 mr-2 ${
+                      className={`flex items-center m-2 ${
                         isUserPreAssigned(user.id)
                           ? "bg-slate-500 opacity-50 cursor-not-allowed"
                           : isUserSelected(user.id)
