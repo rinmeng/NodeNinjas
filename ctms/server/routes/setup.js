@@ -390,8 +390,8 @@ async function deleteAllTables() {
 router.get('/', async (req, res) => {
     try {
         await deleteAllTables();
-        const users = await setupUsers();
         const session = await setupPgSession();
+        const users = await setupUsers();
         const tasks = await setupTasks();
         const messages = await setupMessages();
         const notifications = await setupNotifications();

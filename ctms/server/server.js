@@ -29,48 +29,82 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Create session store
-const sessionStore = new pgSession({
-    pool: pool,
-    tableName: 'user_sessions'
-});
+// Initialize app with database check and session setup
+async function initializeApp() {
+    try {
+        // Check if user_sessions exists
+        const tableCheck = await pool.query(`
+            SELECT EXISTS (
+                SELECT FROM information_schema.tables 
+                WHERE table_schema = 'public' AND table_name = 'user_sessions'
+            );
+        `);
 
-// Configure session with dynamic maxAge
-app.use(session({
-    store: sessionStore,
-    secret: 'ctms_by_nodeninjas',
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-        httpOnly: true,
-        secure: false,  // Set to true if using HTTPS
-        sameSite: 'lax'
-    },
-    name: 'CTMS_sessionID'
-}));
+        const tableExists = tableCheck.rows[0].exists;
 
-app.use('/', home);
-app.use('/setup', setup);
-app.use('/user', user);
-app.use('/task', task);
-app.use('/message', message);
-app.use('/notification', notification);
+        if (!tableExists) {
+            console.log("Session table does not exist, creating it now...");
+            await pool.query(`
+                CREATE TABLE IF NOT EXISTS user_sessions (
+                    sid VARCHAR(100) PRIMARY KEY,
+                    sess JSON NOT NULL,
+                    expire TIMESTAMP(6) NOT NULL
+                );
+            `);
+            console.log("Session table created successfully");
+        } else {
+            console.log("Session table already exists");
+        }
 
-// Enhanced session debugging middleware
-app.use((req, res, next) => {
-    console.log('Session ID:', req.sessionID);
-    console.log('Session Data:', req.session);
-    console.log('Cookie MaxAge:', req.session.cookie.maxAge);
-    console.log('Remember Me:', req.body?.isRemembered);
-    next();
-});
+        // Create session store
+        const sessionStore = new pgSession({
+            pool: pool,
+            tableName: 'user_sessions'
+        });
 
-if (process.env.NODE_ENV !== 'test') {
-    const server = app.listen(PORT, () => {
-        console.log('Server is running on port ' + PORT);
-        console.log('Visit it at: http://localhost:' + PORT);
-    });
-    
+        // Configure session with dynamic maxAge
+        app.use(session({
+            store: sessionStore,
+            secret: 'ctms_by_nodeninjas',
+            resave: false,
+            saveUninitialized: false,
+            cookie: {
+                httpOnly: true,
+                secure: false,  // Set to true if using HTTPS
+                sameSite: 'lax'
+            },
+            name: 'CTMS_sessionID'
+        }));
+
+        app.use('/', home);
+        app.use('/setup', setup);
+        app.use('/user', user);
+        app.use('/task', task);
+        app.use('/message', message);
+        app.use('/notification', notification);
+
+        // Enhanced session debugging middleware
+        app.use((req, res, next) => {
+            console.log('Session ID:', req.sessionID);
+            console.log('Session Data:', req.session);
+            console.log('Cookie MaxAge:', req.session.cookie.maxAge);
+            console.log('Remember Me:', req.body?.isRemembered);
+            next();
+        });
+
+        if (process.env.NODE_ENV !== 'test') {
+            const server = app.listen(PORT, () => {
+                console.log('Server is running on port ' + PORT);
+                console.log('Visit it at: http://localhost:' + PORT);
+            });
+        }
+    } catch (error) {
+        console.error("Error initializing application:", error);
+        process.exit(1); // Exit with error code
+    }
 }
+
+// Start the initialization process
+initializeApp();
 
 module.exports = app;
