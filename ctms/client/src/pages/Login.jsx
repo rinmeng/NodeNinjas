@@ -15,6 +15,7 @@ import {
 import IconizedButton from "../components/subcomponents/IconizedButton";
 import IconizedTextField from "../components/subcomponents/IconizedTextField";
 import TickCheckbox from "../components/subcomponents/TickCheckbox";
+import IconButton from "../components/subcomponents/IconButton";
 
 const proxy = "http://localhost:15000/";
 
@@ -320,7 +321,11 @@ const Login = ({
         <div className="bg-slate-600 p-8 rounded-lg w-1/3">
           <div className="flex justify-between items-center mb-4">
             <h1 className="title">Register</h1>
-            <X size={40} onClick={closePopup} className="cursor-pointer" />
+            <IconButton
+              icon={<X size={40} />}
+              onClick={closePopup}
+              color="text-white hover:text-slate-950 hover:bg-white"
+            />
           </div>
           <div className="mb-4">
             <p className="font-extralight text-xl">
@@ -433,7 +438,7 @@ const Login = ({
             <div className="flex justify-end">
               <IconizedButton
                 text="Register"
-                btnStyle="btn-white space-x-2 w-full hover:bg-green-600"
+                btnStyle="btn-white space-x-2 w-full "
                 icon={<TrendingUp size={20} strokeWidth={2} />}
                 onClick={registerUser}
               />

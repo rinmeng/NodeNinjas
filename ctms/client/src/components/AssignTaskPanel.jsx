@@ -261,7 +261,7 @@ const AssignTaskPanel = ({
           <IconButton
             icon={<X size={30} />}
             onClick={onClose}
-            color="hover:bg-white hover:text-black"
+            color="hover:bg-white hover:text-slate-950"
           />
         </div>
 
