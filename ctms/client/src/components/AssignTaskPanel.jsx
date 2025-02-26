@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { UserSearch, X, Check, Users, UserRoundCheck } from "lucide-react";
+import React, { useState, useEffect, useCallback } from "react";
+import { UserSearch, X, Users, UserRoundCheck } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 import IconizedButton from "./subcomponents/IconizedButton";
 import proxy from "../utils/proxy";
@@ -17,15 +17,6 @@ const AssignTaskPanel = ({
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (isOpen && task) {
-      // Fetch available users when the panel opens
-      findAvailableUsers();
-    }
-  }, [isOpen, task]);
-
-  if (!isOpen) return null;
-
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
   };
@@ -39,7 +30,21 @@ const AssignTaskPanel = ({
     }
 
     try {
-      await assignTaskToUsers();
+      const userIds = selectedUsers.map((user) => user.id);
+      const response = await fetch(`${proxy}/task/assign/${task.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ user_ids: userIds }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to assign task to users");
+      }
+      setSelectedUsers([]);
       setFeedbackMessage("Task assigned successfully!");
       setNeedsRefetch(true);
       onClose();
@@ -56,7 +61,7 @@ const AssignTaskPanel = ({
     }
   };
 
-  const findAvailableUsers = async () => {
+  const findAvailableUsers = useCallback(async () => {
     setIsLoading(true);
     try {
       const response = await fetch(`${proxy}/user/under/${sessionUser.id}`, {
@@ -80,9 +85,7 @@ const AssignTaskPanel = ({
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const assignTaskToUsers = async () => {};
+  }, [sessionUser.id, setFeedbackMessage]);
 
   // Filter available users based on search query
   const filteredUsers = availableUsers.filter((user) => {
@@ -95,6 +98,15 @@ const AssignTaskPanel = ({
       user.id?.toString().includes(query)
     );
   });
+
+  useEffect(() => {
+    if (isOpen && task) {
+      // Fetch available users when the panel opens
+      findAvailableUsers();
+    }
+  }, [isOpen, task, findAvailableUsers]);
+
+  if (!isOpen) return null;
 
   return (
     <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50">
@@ -125,7 +137,7 @@ const AssignTaskPanel = ({
           </div>
           <input
             type="text"
-            placeholder="Search by name, email, or ID..."
+            placeholder="Search by name."
             className="forms text-left pl-10 w-full"
             value={searchQuery}
             onChange={handleSearch}

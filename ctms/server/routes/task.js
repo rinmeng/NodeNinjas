@@ -454,4 +454,27 @@ router.put('/unlock/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+// POST /task/assign/:id - Assign a task to a user
+router.post('/assign/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    // there may be multiple user_ids
+    const { user_ids } = req.body;
+    if (!id || !user_ids) {
+        return res.status(400).json({ message: 'Task ID and user IDs are required' });
+    }
+    try {
+        const assignValues = user_ids.map(userId => {
+            return `(${userId}, ${id}, CURRENT_DATE)`;
+        }).join(',');
+
+        await pool.query(`
+            INSERT INTO AssignedTo (user_id, task_id, assigned_date)
+            VALUES ${assignValues}
+        `);
+        res.json({ message: 'Task assigned successfully' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to assign task' });
+    }
+});
+
 module.exports = router;
