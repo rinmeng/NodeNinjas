@@ -304,7 +304,7 @@ router.put('/update/:id', isAuthenticated, async (req, res) => {
 // GET /task/:id - Fetch a task by ID
 // Should be used to get a specific task with all assigned users
 router.get('/id/:id', isAuthenticated, async (req, res) => {
-    const { id } = req.body;
+    const { id } = req.params;
     if (!id) {
         return res.status(400).json({ message: 'Task ID is required' });
     }
@@ -354,7 +354,7 @@ router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     }
     try {
         const result = await pool.query(`
-            SELECT t.id, t.name, t.date, t.description, t.status, t.priority, t.is_locked,
+            SELECT t.id, t.name, t.date, t.description, t.status, t.priority, t.is_locked, t.created_at,
             u.id as owner_id, u.username as owner_username, u.display_name as owner_display_name
             FROM task t
             JOIN assignedto a ON t.id = a.task_id

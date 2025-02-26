@@ -16,6 +16,8 @@ import {
   Lock,
   LockOpen,
   UserRoundPlus,
+  UserRoundCog,
+  Users,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
@@ -71,7 +73,7 @@ const TaskCard = ({
     const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
 
     // Format the date properly
-    const formattedDate = taskDate.toLocaleDateString("en-US", {
+    const formattedDate = taskDate.toLocaleDateString("en-CA", {
       weekday: "short",
       month: "numeric",
       day: "numeric",
@@ -349,34 +351,42 @@ const TaskCard = ({
               isDisabled={isTaskLocked}
               disabled={isTaskLocked}
             />
-            {/* if user is admin or devMode is active, show lock/unlock button and assign to users button */}
-            {(sessionUser.role === "admin" || devMode) && (
-              <div>
-                <IconButton
-                  onClick={handleAssignTask}
-                  icon={<UserRoundPlus size={20} />}
-                  tooltip="Assign this task to users"
-                  isDisabled={isTaskLocked}
-                />
 
-                <IconButton
-                  onClick={handleToggleLock}
-                  // Show the OPPOSITE icon on hover to indicate the action that will happen
-                  icon={
-                    isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />
-                  }
-                  hoverIcon={
-                    isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
-                  }
-                  tooltip={isTaskLocked ? "Unlock this task" : "Lock this task"}
-                  color={`${
-                    isTaskLocked
-                      ? "hover:bg-green-500 hover:text-white"
-                      : "hover:bg-red-500 hover:text-white"
-                  }`}
-                />
-              </div>
-            )}
+            <div>
+              <IconButton
+                onClick={handleAssignTask}
+                icon={
+                  sessionUser.role === "admin" ? (
+                    <UserRoundPlus size={20} />
+                  ) : (
+                    <Users size={20} />
+                  )
+                }
+                tooltip={
+                  sessionUser.role === "admin"
+                    ? "Assign this task to other users"
+                    : "View assigned users"
+                }
+                isDisabled={isTaskLocked}
+              />
+
+              <IconButton
+                onClick={handleToggleLock}
+                // Show the OPPOSITE icon on hover to indicate the action that will happen
+                icon={
+                  isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />
+                }
+                hoverIcon={
+                  isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
+                }
+                tooltip={isTaskLocked ? "Unlock this task" : "Lock this task"}
+                color={`${
+                  isTaskLocked
+                    ? "hover:bg-green-500 hover:text-white"
+                    : "hover:bg-red-500 hover:text-white"
+                }`}
+              />
+            </div>
 
             <IconButton
               onClick={handleDeleteTask}
@@ -402,6 +412,10 @@ const TaskCard = ({
             <p>
               <span className="text-slate-400">Created by:</span> @
               {task.owner_username} ({task.owner_display_name})
+            </p>
+            <p>
+              <span className="text-slate-400">Created on:</span>{" "}
+              {getDateWithRelativeTime(task.created_at)}
             </p>
           </div>
         )}

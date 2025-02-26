@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { UserSearch, X, Users, UserRoundCheck } from "lucide-react";
+import { UserSearch, X, Users, UserRoundCheck, UserX } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 import IconizedButton from "./subcomponents/IconizedButton";
 import proxy from "../utils/proxy";
@@ -20,6 +20,33 @@ const AssignTaskPanel = ({
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
+  };
+  const getDateWithRelativeTime = (dateString) => {
+    if (!dateString) return "Invalid Date"; // Handle empty values safely
+
+    // Ensure date is parsed correctly
+    const taskDate = new Date(dateString);
+    if (isNaN(taskDate.getTime())) return "Invalid Date"; // Handle parsing errors
+
+    const now = new Date();
+    const diffInMs = taskDate.getTime() - now.getTime();
+    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+
+    // Format the date properly
+    const formattedDate = taskDate.toLocaleDateString("en-CA", {
+      weekday: "short",
+      month: "numeric",
+      day: "numeric",
+      year: "numeric",
+    });
+
+    if (diffInDays === 0) return `${formattedDate} (Today)`;
+    if (diffInDays === 1) return `${formattedDate} (Tomorrow)`;
+    if (diffInDays > 1) return `${formattedDate} (In ${diffInDays} days)`;
+    if (diffInDays < 0)
+      return `${formattedDate} (${Math.abs(diffInDays)} days ago)`;
+
+    return formattedDate;
   };
 
   const handleAssignUsers = async () => {
@@ -88,7 +115,7 @@ const AssignTaskPanel = ({
       return data; // Return the users data for potential use
     } catch (error) {
       console.error("Error fetching available users:", error);
-      setFeedbackMessage("Failed to fetch available users: " + error.message);
+      setFeedbackMessage(error.message || "Failed to fetch available users");
       return []; // Return empty array in case of error
     } finally {
       setIsLoading(false);
@@ -147,9 +174,37 @@ const AssignTaskPanel = ({
     [task, setFeedbackMessage]
   );
 
+  const fetchAssignedUsersNotAdmin = useCallback(async () => {
+    if (!task) return;
+
+    try {
+      // Fetch all assignedto records for this task, and put them in the selected users
+      const response = await fetch(`${proxy}/task/id/${task.id}`, {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch assigned users");
+      }
+
+      const data = await response.json();
+      setSelectedUsers(data.assigned_users);
+    } catch (error) {
+      console.error("Error fetching assigned users:", error);
+      setFeedbackMessage(
+        error.message || "Failed to fetch currently assigned users"
+      );
+    }
+  }, [task, setFeedbackMessage]);
+
   // Initialize data when panel opens
   useEffect(() => {
-    if (isOpen && task) {
+    if (isOpen && task && sessionUser.role === "admin") {
       const initializeData = async () => {
         // First fetch all available users
         const users = await findAvailableUsers();
@@ -163,8 +218,16 @@ const AssignTaskPanel = ({
       setSearchQuery("");
       setSelectedUsers([]);
       setPreAssignedUsers([]);
+      fetchAssignedUsersNotAdmin();
     }
-  }, [isOpen, task, findAvailableUsers, fetchAssignedUsers]);
+  }, [
+    isOpen,
+    task,
+    findAvailableUsers,
+    fetchAssignedUsers,
+    sessionUser.role,
+    fetchAssignedUsersNotAdmin,
+  ]);
 
   // Filter available users based on search query
   const filteredUsers = availableUsers.filter((user) => {
@@ -174,7 +237,7 @@ const AssignTaskPanel = ({
     return (
       user.username?.toLowerCase().includes(query) ||
       user.display_name?.toLowerCase().includes(query) ||
-      user.id?.toString().includes(query)
+      user.email?.toLowerCase().includes(query)
     );
   });
 
@@ -194,11 +257,11 @@ const AssignTaskPanel = ({
     <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50">
       <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4 border-2 border-slate-600">
         <div className="flex flex-row justify-between items-center">
-          <div className="title-sm">Assign Task</div>
+          <div className="title-sm">Task Assignment</div>
           <IconButton
             icon={<X size={30} />}
             onClick={onClose}
-            color="hover:bg-white hover:text-slate-950"
+            color="hover:bg-white hover:text-black"
           />
         </div>
 
@@ -210,51 +273,82 @@ const AssignTaskPanel = ({
             Task: {task.name}
           </h2>
           <p className="text-slate-300 text-sm truncate">{task.description}</p>
+          <p className="text-slate-300 text-sm mt-2">
+            Created by: @{task.owner_username} ({task.owner_display_name})
+          </p>
+          <p className="text-slate-300 text-sm">
+            Created on: {getDateWithRelativeTime(task.created_at)}
+          </p>
         </div>
 
-        <h1 className="text-md mt-4">Search Users</h1>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <UserSearch size={20} className="text-slate-400" />
+        {sessionUser.role === "admin" && (
+          <div>
+            <h1 className="text-md mt-4">Search Users</h1>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                <UserSearch size={20} className="text-slate-400" />
+              </div>
+              <input
+                type="text"
+                placeholder="Search by name, username, or email..."
+                className="forms text-left pl-10 w-full"
+                value={searchQuery}
+                onChange={handleSearch}
+              />
+            </div>
           </div>
-          <input
-            type="text"
-            placeholder="Search by name."
-            className="forms text-left pl-10 w-full"
-            value={searchQuery}
-            onChange={handleSearch}
-          />
-        </div>
-
+        )}
         {/* Selected Users */}
         <div className="mt-4">
           <h1 className="text-md mb-2">
             Assigned Users ({selectedUsers.length})
           </h1>
-          <div className="flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 space-x-1">
+          <div
+            className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
+              ${selectedUsers.length === 0 ? "justify-center" : "justify-start"}
+            `}
+          >
             {selectedUsers.length > 0 ? (
               selectedUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className={`flex items-center ${
-                    isUserPreAssigned(user.id)
-                      ? "bg-slate-500 opacity-50 cursor-not-allowed"
-                      : "bg-green-600 cursor-pointer hover:bg-red-600"
-                  } w-fit pill`}
-                  onClick={() => toggleUserSelection(user)}
-                >
-                  <span>
-                    {user.username} ({user.display_name})
-                  </span>
+                <div>
+                  {sessionUser.role === "admin" && (
+                    <div
+                      key={user.id}
+                      className={`flex items-center mb-2 mr-2 ${
+                        isUserPreAssigned(user.id)
+                          ? "bg-slate-500 opacity-50 cursor-not-allowed"
+                          : "bg-green-600 cursor-pointer hover:bg-red-600"
+                      } w-fit pill`}
+                      onClick={() => toggleUserSelection(user)}
+                    >
+                      <span>
+                        @{user.username} ({user.display_name})
+                      </span>
+                    </div>
+                  )}
+
+                  {sessionUser.role !== "admin" && (
+                    <div
+                      key={user.id}
+                      className="flex items-center mb-2 mr-2 
+                          bg-slate-500 hover:bg-slate-500 w-fit pill"
+                    >
+                      <span>
+                        @{user.username} ({user.display_name})
+                      </span>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
               <div className="text-slate-400 text-center py-2">
-                No users selected
+                {sessionUser.role === "admin"
+                  ? "No users assigned to this task"
+                  : "This task has no assigned users"}
               </div>
             )}
           </div>
-          {preAssignedUsers.length > 0 && (
+          {sessionUser.role === "admin" && (
             <div className="text-xs text-slate-400 mt-1">
               Greyed out users are already assigned and cannot be removed
             </div>
@@ -262,51 +356,59 @@ const AssignTaskPanel = ({
         </div>
 
         {/* Search Results */}
-        <div className="mt-4">
-          <h1 className="text-md mb-2">Search Results</h1>
-          <div className="flex flex-wrap max-h-40 overflow-y-auto bg-slate-800 rounded-lg p-2 space-x-1">
-            {isLoading ? (
-              <div className="text-slate-400 text-center py-4">
-                Loading available users...
+        {sessionUser.role === "admin" && (
+          <div>
+            <div className="mt-4">
+              <h1 className="text-md mb-2">Search Results</h1>
+              <div
+                className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
+              ${selectedUsers.length === 0 ? "justify-center" : "justify-start"}
+            `}
+              >
+                {isLoading ? (
+                  <div className="text-slate-400 text-center py-4">
+                    Loading available users...
+                  </div>
+                ) : filteredUsers.length > 0 ? (
+                  filteredUsers.map((user) => (
+                    <div
+                      key={user.id}
+                      className={`flex items-center mb-2 mr-2 ${
+                        isUserPreAssigned(user.id)
+                          ? "bg-slate-500 opacity-50 cursor-not-allowed"
+                          : isUserSelected(user.id)
+                          ? "bg-green-600 hover:bg-red-600 cursor-pointer"
+                          : "bg-slate-700 hover:bg-blue-600 cursor-pointer"
+                      } w-fit pill`}
+                      onClick={() => toggleUserSelection(user)}
+                    >
+                      <span>
+                        @{user.username} ({user.display_name})
+                      </span>
+                    </div>
+                  ))
+                ) : (
+                  <div className="text-slate-400 text-center py-4 items-center justify-center ">
+                    <UserX size={24} className="mx-auto mb-2" />
+                    {searchQuery
+                      ? "No users match your search"
+                      : "No available users found"}
+                  </div>
+                )}
               </div>
-            ) : filteredUsers.length > 0 ? (
-              filteredUsers.map((user) => (
-                <div
-                  key={user.id}
-                  className={`flex items-center ${
-                    isUserPreAssigned(user.id)
-                      ? "bg-slate-500 opacity-50 cursor-not-allowed"
-                      : isUserSelected(user.id)
-                      ? "bg-green-600 hover:bg-red-600 cursor-pointer"
-                      : "bg-slate-700 hover:bg-blue-600 cursor-pointer"
-                  } w-fit pill`}
-                  onClick={() => toggleUserSelection(user)}
-                >
-                  <span>
-                    {user.username} ({user.display_name})
-                  </span>
-                </div>
-              ))
-            ) : (
-              <div className="text-slate-400 text-center py-4">
-                <Users size={24} className="mx-auto mb-2" />
-                {searchQuery
-                  ? "No users match your search"
-                  : "No available users found"}
-              </div>
-            )}
-          </div>
-        </div>
+            </div>
 
-        <div className="border-b border-slate-600"></div>
-        <div className="flex justify-center items-center">
-          <IconizedButton
-            icon={<UserRoundCheck size={24} className="ml-2" />}
-            text="Assign Users"
-            onClick={handleAssignUsers}
-            btnStyle="btn-blue"
-          />
-        </div>
+            <div className="border-b border-slate-600"></div>
+            <div className="flex justify-center items-center">
+              <IconizedButton
+                icon={<UserRoundCheck size={24} className="ml-2" />}
+                text="Assign Users"
+                onClick={handleAssignUsers}
+                btnStyle="btn-blue"
+              />
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -409,7 +409,7 @@ router.get('/under/:manager_id', async (req, res) => {
     try {
         const data = await pool.query('SELECT * FROM users WHERE manager_id = $1', [manager_id]);
         if (data.rowCount === 0) {
-            return res.status(404).json({ message: "No users found under this manager" });
+            return res.status(404).json({ message: "No users found under this manager." });
         }
         return res.status(200).json(data.rows);
     } catch (err) {

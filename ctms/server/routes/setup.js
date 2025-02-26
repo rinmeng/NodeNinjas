@@ -71,6 +71,8 @@ async function setupAssignedTo() {
 
             -- Arnold's assignments (user_id: 6)
             (CURRENT_DATE, 6, 6),
+            (CURRENT_DATE, 6, 7),  -- Added Budget Planning task
+            (CURRENT_DATE, 6, 9),  -- Added Marketing Strategy task
             (CURRENT_DATE, 6, 29),
             (CURRENT_DATE, 6, 30),
             (CURRENT_DATE, 6, 31);
@@ -278,11 +280,52 @@ async function setupUsers() {
             );
         }
 
+        // Base team member arnold
         await pool.query(`
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id)
             VALUES($1, $2, $3, 'team_member', $4, $5)`,
             ['arnold', 'arnold@example.com', await hashPassword('arnold'), 'Arnold', 1]
         );
+
+        // Rin's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('sarah', 'sarah@example.com', $1, 'team_member', 'Sarah Chen', 1),
+            ('james', 'james@example.com', $2, 'team_member', 'James Wilson', 1),
+            ('luna', 'luna@example.com', $3, 'team_member', 'Luna Park', 1)
+        `, [await hashPassword('sarah'), await hashPassword('james'), await hashPassword('luna')]);
+
+        // Enock's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('zara', 'zara@example.com', $1, 'team_member', 'Zara Ahmed', 2),
+            ('marcus', 'marcus@example.com', $2, 'team_member', 'Marcus Jones', 2),
+            ('priya', 'priya@example.com', $3, 'team_member', 'Priya Patel', 2)
+        `, [await hashPassword('zara'), await hashPassword('marcus'), await hashPassword('priya')]);
+
+        // Keeran's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('diego', 'diego@example.com', $1, 'team_member', 'Diego Santos', 3),
+            ('nina', 'nina@example.com', $2, 'team_member', 'Nina Chen', 3),
+            ('alex', 'alex@example.com', $3, 'team_member', 'Alex Morgan', 3)
+        `, [await hashPassword('diego'), await hashPassword('nina'), await hashPassword('alex')]);
+
+        // Madiba's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('kai', 'kai@example.com', $1, 'team_member', 'Kai Wong', 4),
+            ('sofia', 'sofia@example.com', $2, 'team_member', 'Sofia Rodriguez', 4),
+            ('omar', 'omar@example.com', $3, 'team_member', 'Omar Hassan', 4)
+        `, [await hashPassword('omar'), await hashPassword('sofia'), await hashPassword('kai')]);
+
+        // Mason's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('emma', 'emma@example.com', $1, 'team_member', 'Emma Thompson', 5),
+            ('raj', 'raj@example.com', $2, 'team_member', 'Raj Kumar', 5),
+            ('liam', 'liam@example.com', $3, 'team_member', 'Liam O''Connor', 5)
+        `, [await hashPassword('emma'), await hashPassword('raj'), await hashPassword('liam')]);
 
         return { message: "Users table created and populated successfully" };
     } catch (err) {
