@@ -19,7 +19,9 @@ const IconButton = ({
         onClick={onClick}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
-        className={`p-2 rounded-full transition-all duration-200 text-slate-500  ${color}
+        className={`p-2 rounded-full transition-all duration-200 text-slate-500  ${
+          isDisabled ? "" : color
+        }
         ${
           isDisabled
             ? "opacity-50 cursor-not-allowed text-slate-500"
