@@ -79,13 +79,84 @@ const AssignTaskPanel = ({
 
       const data = await response.json();
       setAvailableUsers(data);
+      return data; // Return the users data for potential use
     } catch (error) {
       console.error("Error fetching available users:", error);
       setFeedbackMessage("Failed to fetch available users: " + error.message);
+      return []; // Return empty array in case of error
     } finally {
       setIsLoading(false);
     }
   }, [sessionUser.id, setFeedbackMessage]);
+
+  const fetchAssignedUsers = useCallback(
+    async (allAvailableUsers) => {
+      if (!task) return;
+
+      try {
+        // Fetch all assignedto records for this task
+        const response = await fetch(`${proxy}/task/assignedto/all`, {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          credentials: "include",
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(
+            errorData.message || "Failed to fetch assigned users"
+          );
+        }
+
+        const assignedRecords = await response.json();
+
+        // Filter records related to current task
+        const taskAssignments = assignedRecords.filter(
+          (record) => record.task_id === task.id
+        );
+
+        // Get the complete user details for each assigned user
+        const userIds = taskAssignments.map((record) => record.user_id);
+
+        // If there are no assigned users, return early
+        if (userIds.length === 0) return;
+
+        // Find these users in the available users array
+        const assignedUsers = allAvailableUsers.filter((user) =>
+          userIds.includes(user.id)
+        );
+
+        // Set them as selected
+        setSelectedUsers(assignedUsers);
+      } catch (error) {
+        console.error("Error fetching assigned users:", error);
+        setFeedbackMessage(
+          "Failed to fetch currently assigned users: " + error.message
+        );
+      }
+    },
+    [task, setFeedbackMessage]
+  );
+
+  // Initialize data when panel opens
+  useEffect(() => {
+    if (isOpen && task) {
+      const initializeData = async () => {
+        // First fetch all available users
+        const users = await findAvailableUsers();
+        // Then fetch and set the assigned users
+        await fetchAssignedUsers(users);
+      };
+
+      initializeData();
+    } else {
+      // Reset states when panel closes
+      setSearchQuery("");
+      setSelectedUsers([]);
+    }
+  }, [isOpen, task, findAvailableUsers, fetchAssignedUsers]);
 
   // Filter available users based on search query
   const filteredUsers = availableUsers.filter((user) => {
@@ -99,12 +170,10 @@ const AssignTaskPanel = ({
     );
   });
 
-  useEffect(() => {
-    if (isOpen && task) {
-      // Fetch available users when the panel opens
-      findAvailableUsers();
-    }
-  }, [isOpen, task, findAvailableUsers]);
+  // Check if a user is currently selected
+  const isUserSelected = (userId) => {
+    return selectedUsers.some((user) => user.id === userId);
+  };
 
   if (!isOpen) return null;
 
@@ -147,7 +216,7 @@ const AssignTaskPanel = ({
         {/* Selected Users */}
         <div className="mt-4">
           <h1 className="text-md mb-2">
-            Selected Users ({selectedUsers.length})
+            Assigned Users ({selectedUsers.length})
           </h1>
           <div className="flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 space-x-1">
             {selectedUsers.length > 0 ? (
@@ -182,7 +251,11 @@ const AssignTaskPanel = ({
               filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center bg-slate-700 cursor-pointer hover:bg-blue-600 w-fit pill"
+                  className={`flex items-center cursor-pointer w-fit pill ${
+                    isUserSelected(user.id)
+                      ? "bg-green-600 hover:bg-red-600"
+                      : "bg-slate-700 hover:bg-blue-600"
+                  }`}
                   onClick={() => toggleUserSelection(user)}
                 >
                   <span>

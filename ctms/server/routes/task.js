@@ -372,7 +372,7 @@ router.get('/id/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-// GET /assignedto/user/:id - Fetch all tasks assigned to a user
+// GET /task/assignedto/user/:id - Fetch all tasks assigned to a user
 // Should be used to get all tasks assigned to a specific user
 router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
@@ -396,7 +396,7 @@ router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     }
 });
 
-// GET /assignedto/all - Fetch all assignedto records
+// GET /task/assignedto/all - Fetch all assignedto records
 // Should be used to get all assignedto records
 router.get('/assignedto/all', isAuthenticated, async (req, res) => {
     try {
@@ -457,33 +457,74 @@ router.put('/unlock/:id', isAuthenticated, async (req, res) => {
 // POST /task/assign/:id - Assign a task to a user
 router.post('/assign/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
-    // there may be multiple user_ids
     const { user_ids } = req.body;
+
     if (!id || !user_ids) {
         return res.status(400).json({ message: 'Task ID and user IDs are required' });
     }
+
     try {
-        // first check if user is already assigned to the task
+        // Check which users are already assigned
         const checkAssigned = await pool.query(`
-            SELECT * FROM assignedto
+            SELECT user_id FROM assignedto
             WHERE task_id = $1 AND user_id = ANY($2)
         `, [id, user_ids]);
-        if (checkAssigned.rowCount > 0) {
-            return res.status(400).json({ message: 'User is already assigned to this task' });
-        }
-        const assignValues = user_ids.map(userId => {
-            return `(${userId}, ${id}, CURRENT_DATE)`;
-        }).join(',');
 
-        await pool.query(`
-            INSERT INTO AssignedTo (user_id, task_id, assigned_date)
-            VALUES ${assignValues}
-        `);
-        res.json({ message: 'Task assigned successfully' });
+        // Get array of already assigned user IDs
+        const assignedUserIds = checkAssigned.rows.map(row => row.user_id);
+
+        // Filter out already assigned users
+        const newUserIds = user_ids.filter(id => !assignedUserIds.includes(id));
+
+        // If there are new users to assign, insert them
+        if (newUserIds.length > 0) {
+            const assignValues = newUserIds.map(userId => {
+                return `(${userId}, ${id}, CURRENT_DATE)`;
+            }).join(',');
+
+            await pool.query(`
+                INSERT INTO AssignedTo (user_id, task_id, assigned_date)
+                VALUES ${assignValues}
+            `);
+        }
+
+        // Provide detailed response about what happened
+        const response = {
+            message: 'Assignment process completed',
+            assigned: newUserIds,
+            skipped: assignedUserIds
+        };
+
+        res.json(response);
     } catch (err) {
         res.status(500).json({ message: 'Failed to assign task' });
     }
 });
 
+// DELETE /task/unassign/:id - Unassign a task from a user
+router.delete('/unassign/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    const { user_ids } = req.body;
+
+    if (!id || !user_ids) {
+        return res.status(400).json({ message: 'Task ID and user IDs are required' });
+    }
+
+    try {
+        const result = await pool.query(`
+            DELETE FROM assignedto
+            WHERE task_id = $1 AND user_id = ANY($2)
+            RETURNING *
+        `, [id, user_ids]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'No assignments found' });
+        }
+
+        res.json({ message: 'Unassignment process completed' });
+    } catch (err) {
+        res.status(500).json({ message: 'Failed to unassign task' });
+    }
+});
 
 module.exports = router;
