@@ -463,6 +463,14 @@ router.post('/assign/:id', isAuthenticated, async (req, res) => {
         return res.status(400).json({ message: 'Task ID and user IDs are required' });
     }
     try {
+        // first check if user is already assigned to the task
+        const checkAssigned = await pool.query(`
+            SELECT * FROM assignedto
+            WHERE task_id = $1 AND user_id = ANY($2)
+        `, [id, user_ids]);
+        if (checkAssigned.rowCount > 0) {
+            return res.status(400).json({ message: 'User is already assigned to this task' });
+        }
         const assignValues = user_ids.map(userId => {
             return `(${userId}, ${id}, CURRENT_DATE)`;
         }).join(',');
@@ -476,5 +484,6 @@ router.post('/assign/:id', isAuthenticated, async (req, res) => {
         res.status(500).json({ message: 'Failed to assign task' });
     }
 });
+
 
 module.exports = router;
