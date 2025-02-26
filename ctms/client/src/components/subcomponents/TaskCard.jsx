@@ -340,22 +340,20 @@ const TaskCard = ({
             <IconButton
               onClick={handleEditTask}
               icon={<SquarePen size={20} />}
-              tooltip="Edit Task"
-              color={`${
-                isTaskLocked
-                  ? "opacity-50 cursor-not-allowed text-slate-500"
-                  : "hover:bg-blue-500 hover:text-white"
-              }`}
+              tooltip="Edit this task"
+              isDisabled={isTaskLocked}
               disabled={isTaskLocked}
             />
             {/* if user is admin or devMode is active, show lock/unlock button and assign to users button */}
             {(sessionUser.role === "admin" || devMode) && (
               <div>
                 <IconButton
+                  onClick={() => console.log("Assign to users clicked")}
                   icon={<UserRoundPlus size={20} />}
-                  tooltip="Assign to users"
-                  color="hover:bg-blue-500 hover:text-white"
+                  tooltip="Assign this task to users"
+                  isDisabled={isTaskLocked}
                 />
+
                 <IconButton
                   onClick={handleToggleLock}
                   // Show the OPPOSITE icon on hover to indicate the action that will happen
@@ -379,12 +377,9 @@ const TaskCard = ({
               onClick={handleDeleteTask}
               icon={<Trash size={20} />}
               tooltip="Delete this task"
-              color={`${
-                isTaskLocked
-                  ? "opacity-50 cursor-not-allowed text-slate-500"
-                  : "hover:bg-red-500 hover:text-white"
-              }`}
+              isDisabled={isTaskLocked}
               disabled={isTaskLocked}
+              color="hover:bg-red-500 hover:text-white"
             />
           </div>
         </div>
