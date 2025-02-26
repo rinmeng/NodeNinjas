@@ -16,6 +16,7 @@ const TickCheckbox = ({ checked, onChange, label, name }) => {
         />
         <Check
           className="absolute top-1/2 left-1/2 
+                  ml-auto mr-auto
                   -translate-x-3
                   -translate-y-4 w-7 h-7 
                   pointer-events-none opacity-0 peer-checked:opacity-100 
