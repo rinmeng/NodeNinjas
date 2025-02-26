@@ -16,7 +16,7 @@ import { CircleAlert, CircleCheck } from "lucide-react";
 const proxy = "http://localhost:15000/";
 
 function App() {
-  const [devMode, setDevMode] = useState(true);
+  const [devMode, setDevMode] = useState(false);
 
   const [showNavbar, setShowNavbar] = useState(true);
   const [sessionUser, setSessionUser] = useState(null);
