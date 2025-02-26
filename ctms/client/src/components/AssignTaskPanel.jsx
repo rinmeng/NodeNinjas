@@ -273,11 +273,17 @@ const AssignTaskPanel = ({
             Task: {task.name}
           </h2>
           <p className="text-slate-300 text-sm truncate">{task.description}</p>
-          <p className="text-slate-300 text-sm mt-2">
-            Created by: @{task.owner_username} ({task.owner_display_name})
+          <p className="text-slate-400 text-sm mt-2">
+            Created by:{" "}
+            <span className="text-white">
+              @{task.owner_username} ({task.owner_display_name})
+            </span>
           </p>
-          <p className="text-slate-300 text-sm">
-            Created on: {getDateWithRelativeTime(task.created_at)}
+          <p className="text-slate-400 text-sm">
+            Created on:{" "}
+            <span className="text-white">
+              {getDateWithRelativeTime(task.created_at)}
+            </span>
           </p>
         </div>
 
