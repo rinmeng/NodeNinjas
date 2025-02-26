@@ -330,8 +330,7 @@ const AssignTaskPanel = ({
                   {sessionUser.role !== "admin" && (
                     <div
                       key={user.id}
-                      className="flex items-center mb-2 mr-2 
-                          bg-slate-500 hover:bg-slate-500 w-fit pill"
+                      className="flex items-center mb-2 mr-2 w-fit pill-grey"
                     >
                       <span>
                         @{user.username} ({user.display_name})
