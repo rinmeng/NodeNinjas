@@ -37,57 +37,45 @@ async function setupAssignedTo() {
             );
             CREATE INDEX idx_assignedto_user_id ON assignedto (user_id);
             CREATE INDEX idx_assignedto_task_id ON assignedto (task_id);
-            -- Create some sample assignments
+            -- Assign tasks to users
             INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES
-            (DATE '2025-02-15', 1, 1),  -- Rin - Quarterly Report
-            (DATE '2025-02-15', 2, 1),  -- Enock - Quarterly Report
-            (DATE '2025-02-15', 6, 1),  -- Arnold - Quarterly Report
-            (DATE '2025-02-15', 2, 2),  -- Enock - Team Building
-            (DATE '2025-02-15', 3, 3),  -- Keeran - Client Presentation
-            (DATE '2025-02-15', 4, 4),  -- Madiba - Software Update
-            (DATE '2025-02-15', 5, 5),  -- Mason - Documentation
-            (DATE '2025-02-15', 6, 6),  -- Arnold - Security Audit
-            (DATE '2025-02-15', 1, 7),  -- Rin - Budget Planning
-            (DATE '2025-02-15', 2, 8);  -- Enock - Training Workshop
+            -- Rin's assignments (user_id: 1)
+            (CURRENT_DATE, 1, 1),
+            (CURRENT_DATE, 1, 7),
+            (CURRENT_DATE, 1, 9),
+            (CURRENT_DATE, 1, 10),
 
-            
-            -- Assign all tasks (including previous ones)
-            INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES
-            -- Rin's assignments (id: 1)
-            ('2025-02-15', 1, 9),   -- Marketing Strategy (medium, pending)
-            ('2025-02-15', 1, 10),  -- Employee Reviews (high, in_progress)
-            ('2025-02-15', 1, 11),  -- Office Supply Inventory (low, completed)
-            ('2025-02-15', 1, 12),  -- Vendor Contract Review (medium, in_progress)
+            -- Enock's assignments (user_id: 2)
+            (CURRENT_DATE, 2, 2),
+            (CURRENT_DATE, 2, 8),
+            (CURRENT_DATE, 2, 13),
+            (CURRENT_DATE, 2, 14),
 
-            -- Enock's assignments (id: 2)
-            ('2025-02-15', 2, 13),  -- Project Timeline (high, completed)
-            ('2025-02-15', 2, 14),  -- Customer Survey (low, pending)
-            ('2025-02-15', 2, 15),  -- Department Budget (medium, in_progress)
-            ('2025-02-15', 2, 16),  -- Equipment Maintenance (low, completed)
+            -- Keeran's assignments (user_id: 3)
+            (CURRENT_DATE, 3, 3),
+            (CURRENT_DATE, 3, 17),
+            (CURRENT_DATE, 3, 18),
+            (CURRENT_DATE, 3, 19),
 
-            -- Keeran's assignments (id: 3)
-            ('2025-02-15', 3, 17),  -- Sales Report (high, pending)
-            ('2025-02-15', 3, 18),  -- Team Schedule (medium, in_progress)
-            ('2025-02-15', 3, 19),  -- Client Follow-up (low, completed)
-            ('2025-02-15', 3, 20),  -- Product Launch (high, pending)
+            -- Madiba's assignments (user_id: 4)
+            (CURRENT_DATE, 4, 4),
+            (CURRENT_DATE, 4, 21),
+            (CURRENT_DATE, 4, 22),
+            (CURRENT_DATE, 4, 23),
 
-            -- Madiba's assignments (id: 4)
-            ('2025-02-15', 4, 21),  -- Code Review (high, in_progress)
-            ('2025-02-15', 4, 22),  -- System Backup (medium, completed)
-            ('2025-02-15', 4, 23),  -- Bug Fixes (high, pending)
-            ('2025-02-15', 4, 24),  -- Performance Testing (low, in_progress)
+            -- Mason's assignments (user_id: 5)
+            (CURRENT_DATE, 5, 5),
+            (CURRENT_DATE, 5, 25),
+            (CURRENT_DATE, 5, 26),
+            (CURRENT_DATE, 5, 27),
 
-            -- Mason's assignments (id: 5)
-            ('2025-02-15', 5, 25),  -- API Updates (high, completed)
-            ('2025-02-15', 5, 26),  -- User Guide (medium, pending)
-            ('2025-02-15', 5, 27),  -- Technical Review (low, in_progress)
-            ('2025-02-15', 5, 28),  -- Documentation Template (medium, completed)
-
-            -- Arnold's assignments (id: 6)
-            ('2025-02-15', 6, 29),  -- Security Review (high, pending)
-            ('2025-02-15', 6, 30),  -- Access Control (medium, in_progress)
-            ('2025-02-15', 6, 31),  -- Vulnerability Scan (low, completed)
-            ('2025-02-15', 6, 32);  -- Incident Response (high, pending)
+            -- Arnold's assignments (user_id: 6)
+            (CURRENT_DATE, 6, 6),
+            (CURRENT_DATE, 6, 7),  -- Added Budget Planning task
+            (CURRENT_DATE, 6, 9),  -- Added Marketing Strategy task
+            (CURRENT_DATE, 6, 29),
+            (CURRENT_DATE, 6, 30),
+            (CURRENT_DATE, 6, 31);
         `);
         return { message: "assignedto table created successfully" };
     } catch (err) {
@@ -112,58 +100,60 @@ async function setupTasks() {
                 status task_status NOT NULL DEFAULT 'pending',
                 priority task_priority NOT NULL DEFAULT 'medium',
                 is_locked BOOLEAN DEFAULT FALSE,
+                owner_id INT NOT NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE SET NULL,
                 CONSTRAINT unique_description UNIQUE (description)
             );
             -- Create some sample tasks
-            INSERT INTO Task (name, description, date, status, priority) VALUES
-            ('Quarterly Report Review', 'Review and finalize Q1 2025 financial reports', DATE '2025-03-15', 'pending', 'high'),
-            ('Team Building Event', 'Organize virtual team building activity', DATE '2025-02-28', 'in_progress', 'medium'),
-            ('Client Presentation', 'Prepare presentation for new client pitch', DATE '2025-02-20', 'completed', 'high'),
-            ('Software Update', 'Deploy latest software updates to production', DATE '2025-02-25', 'pending', 'medium'),
-            ('Documentation Review', 'Review and update API documentation', DATE '2025-03-01', 'in_progress', 'low'),
-            ('Security Audit', 'Conduct monthly security audit', DATE '2025-02-18', 'completed', 'high'),
-            ('Budget Planning', 'Create budget plan for Q2 2025', DATE '2025-03-20', 'pending', 'medium'),
-            ('Training Workshop', 'Conduct new employee training workshop', DATE '2025-02-22', 'in_progress', 'low');
+            INSERT INTO Task (name, description, date, status, priority, owner_id) VALUES
+            ('Quarterly Report Review', 'Review and finalize Q1 2025 financial reports', DATE '2025-03-15', 'pending', 'high', 1),
+            ('Team Building Event', 'Organize virtual team building activity', DATE '2025-02-28', 'in_progress', 'medium', 2),
+            ('Client Presentation', 'Prepare presentation for new client pitch', DATE '2025-02-20', 'completed', 'high', 3),
+            ('Software Update', 'Deploy latest software updates to production', DATE '2025-02-25', 'pending', 'medium', 4),
+            ('Documentation Review', 'Review and update API documentation', DATE '2025-03-01', 'in_progress', 'low', 5),
+            ('Security Audit', 'Conduct monthly security audit', DATE '2025-02-18', 'completed', 'high', 6),
+            ('Budget Planning', 'Create budget plan for Q2 2025', DATE '2025-03-20', 'pending', 'medium', 1),
+            ('Training Workshop', 'Conduct new employee training workshop', DATE '2025-02-22', 'in_progress', 'low', 2);
             
             -- New Tasks (adding to existing ones)
-            INSERT INTO Task (name, description, date, status, priority) VALUES
+            INSERT INTO Task (name, description, date, status, priority, owner_id) VALUES
             -- Rin's additional tasks
-            ('Marketing Strategy', 'Develop Q2 marketing strategy', '2025-03-10', 'pending', 'medium'),
-            ('Employee Reviews', 'Conduct annual employee reviews', '2025-03-25', 'in_progress', 'high'),
-            ('Office Supply Inventory', 'Update office supply tracking system', '2025-02-28', 'completed', 'low'),
-            ('Vendor Contract Review', 'Review and renew vendor contracts', '2025-03-15', 'in_progress', 'medium'),
+            ('Marketing Strategy', 'Develop Q2 marketing strategy', '2025-03-10', 'pending', 'medium', 1),
+            ('Employee Reviews', 'Conduct annual employee reviews', '2025-03-25', 'in_progress', 'high', 1),
+            ('Office Supply Inventory', 'Update office supply tracking system', '2025-02-28', 'completed', 'low', 1),
+            ('Vendor Contract Review', 'Review and renew vendor contracts', '2025-03-15', 'in_progress', 'medium', 1),
 
             -- Enock's additional tasks
-            ('Project Timeline', 'Create project timeline for Q2', '2025-03-05', 'completed', 'high'),
-            ('Customer Survey', 'Analyze customer satisfaction survey results', '2025-03-12', 'pending', 'low'),
-            ('Department Budget', 'Review department budget allocation', '2025-03-20', 'in_progress', 'medium'),
-            ('Equipment Maintenance', 'Schedule regular equipment maintenance', '2025-02-25', 'completed', 'low'),
+            ('Project Timeline', 'Create project timeline for Q2', '2025-03-05', 'completed', 'high', 2),
+            ('Customer Survey', 'Analyze customer satisfaction survey results', '2025-03-12', 'pending', 'low', 2),
+            ('Department Budget', 'Review department budget allocation', '2025-03-20', 'in_progress', 'medium', 2),
+            ('Equipment Maintenance', 'Schedule regular equipment maintenance', '2025-02-25', 'completed', 'low', 2),
 
             -- Keeran's additional tasks
-            ('Sales Report', 'Compile monthly sales report', '2025-03-01', 'pending', 'high'),
-            ('Team Schedule', 'Optimize team work schedule', '2025-03-08', 'in_progress', 'medium'),
-            ('Client Follow-up', 'Follow up with potential clients', '2025-02-28', 'completed', 'low'),
-            ('Product Launch', 'Coordinate new product launch', '2025-03-15', 'pending', 'high'),
+            ('Sales Report', 'Compile monthly sales report', '2025-03-01', 'pending', 'high', 3),
+            ('Team Schedule', 'Optimize team work schedule', '2025-03-08', 'in_progress', 'medium', 3),
+            ('Client Follow-up', 'Follow up with potential clients', '2025-02-28', 'completed', 'low', 3),
+            ('Product Launch', 'Coordinate new product launch', '2025-03-15', 'pending', 'high', 3),
 
             -- Madiba's additional tasks
-            ('Code Review', 'Review pull requests for new features', '2025-03-02', 'in_progress', 'high'),
-            ('System Backup', 'Perform system backup and verification', '2025-02-25', 'completed', 'medium'),
-            ('Bug Fixes', 'Address high-priority bug reports', '2025-03-10', 'pending', 'high'),
-            ('Performance Testing', 'Conduct application performance tests', '2025-03-05', 'in_progress', 'low'),
+            ('Code Review', 'Review pull requests for new features', '2025-03-02', 'in_progress', 'high', 4),
+            ('System Backup', 'Perform system backup and verification', '2025-02-25', 'completed', 'medium', 4),
+            ('Bug Fixes', 'Address high-priority bug reports', '2025-03-10', 'pending', 'high', 4),
+            ('Performance Testing', 'Conduct application performance tests', '2025-03-05', 'in_progress', 'low', 4),
 
             -- Mason's additional tasks
-            ('API Updates', 'Update API endpoint documentation', '2025-03-01', 'completed', 'high'),
-            ('User Guide', 'Create user guide for new features', '2025-03-10', 'pending', 'medium'),
-            ('Technical Review', 'Review technical specifications', '2025-02-28', 'in_progress', 'low'),
-            ('Documentation Template', 'Create new documentation templates', '2025-03-15', 'completed', 'medium'),
+            ('API Updates', 'Update API endpoint documentation', '2025-03-01', 'completed', 'high', 5),
+            ('User Guide', 'Create user guide for new features', '2025-03-10', 'pending', 'medium', 5),
+            ('Technical Review', 'Review technical specifications', '2025-02-28', 'in_progress', 'low', 5),
+            ('Documentation Template', 'Create new documentation templates', '2025-03-15', 'completed', 'medium', 5),
 
             -- Arnold's additional tasks
-            ('Security Review', 'Review security protocols', '2025-03-05', 'pending', 'high'),
-            ('Access Control', 'Update access control systems', '2025-03-12', 'in_progress', 'medium'),
-            ('Vulnerability Scan', 'Run quarterly vulnerability scan', '2025-02-28', 'completed', 'low'),
-            ('Incident Response', 'Update incident response plan', '2025-03-15', 'pending', 'high');
+            ('Security Review', 'Review security protocols', '2025-03-05', 'pending', 'high', 6),
+            ('Access Control', 'Update access control systems', '2025-03-12', 'in_progress', 'medium', 6),
+            ('Vulnerability Scan', 'Run quarterly vulnerability scan', '2025-02-28', 'completed', 'low', 6),
+            ('Incident Response', 'Update incident response plan', '2025-03-15', 'pending', 'high', 6);
             `);
 
         return { message: "Task table created successfully" };
@@ -290,11 +280,52 @@ async function setupUsers() {
             );
         }
 
+        // Base team member arnold
         await pool.query(`
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id)
             VALUES($1, $2, $3, 'team_member', $4, $5)`,
             ['arnold', 'arnold@example.com', await hashPassword('arnold'), 'Arnold', 1]
         );
+
+        // Rin's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('sarah', 'sarah@example.com', $1, 'team_member', 'Sarah Chen', 1),
+            ('james', 'james@example.com', $2, 'team_member', 'James Wilson', 1),
+            ('luna', 'luna@example.com', $3, 'team_member', 'Luna Park', 1)
+        `, [await hashPassword('sarah'), await hashPassword('james'), await hashPassword('luna')]);
+
+        // Enock's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('zara', 'zara@example.com', $1, 'team_member', 'Zara Ahmed', 2),
+            ('marcus', 'marcus@example.com', $2, 'team_member', 'Marcus Jones', 2),
+            ('priya', 'priya@example.com', $3, 'team_member', 'Priya Patel', 2)
+        `, [await hashPassword('zara'), await hashPassword('marcus'), await hashPassword('priya')]);
+
+        // Keeran's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('diego', 'diego@example.com', $1, 'team_member', 'Diego Santos', 3),
+            ('nina', 'nina@example.com', $2, 'team_member', 'Nina Chen', 3),
+            ('alex', 'alex@example.com', $3, 'team_member', 'Alex Morgan', 3)
+        `, [await hashPassword('diego'), await hashPassword('nina'), await hashPassword('alex')]);
+
+        // Madiba's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('kai', 'kai@example.com', $1, 'team_member', 'Kai Wong', 4),
+            ('sofia', 'sofia@example.com', $2, 'team_member', 'Sofia Rodriguez', 4),
+            ('omar', 'omar@example.com', $3, 'team_member', 'Omar Hassan', 4)
+        `, [await hashPassword('omar'), await hashPassword('sofia'), await hashPassword('kai')]);
+
+        // Mason's team members
+        await pool.query(`
+            INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
+            ('emma', 'emma@example.com', $1, 'team_member', 'Emma Thompson', 5),
+            ('raj', 'raj@example.com', $2, 'team_member', 'Raj Kumar', 5),
+            ('liam', 'liam@example.com', $3, 'team_member', 'Liam O''Connor', 5)
+        `, [await hashPassword('emma'), await hashPassword('raj'), await hashPassword('liam')]);
 
         return { message: "Users table created and populated successfully" };
     } catch (err) {

@@ -15,10 +15,14 @@ import {
   Trash,
   Lock,
   LockOpen,
+  UserRoundPlus,
+  UserRoundCog,
+  Users,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
 import IconButton from "./IconButton";
+import AssignTaskPanel from "../AssignTaskPanel";
 
 const TaskCard = ({
   task,
@@ -32,6 +36,7 @@ const TaskCard = ({
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
   const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
   const [isExpanded, setIsExpanded] = useState(false); // Add this state to track expanded state
+  const [showAssignTaskPanel, setShowAssignTaskPanel] = useState(false);
 
   useEffect(() => {
     // Update the local state when the task prop changes
@@ -68,7 +73,7 @@ const TaskCard = ({
     const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
 
     // Format the date properly
-    const formattedDate = taskDate.toLocaleDateString("en-US", {
+    const formattedDate = taskDate.toLocaleDateString("en-CA", {
       weekday: "short",
       month: "numeric",
       day: "numeric",
@@ -242,6 +247,10 @@ const TaskCard = ({
       });
   };
 
+  const handleAssignTask = () => {
+    setShowAssignTaskPanel(!showAssignTaskPanel);
+  };
+
   return (
     <div
       key={task.id}
@@ -338,16 +347,29 @@ const TaskCard = ({
             <IconButton
               onClick={handleEditTask}
               icon={<SquarePen size={20} />}
-              tooltip="Edit Task"
-              color={`${
-                isTaskLocked
-                  ? "opacity-50 cursor-not-allowed text-slate-500"
-                  : "hover:bg-blue-500 hover:text-white"
-              }`}
+              tooltip="Edit this task"
+              isDisabled={isTaskLocked}
               disabled={isTaskLocked}
             />
-            {/* if user is admin or devMode is active, show lock/unlock button */}
-            {(sessionUser.role === "admin" || devMode) && (
+
+            <div>
+              <IconButton
+                onClick={handleAssignTask}
+                icon={
+                  sessionUser.role === "admin" ? (
+                    <UserRoundPlus size={20} />
+                  ) : (
+                    <Users size={20} />
+                  )
+                }
+                tooltip={
+                  sessionUser.role === "admin"
+                    ? "Assign this task to other users"
+                    : "View assigned users"
+                }
+                isDisabled={isTaskLocked}
+              />
+
               <IconButton
                 onClick={handleToggleLock}
                 // Show the OPPOSITE icon on hover to indicate the action that will happen
@@ -364,31 +386,38 @@ const TaskCard = ({
                     : "hover:bg-red-500 hover:text-white"
                 }`}
               />
-            )}
+            </div>
 
             <IconButton
               onClick={handleDeleteTask}
               icon={<Trash size={20} />}
               tooltip="Delete this task"
-              color={`${
-                isTaskLocked
-                  ? "opacity-50 cursor-not-allowed text-slate-500"
-                  : "hover:bg-red-500 hover:text-white"
-              }`}
+              isDisabled={isTaskLocked}
               disabled={isTaskLocked}
+              color="hover:bg-red-500 hover:text-white"
             />
           </div>
         </div>
 
         {/* Description */}
         {isExpanded && (
-          <p
-            className={`text-md text-slate-300 mb-4 transition-all break-words whitespace-normal ${
-              isTaskLocked ? "select-none" : ""
-            }`}
-          >
-            {task.description}
-          </p>
+          <div>
+            <p
+              className={`text-md text-slate-300 mb-4 transition-all break-words whitespace-normal ${
+                isTaskLocked ? "select-none" : ""
+              }`}
+            >
+              {task.description}
+            </p>
+            <p>
+              <span className="text-slate-400">Created by:</span> @
+              {task.owner_username} ({task.owner_display_name})
+            </p>
+            <p>
+              <span className="text-slate-400">Created on:</span>{" "}
+              {getDateWithRelativeTime(task.created_at)}
+            </p>
+          </div>
         )}
       </div>
 
@@ -405,6 +434,16 @@ const TaskCard = ({
           setFeedbackMessage={setFeedbackMessage}
         />
       )}
+
+      {/* Only show assign panel if not locked */}
+      <AssignTaskPanel
+        task={task}
+        isOpen={showAssignTaskPanel}
+        onClose={() => setShowAssignTaskPanel(false)}
+        setNeedsRefetch={setNeedsRefetch}
+        setFeedbackMessage={setFeedbackMessage}
+        sessionUser={sessionUser}
+      />
     </div>
   );
 };

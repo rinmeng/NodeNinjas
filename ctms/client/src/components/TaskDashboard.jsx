@@ -80,19 +80,24 @@ const TaskDashboard = ({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col space-y-4">
-          {taskList.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              sessionUser={sessionUser}
-              setNeedsRefetch={setNeedsRefetch}
-              notifications={notifications}
-              setNotifications={setNotifications}
-              setFeedbackMessage={setFeedbackMessage}
-              devMode={devMode}
-            />
-          ))}
+        <div>
+          <h1 className="text-center text-slate-400">
+            {taskList.length} tasks found
+          </h1>
+          <div className="flex flex-col space-y-4">
+            {taskList.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                sessionUser={sessionUser}
+                setNeedsRefetch={setNeedsRefetch}
+                notifications={notifications}
+                setNotifications={setNotifications}
+                setFeedbackMessage={setFeedbackMessage}
+                devMode={devMode}
+              />
+            ))}
+          </div>
         </div>
       )}
 

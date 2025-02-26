@@ -119,7 +119,7 @@ function App() {
             path="/test"
             element={<Test sessionUser={sessionUser} devMode={devMode} />}
           />
-          <Route path="/message" element={<Chat />} />
+          {/* <Route path="/message" element={<Chat />} /> */}
           <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>

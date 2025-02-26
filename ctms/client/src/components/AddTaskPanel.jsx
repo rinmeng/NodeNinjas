@@ -55,6 +55,7 @@ const AddTaskPanel = ({
         priority: task.priority,
         status: task.status,
         assigned_users: assignedUserIDs,
+        owner_id: sessionUser ? sessionUser.id : null,
       }),
       credentials: "include",
     })

@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 
-const IconButton = ({ onClick, icon, hoverIcon, color, tooltip }) => {
+const IconButton = ({
+  onClick,
+  icon,
+  hoverIcon,
+  color,
+  tooltip,
+  isDisabled,
+}) => {
   const [isHovering, setIsHovering] = useState(false);
 
   // Determine which icon to display - use hoverIcon if provided and hovering, otherwise use default icon
@@ -12,7 +19,15 @@ const IconButton = ({ onClick, icon, hoverIcon, color, tooltip }) => {
         onClick={onClick}
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
-        className={`p-2 rounded-full transition-all duration-200 text-slate-500  ${color}`}
+        className={`p-2 rounded-full transition-all duration-200 text-slate-500  ${
+          isDisabled ? "" : color
+        }
+        ${
+          isDisabled
+            ? "opacity-50 cursor-not-allowed text-slate-500"
+            : "hover:bg-blue-500 hover:text-white"
+        }`}
+        disabled={isDisabled}
       >
         {displayIcon}
       </button>

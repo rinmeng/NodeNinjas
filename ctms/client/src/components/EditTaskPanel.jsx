@@ -32,11 +32,6 @@ const EditTaskPanel = ({
   const updateTaskToDatabase = async () => {
     // Make a PUT request to update the task in the database
     // using the taskAfterEdit state.
-    const assignedUserIDs = [];
-    if (sessionUser) {
-      assignedUserIDs.push(sessionUser.id);
-      console.log("Assigned user IDs:", assignedUserIDs);
-    }
     fetch(`${proxy}/task/update/:id`, {
       method: "PUT",
       headers: {
@@ -49,7 +44,6 @@ const EditTaskPanel = ({
         date: taskAfterEdit.date,
         priority: taskAfterEdit.priority,
         status: taskAfterEdit.status,
-        assigned_users: assignedUserIDs,
       }),
     })
       .then((response) => response.json())
