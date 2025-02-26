@@ -283,7 +283,7 @@ const AssignTaskPanel = ({
 
         {sessionUser.role === "admin" && (
           <div>
-            <h1 className="text-md mt-4">Search Users</h1>
+            <h1 className="text-md mb-2 ">Search Users</h1>
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <UserSearch size={20} className="text-slate-400" />
@@ -299,70 +299,54 @@ const AssignTaskPanel = ({
           </div>
         )}
         {/* Selected Users */}
-        <div className="mt-4">
-          <h1 className="text-md mb-2">
-            Assigned Users ({selectedUsers.length})
-          </h1>
-          <div
-            className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
+        {sessionUser.role !== "admin" && (
+          <div className="mt-4">
+            <h1 className="text-md mb-2">
+              Assigned Users ({selectedUsers.length})
+            </h1>
+            <div
+              className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
               ${selectedUsers.length === 0 ? "justify-center" : "justify-start"}
             `}
-          >
-            {selectedUsers.length > 0 ? (
-              selectedUsers.map((user) => (
-                <div>
-                  {sessionUser.role === "admin" && (
-                    <div
-                      key={user.id}
-                      className={`flex items-center mb-2 mr-2 ${
-                        isUserPreAssigned(user.id)
-                          ? "bg-slate-500 opacity-50 cursor-not-allowed"
-                          : "bg-green-600 cursor-pointer hover:bg-red-600"
-                      } w-fit pill`}
-                      onClick={() => toggleUserSelection(user)}
-                    >
-                      <span>
-                        @{user.username} ({user.display_name})
-                      </span>
-                    </div>
-                  )}
-
-                  {sessionUser.role !== "admin" && (
-                    <div
-                      key={user.id}
-                      className="flex items-center mb-2 mr-2 w-fit pill-grey"
-                    >
-                      <span>
-                        @{user.username} ({user.display_name})
-                      </span>
-                    </div>
-                  )}
+            >
+              {selectedUsers.length > 0 ? (
+                selectedUsers.map((user) => (
+                  <div>
+                    {sessionUser.role !== "admin" && (
+                      <div
+                        key={user.id}
+                        className="flex items-center mb-2 mr-2 w-fit pill-grey"
+                      >
+                        <span>
+                          @{user.username} ({user.display_name})
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))
+              ) : (
+                <div className="text-slate-400 text-center py-2">
+                  {sessionUser.role === "admin"
+                    ? "No users assigned to this task"
+                    : "This task has no assigned users"}
                 </div>
-              ))
-            ) : (
-              <div className="text-slate-400 text-center py-2">
-                {sessionUser.role === "admin"
-                  ? "No users assigned to this task"
-                  : "This task has no assigned users"}
-              </div>
-            )}
-          </div>
-          {sessionUser.role === "admin" && (
-            <div className="text-xs text-slate-400 mt-1">
-              Greyed out users are already assigned and cannot be removed
+              )}
             </div>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* Search Results */}
         {sessionUser.role === "admin" && (
-          <div>
-            <div className="mt-4">
-              <h1 className="text-md mb-2">Search Results</h1>
+          <div className="space-y-4">
+            <div>
+              <h1 className="text-md mb-2">
+                Assign Users ({selectedUsers.length}/{availableUsers.length})
+              </h1>
               <div
                 className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
-              ${selectedUsers.length === 0 ? "justify-center" : "justify-start"}
-            `}
+              ${
+                selectedUsers.length === 0 ? "justify-center" : "justify-start"
+              }`}
               >
                 {isLoading ? (
                   <div className="text-slate-400 text-center py-4">
@@ -395,10 +379,16 @@ const AssignTaskPanel = ({
                   </div>
                 )}
               </div>
+
+              {sessionUser.role === "admin" && (
+                <div className="text-xs text-slate-400 mt-1">
+                  Greyed out users are already assigned.
+                </div>
+              )}
             </div>
 
             <div className="border-b border-slate-600"></div>
-            <div className="flex justify-center items-center">
+            <div className="flex justify-center items-center ">
               <IconizedButton
                 icon={<UserRoundCheck size={24} className="ml-2" />}
                 text="Assign Users"
