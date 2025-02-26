@@ -150,7 +150,7 @@ const Navbar = ({
         </div>
         <div className="space-x-4 flex justify-center items-center">
           {(sessionUser || devMode) && (
-            <Link to="/" className="">
+            <Link to="/" className="navbar-links">
               Your Dashboard
             </Link>
           )}
