@@ -14,6 +14,7 @@ const AssignTaskPanel = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
+  const [preAssignedUsers, setPreAssignedUsers] = useState([]); // Track already assigned users
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -54,6 +55,11 @@ const AssignTaskPanel = ({
   };
 
   const toggleUserSelection = (user) => {
+    // Check if user is pre-assigned - if so, do nothing
+    if (preAssignedUsers.find((u) => u.id === user.id)) {
+      return;
+    }
+
     if (selectedUsers.find((u) => u.id === user.id)) {
       setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
     } else {
@@ -128,8 +134,9 @@ const AssignTaskPanel = ({
           userIds.includes(user.id)
         );
 
-        // Set them as selected
+        // Set them as selected and pre-assigned
         setSelectedUsers(assignedUsers);
+        setPreAssignedUsers(assignedUsers);
       } catch (error) {
         console.error("Error fetching assigned users:", error);
         setFeedbackMessage(
@@ -155,6 +162,7 @@ const AssignTaskPanel = ({
       // Reset states when panel closes
       setSearchQuery("");
       setSelectedUsers([]);
+      setPreAssignedUsers([]);
     }
   }, [isOpen, task, findAvailableUsers, fetchAssignedUsers]);
 
@@ -173,6 +181,11 @@ const AssignTaskPanel = ({
   // Check if a user is currently selected
   const isUserSelected = (userId) => {
     return selectedUsers.some((user) => user.id === userId);
+  };
+
+  // Check if a user is pre-assigned (already assigned)
+  const isUserPreAssigned = (userId) => {
+    return preAssignedUsers.some((user) => user.id === userId);
   };
 
   if (!isOpen) return null;
@@ -223,7 +236,11 @@ const AssignTaskPanel = ({
               selectedUsers.map((user) => (
                 <div
                   key={user.id}
-                  className="flex items-center bg-green-600 cursor-pointer hover:bg-red-600 w-fit pill"
+                  className={`flex items-center ${
+                    isUserPreAssigned(user.id)
+                      ? "bg-slate-500 opacity-50 cursor-not-allowed"
+                      : "bg-green-600 cursor-pointer hover:bg-red-600"
+                  } w-fit pill`}
                   onClick={() => toggleUserSelection(user)}
                 >
                   <span>
@@ -237,6 +254,11 @@ const AssignTaskPanel = ({
               </div>
             )}
           </div>
+          {preAssignedUsers.length > 0 && (
+            <div className="text-xs text-slate-400 mt-1">
+              Greyed out users are already assigned and cannot be removed
+            </div>
+          )}
         </div>
 
         {/* Search Results */}
@@ -251,11 +273,13 @@ const AssignTaskPanel = ({
               filteredUsers.map((user) => (
                 <div
                   key={user.id}
-                  className={`flex items-center cursor-pointer w-fit pill ${
-                    isUserSelected(user.id)
-                      ? "bg-green-600 hover:bg-red-600"
-                      : "bg-slate-700 hover:bg-blue-600"
-                  }`}
+                  className={`flex items-center ${
+                    isUserPreAssigned(user.id)
+                      ? "bg-slate-500 opacity-50 cursor-not-allowed"
+                      : isUserSelected(user.id)
+                      ? "bg-green-600 hover:bg-red-600 cursor-pointer"
+                      : "bg-slate-700 hover:bg-blue-600 cursor-pointer"
+                  } w-fit pill`}
                   onClick={() => toggleUserSelection(user)}
                 >
                   <span>

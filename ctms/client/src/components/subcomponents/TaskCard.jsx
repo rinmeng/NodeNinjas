@@ -391,13 +391,19 @@ const TaskCard = ({
 
         {/* Description */}
         {isExpanded && (
-          <p
-            className={`text-md text-slate-300 mb-4 transition-all break-words whitespace-normal ${
-              isTaskLocked ? "select-none" : ""
-            }`}
-          >
-            {task.description}
-          </p>
+          <div>
+            <p
+              className={`text-md text-slate-300 mb-4 transition-all break-words whitespace-normal ${
+                isTaskLocked ? "select-none" : ""
+              }`}
+            >
+              {task.description}
+            </p>
+            <p>
+              <span className="text-slate-400">Created by:</span> @
+              {task.owner_username} ({task.owner_display_name})
+            </p>
+          </div>
         )}
       </div>
 

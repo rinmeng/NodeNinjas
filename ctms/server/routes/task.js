@@ -194,7 +194,7 @@ router.get('/all', isAuthenticated, async (req, res) => {
 
 // POST /task/add - Add a new task
 router.post('/add', isAuthenticated, async (req, res) => {
-    const { name, date, description, status, priority, assigned_users } = req.body;
+    const { name, date, description, status, priority, owner_id } = req.body;
 
     if (!name || !date || !status || !priority) {
         return res.status(400).json({
@@ -220,25 +220,17 @@ router.post('/add', isAuthenticated, async (req, res) => {
 
         // Insert task
         const taskResult = await pool.query(
-            `INSERT INTO task (name, date, description, status, priority)
-             VALUES ($1, $2, $3, $4, $5) 
+            `INSERT INTO task (name, date, description, status, priority, owner_id)
+             VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING *`,
-            [name, date, description, status || 'pending', priority || 'medium']
+            [name, date, description, status || 'pending', priority || 'medium', owner_id]
         );
-
-        const taskId = taskResult.rows[0].id;
-
-        // Assign users if provided
-        if (assigned_users && assigned_users.length > 0) {
-            const assignValues = assigned_users.map(userId => {
-                return `(${userId}, ${taskId}, CURRENT_DATE)`;
-            }).join(',');
-
-            await pool.query(`
-                INSERT INTO AssignedTo (user_id, task_id, assigned_date)
-                VALUES ${assignValues}
-            `);
-        }
+        // asign the task to the owner
+        const assignOwner = await pool.query(
+            `INSERT INTO assignedto (user_id, task_id, assigned_date)
+                VALUES ($1, $2, CURRENT_DATE)`,
+            [owner_id, taskResult.rows[0].id]
+        );
 
         // Commit transaction
         await pool.query('COMMIT');
@@ -282,7 +274,7 @@ router.delete('/delete/:id', isAuthenticated, async (req, res) => {
 
 // PUT /task/update/:id - Update a task by ID
 router.put('/update/:id', isAuthenticated, async (req, res) => {
-    const { id, name, date, description, status, priority, assigned_users } = req.body;
+    const { id, name, date, description, status, priority } = req.body;
 
     try {
         await pool.query('BEGIN');
@@ -298,25 +290,6 @@ router.put('/update/:id', isAuthenticated, async (req, res) => {
         if (taskResult.rowCount === 0) {
             await pool.query('ROLLBACK');
             return res.status(404).json({ message: 'Task not found' });
-        }
-
-        // Remove existing assignments
-        await pool.query('DELETE FROM assignedto WHERE task_id = $1', [id]);
-
-        // Assign users if provided
-        if (assigned_users && assigned_users.length > 0) {
-            // Use parameterized query for safety
-            const assignQuery = `
-                INSERT INTO AssignedTo (user_id, task_id, assigned_date)
-                VALUES ($1, $2, CURRENT_DATE)
-            `;
-
-            // Execute assignments in parallel
-            await Promise.all(
-                assigned_users.map(userId =>
-                    pool.query(assignQuery, [userId, id])
-                )
-            );
         }
 
         await pool.query('COMMIT');
@@ -381,9 +354,11 @@ router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     }
     try {
         const result = await pool.query(`
-            SELECT t.id, t.name, t.date, t.description, t.status, t.priority, t.is_locked
+            SELECT t.id, t.name, t.date, t.description, t.status, t.priority, t.is_locked,
+            u.id as owner_id, u.username as owner_username, u.display_name as owner_display_name
             FROM task t
             JOIN assignedto a ON t.id = a.task_id
+            JOIN users u ON t.owner_id = u.id
             WHERE a.user_id = $1
             ORDER BY t.date DESC
         `, [id]);
