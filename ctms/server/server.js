@@ -1,3 +1,4 @@
+const setupPgSession = require('./routes/setupPgSession');
 const express = require('express');
 const pool = require('./db');
 const cors = require('cors');
@@ -12,6 +13,7 @@ const notification = require('./routes/notification');
 const PORT = 5001;
 const app = express();
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:13000'];
+
 
 const sessionStore = new pgSession({
     pool: pool,
@@ -34,6 +36,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
+// call to setup pgSession table
+setupPgSession();
 
 // Configure session with dynamic maxAge
 app.use(session({
