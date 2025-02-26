@@ -345,7 +345,7 @@ const AssignTaskPanel = ({
               <div
                 className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
               ${
-                selectedUsers.length === 0 ? "justify-center" : "justify-start"
+                filteredUsers.length !== 0 ? "justify-start" : "justify-center"
               }`}
               >
                 {isLoading ? (
