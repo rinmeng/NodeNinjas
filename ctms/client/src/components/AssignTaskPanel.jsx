@@ -1,5 +1,16 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { UserSearch, X, Users, UserRoundCheck, UserX } from "lucide-react";
+import {
+  UserSearch,
+  X,
+  Users,
+  UserRoundCheck,
+  UserX,
+  UserMinus,
+  UserCheck,
+  UserRoundPlus,
+  UserPlus,
+  UserRoundMinus,
+} from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 import IconizedButton from "./subcomponents/IconizedButton";
 import proxy from "../utils/proxy";
@@ -15,12 +26,14 @@ const AssignTaskPanel = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [preAssignedUsers, setPreAssignedUsers] = useState([]); // Track already assigned users
+  const [usersToUnassign, setUsersToUnassign] = useState([]); // Track users to be unassigned
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
   };
+
   const getDateWithRelativeTime = (dateString) => {
     if (!dateString) return "Invalid Date"; // Handle empty values safely
 
@@ -49,48 +62,108 @@ const AssignTaskPanel = ({
     return formattedDate;
   };
 
-  const handleAssignUsers = async () => {
-    if (selectedUsers.length === 0) {
+  const handleManageUsers = async () => {
+    // Handle case when there's nothing to do
+    if (selectedUsers.length === 0 && usersToUnassign.length === 0) {
       setFeedbackMessage(
-        "Please select at least one user to assign the task to."
+        "Please select users to assign or unassign from the task."
       );
       return;
     }
 
     try {
-      const userIds = selectedUsers.map((user) => user.id);
-      const response = await fetch(`${proxy}/task/assign/${task.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ user_ids: userIds }),
-      });
+      // First, handle new assignments if there are any
+      if (selectedUsers.length > 0) {
+        // Filter out pre-assigned users that are not in the usersToUnassign list
+        const userIdsToAssign = selectedUsers
+          .filter(
+            (user) =>
+              !preAssignedUsers.some((pu) => pu.id === user.id) ||
+              usersToUnassign.some((uu) => uu.id === user.id)
+          )
+          .map((user) => user.id);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to assign task to users");
+        if (userIdsToAssign.length > 0) {
+          const assignResponse = await fetch(
+            `${proxy}/task/assign/${task.id}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({ user_ids: userIdsToAssign }),
+            }
+          );
+
+          if (!assignResponse.ok) {
+            const errorData = await assignResponse.json();
+            throw new Error(
+              errorData.message || "Failed to assign task to users"
+            );
+          }
+        }
       }
+
+      // Handle unassignments if there are any
+      const userIdsToUnassign = usersToUnassign
+        .filter((user) => !selectedUsers.some((su) => su.id === user.id))
+        .map((user) => user.id);
+
+      if (userIdsToUnassign.length > 0) {
+        const unassignResponse = await fetch(
+          `${proxy}/task/unassign/${task.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ user_ids: userIdsToUnassign }),
+          }
+        );
+
+        if (!unassignResponse.ok) {
+          const errorData = await unassignResponse.json();
+          throw new Error(
+            errorData.message || "Failed to unassign users from task"
+          );
+        }
+      }
+
       setSelectedUsers([]);
-      setFeedbackMessage("Task assigned successfully!");
+      setUsersToUnassign([]);
+      setFeedbackMessage("Task assignments updated successfully!");
       setNeedsRefetch(true);
       onClose();
     } catch (error) {
-      setFeedbackMessage("Failed to assign task: " + error.message);
+      setFeedbackMessage("Failed to update task assignments: " + error.message);
     }
   };
 
   const toggleUserSelection = (user) => {
-    // Check if user is pre-assigned - if so, do nothing
-    if (preAssignedUsers.find((u) => u.id === user.id)) {
-      return;
-    }
+    // Check if user is pre-assigned
+    const isPreAssigned = preAssignedUsers.some((u) => u.id === user.id);
 
-    if (selectedUsers.find((u) => u.id === user.id)) {
-      setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
+    if (isPreAssigned) {
+      // If pre-assigned and not in usersToUnassign, add to usersToUnassign
+      if (!usersToUnassign.some((u) => u.id === user.id)) {
+        setUsersToUnassign([...usersToUnassign, user]);
+        // Also remove from selectedUsers if present
+        setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
+      } else {
+        // If already in usersToUnassign, remove from it (cancel unassigning)
+        setUsersToUnassign(usersToUnassign.filter((u) => u.id !== user.id));
+        // And add back to selectedUsers
+        setSelectedUsers([...selectedUsers, user]);
+      }
     } else {
-      setSelectedUsers([...selectedUsers, user]);
+      // Regular toggle for non-pre-assigned users
+      if (selectedUsers.some((u) => u.id === user.id)) {
+        setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
+      } else {
+        setSelectedUsers([...selectedUsers, user]);
+      }
     }
   };
 
@@ -218,6 +291,7 @@ const AssignTaskPanel = ({
       setSearchQuery("");
       setSelectedUsers([]);
       setPreAssignedUsers([]);
+      setUsersToUnassign([]);
       fetchAssignedUsersNotAdmin();
     }
   }, [
@@ -249,6 +323,11 @@ const AssignTaskPanel = ({
   // Check if a user is pre-assigned (already assigned)
   const isUserPreAssigned = (userId) => {
     return preAssignedUsers.some((user) => user.id === userId);
+  };
+
+  // Check if a user is marked for unassignment
+  const isUserToUnassign = (userId) => {
+    return usersToUnassign.some((user) => user.id === userId);
   };
 
   if (!isOpen) return null;
@@ -346,7 +425,7 @@ const AssignTaskPanel = ({
           <div className="space-y-4">
             <div>
               <h1 className="text-md mb-2">
-                Assign Users ({selectedUsers.length}/{availableUsers.length})
+                Manage Users ({selectedUsers.length}/{availableUsers.length})
               </h1>
               <div
                 className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
@@ -363,17 +442,41 @@ const AssignTaskPanel = ({
                     <div
                       key={user.id}
                       className={`flex items-center m-2 ${
-                        isUserPreAssigned(user.id)
-                          ? "bg-slate-500 opacity-50 cursor-not-allowed"
+                        isUserPreAssigned(user.id) && isUserToUnassign(user.id)
+                          ? "bg-red-600 hover:bg-slate-700 cursor-pointer"
+                          : isUserPreAssigned(user.id)
+                          ? "bg-green-600 hover:bg-red-600 cursor-pointer"
                           : isUserSelected(user.id)
                           ? "bg-green-600 hover:bg-red-600 cursor-pointer"
-                          : "bg-slate-700 hover:bg-blue-600 cursor-pointer"
+                          : "bg-slate-700 hover:bg-green-600 cursor-pointer"
                       } w-fit pill`}
                       onClick={() => toggleUserSelection(user)}
                     >
+                      {/* if they are preassigned make an icon infront of it */}
                       <span>
                         @{user.username} ({user.display_name})
                       </span>
+                      {isUserPreAssigned(user.id) &&
+                        isUserToUnassign(user.id) && (
+                          <UserRoundMinus
+                            size={16}
+                            className="ml-2 text-white"
+                          />
+                        )}
+
+                      {isUserPreAssigned(user.id) &&
+                        !isUserToUnassign(user.id) && (
+                          <UserRoundCheck
+                            size={16}
+                            className="ml-2 text-white"
+                          />
+                        )}
+
+                      {/* if they are to be assigned, make an icon of UserRoundPlus */}
+                      {!isUserPreAssigned(user.id) &&
+                        isUserSelected(user.id) && (
+                          <UserPlus size={16} className="ml-2 text-white" />
+                        )}
                     </div>
                   ))
                 ) : (
@@ -388,7 +491,10 @@ const AssignTaskPanel = ({
 
               {sessionUser.role === "admin" && (
                 <div className="text-xs text-slate-400 mt-1">
-                  Greyed out users are already assigned.
+                  <p>Already assigned users are highlighted in green.</p>
+                  <p>
+                    Green: Users to be assigned | Red: Users to be unassigned
+                  </p>
                 </div>
               )}
             </div>
@@ -397,8 +503,8 @@ const AssignTaskPanel = ({
             <div className="flex justify-center items-center ">
               <IconizedButton
                 icon={<UserRoundCheck size={24} className="ml-2" />}
-                text="Assign Users"
-                onClick={handleAssignUsers}
+                text="Update Assignments"
+                onClick={handleManageUsers}
                 btnStyle="btn-blue"
               />
             </div>

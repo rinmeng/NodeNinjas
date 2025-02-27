@@ -17,6 +17,7 @@ import {
   LockOpen,
   UserRoundPlus,
   Users,
+  UserRoundCog,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
@@ -357,14 +358,14 @@ const TaskCard = ({
                 onClick={handleAssignTask}
                 icon={
                   sessionUser.role === "admin" ? (
-                    <UserRoundPlus size={20} />
+                    <UserRoundCog size={20} />
                   ) : (
                     <Users size={20} />
                   )
                 }
                 tooltip={
                   sessionUser.role === "admin"
-                    ? "Assign this task to other users"
+                    ? "Manage assigned users"
                     : "View assigned users"
                 }
                 isDisabled={isTaskLocked}

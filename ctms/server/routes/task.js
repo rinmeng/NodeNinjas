@@ -462,15 +462,9 @@ router.post('/assign/:id', isAuthenticated, async (req, res) => {
                 VALUES ${assignValues}
             `);
         }
-
-        // Provide detailed response about what happened
-        const response = {
-            message: 'Assignment process completed',
-            assigned: newUserIds,
-            skipped: assignedUserIds
-        };
-
-        res.json(response);
+        res.status(201).json({
+            message: 'Assignment process completed'
+        });
     } catch (err) {
         res.status(500).json({ message: 'Failed to assign task' });
     }
@@ -496,7 +490,7 @@ router.delete('/unassign/:id', isAuthenticated, async (req, res) => {
             return res.status(404).json({ message: 'No assignments found' });
         }
 
-        res.json({ message: 'Unassignment process completed' });
+        res.status(200).json({ message: 'Unassignment process completed' });
     } catch (err) {
         res.status(500).json({ message: 'Failed to unassign task' });
     }
