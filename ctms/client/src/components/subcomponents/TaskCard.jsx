@@ -19,6 +19,7 @@ import {
   Users,
   UserRoundCog,
   CircleCheck,
+  ShieldCheck,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
@@ -280,8 +281,8 @@ const TaskCard = ({
           )}
           {!isTaskOwner && (
             <IconButton
-              icon={<Users size={20} className="text-white" />}
-              tooltip="You were assigned to this task"
+              icon={<ShieldCheck size={20} className="text-white" />}
+              tooltip="You were assigned to this task by your admin."
             />
           )}
 
@@ -299,11 +300,19 @@ const TaskCard = ({
                 {task.name}
               </h1>
               <div className="flex items-center space-x-2">
-                <div className="p-2 rounded-full group-hover:bg-slate-700 t200e text-slate-400 group-hover:text-white">
+                <div className="">
                   {isExpanded ? (
-                    <ChevronUp size={20} />
+                    <IconButton
+                      icon={<ChevronUp size={20} />}
+                      color="text-white hover:bg-slate-600"
+                      tooltip="Collapse task details"
+                    />
                   ) : (
-                    <ChevronDown size={20} />
+                    <IconButton
+                      icon={<ChevronDown size={20} />}
+                      color="text-white hover:bg-slate-600"
+                      tooltip="Expand task details"
+                    />
                   )}
                 </div>
               </div>
