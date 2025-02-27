@@ -440,11 +440,7 @@ const AssignTaskPanel = ({
                     <span>
                       @{user.username} ({user.display_name})
                     </span>
-                    {isTaskOwner(user.id) ? (
-                      <Crown size={16} className="ml-2 text-yellow-400" />
-                    ) : (
-                      <UserRoundCheck size={16} className="ml-2 text-white" />
-                    )}
+                    <UserRoundCheck size={16} className="ml-2 text-white" />
                   </div>
                 ))
               ) : (
@@ -481,7 +477,7 @@ const AssignTaskPanel = ({
                       key={user.id}
                       className={`flex items-center m-2 ${
                         isTaskOwner(user.id)
-                          ? "bg-yellow-700 opacity-50 cursor-not-allowed"
+                          ? "bg-green-600 opacity-50 cursor-not-allowed"
                           : isUserPreAssigned(user.id) &&
                             isUserToUnassign(user.id)
                           ? "bg-red-600 hover:bg-slate-700 cursor-pointer"
@@ -496,9 +492,6 @@ const AssignTaskPanel = ({
                       <span>
                         @{user.username} ({user.display_name})
                       </span>
-                      {isTaskOwner(user.id) && (
-                        <Crown size={16} className="ml-2 text-yellow-400" />
-                      )}
                       {isUserPreAssigned(user.id) &&
                         isUserToUnassign(user.id) &&
                         !isTaskOwner(user.id) && (
@@ -538,9 +531,6 @@ const AssignTaskPanel = ({
               <div className="text-xs text-slate-400 mt-1">
                 <p>Already assigned users are highlighted in green.</p>
                 <p>Green: Users to be assigned | Red: Users to be unassigned</p>
-                <p className="font-semibold">
-                  Task owner (yellow crown) cannot be unassigned.
-                </p>
               </div>
             </div>
 

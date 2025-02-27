@@ -326,6 +326,13 @@ const TaskCard = ({
               onClick={toggleExpanded}
               className="flex items-center justify-between cursor-pointer w-full"
             >
+              {!isTaskOwner && (
+                <IconButton
+                  icon={<Users size={20} />}
+                  tooltip="You were assigned to this task"
+                  color="text-white"
+                />
+              )}
               <h1
                 className={`text-2xl font-semibold flex-grow ${
                   isTaskLocked ? "text-slate-300" : "text-white"
