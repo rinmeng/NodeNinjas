@@ -400,11 +400,12 @@ const AssignTaskPanel = ({
                     {sessionUser.role !== "admin" && (
                       <div
                         key={user.id}
-                        className="flex items-center m-2 w-fit pill-grey"
+                        className="flex items-center m-2 w-fit pill-green"
                       >
                         <span>
                           @{user.username} ({user.display_name})
                         </span>
+                        <UserRoundCheck size={16} className="ml-2 text-white" />
                       </div>
                     )}
                   </div>
