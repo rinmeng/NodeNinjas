@@ -37,6 +37,7 @@ const Admin = ({ sessionUser, devMode }) => {
     { header: "Select User", key: "selectUser" },
   ];
 
+  //We are obtaining the users from our database
   const fetchUsers = () => {
     fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
@@ -58,7 +59,7 @@ const Admin = ({ sessionUser, devMode }) => {
   };
 
   const changeTable = (userId) => {
-    setChosenUserIds((prev = []) => {
+    setChosenUserIds((prev) => {
       if (!Array.isArray(prev)) {
         return [];
       }
@@ -69,6 +70,7 @@ const Admin = ({ sessionUser, devMode }) => {
   };
 
   const deleteUsers = () => {
+    //There will be an alert when no users are selected after pressing the "Delete Selected Users" button
     if (chosenUserIds.length === 0) {
       alert("You haven't selected any users!");
       return;
@@ -98,6 +100,7 @@ const Admin = ({ sessionUser, devMode }) => {
           );
         })
         .catch((error) => {
+          fetchUsers();
           console.error("error fetching data:", error);
         });
     });
@@ -107,6 +110,7 @@ const Admin = ({ sessionUser, devMode }) => {
       return;
     }
 
+    //This will be the list of users who weren't deleted
     const newUsers = usersList.filter(
       (user) => !chosenUserIds.includes(user.id)
     );
@@ -114,7 +118,7 @@ const Admin = ({ sessionUser, devMode }) => {
     setUsersList(newUsers);
   };
 
-  //I want to deselect all users
+  //I want to deselect all ticked users when I press the "Reset" button
   const RemoveTicks = () => {
     setChosenUserIds([]);
   };
@@ -163,8 +167,6 @@ const Admin = ({ sessionUser, devMode }) => {
                   selectUser: (
                     <TickCheckbox
                       userId={user.id}
-                      //chosenUserIds={chosenUserIds}
-                      //setChosenUserIds={setChosenUserIds}
                       checked={Ticked}
                       onChange={() => changeTable(user.id)}
                     />
