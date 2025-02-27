@@ -10,7 +10,8 @@ import NotFound from "./pages/NotFound";
 import "./css/output.css";
 import Dashboard from "./pages/Dashboard";
 import Chat from "./pages/Chat";
-
+import Feedback2 from "./components/subcomponents/Feedback2";
+import { CircleAlert, CircleCheck } from "lucide-react";
 
 const proxy = "http://localhost:15000/";
 
@@ -22,6 +23,10 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
+
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+
+  const timer = 2000;
 
   useEffect(() => {
     fetch(proxy + "user/session", {
@@ -43,16 +48,24 @@ function App() {
       });
   }, []);
 
+  useEffect(() => {
+    if (feedbackMessage !== "") {
+      setTimeout(() => {
+        setFeedbackMessage("");
+      }, timer);
+    }
+  }, [feedbackMessage]);
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
-  //mark notifications as read
+  // Mark notifications as read
   const markNotificationsAsRead = () => {
     setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
   };
 
-  //toggle notification read status
+  // Toggle notification read status
   const toggleNotificationReadStatus = (id) => {
     setNotifications((prev) =>
       prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
@@ -81,10 +94,11 @@ function App() {
                 devMode={devMode}
                 notifications={notifications}
                 setNotifications={setNotifications}
+                setFeedbackMessage={setFeedbackMessage}
               />
             }
           />
-         
+
           <Route
             path="/admin"
             element={<Admin sessionUser={sessionUser} devMode={devMode} />}
@@ -97,6 +111,7 @@ function App() {
                 setShowNavbar={setShowNavbar}
                 sessionUser={sessionUser}
                 setSessionUser={setSessionUser}
+                setFeedbackMessage={setFeedbackMessage}
               />
             }
           />
@@ -104,10 +119,26 @@ function App() {
             path="/test"
             element={<Test sessionUser={sessionUser} devMode={devMode} />}
           />
-          <Route path="/message" element={<Chat />} />
+          {/* <Route path="/message" element={<Chat />} /> */}
           <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+      </div>
+
+      <div>
+        {feedbackMessage && (
+          <Feedback2
+            icon={
+              feedbackMessage.toLowerCase().includes("success") ? (
+                <CircleCheck size={24} />
+              ) : (
+                <CircleAlert size={24} />
+              )
+            }
+            message={feedbackMessage}
+            isSuccess={feedbackMessage.toLowerCase().includes("success")}
+          />
+        )}
       </div>
     </Router>
   );

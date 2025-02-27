@@ -58,27 +58,19 @@ const Admin = ({ sessionUser, devMode }) => {
   };
 
   const changeTable = (userId) => {
-    setChosenUserIds((prev) =>
-      prev.includes(userId)
+    setChosenUserIds((prev = []) => {
+      if (!Array.isArray(prev)) {
+        return [];
+      }
+      return prev.includes(userId)
         ? prev.filter((id) => id !== userId)
-        : [...prev, userId]
-    );
+        : [...prev, userId];
+    });
   };
 
   const deleteUsers = () => {
-    if (chosenUserIds.length == 0) {
+    if (chosenUserIds.length === 0) {
       alert("You haven't selected any users!");
-      return;
-    }
-
-    const newUsers = usersList.filter(
-      (user) => !chosenUserIds.includes(user.id)
-    );
-
-    setUsersList(newUsers);
-
-    const confirm = window.confirm("Would you like to delete these users?");
-    if (!confirm) {
       return;
     }
 
@@ -91,25 +83,41 @@ const Admin = ({ sessionUser, devMode }) => {
         },
         credentials: "include",
       })
-        .then((res) => {
+        .then(async (res) => {
           if (!res.ok) {
-            return res.json().then((error) => {
-              throw new Error(error.message || "The users can't be loaded");
-            });
+            const error = await res.json();
+            console.log(chosenUserIds);
+            throw new Error(error.message || "The users can't be loaded");
           }
           return res.json();
         })
         .then((data) => {
-          setChosenUserIds(data);
+          console.log("Deleted user", data);
+          setChosenUserIds((prev) =>
+            prev.filter((id) => !chosenUserIds.includes(id))
+          );
         })
         .catch((error) => {
           console.error("error fetching data:", error);
         });
     });
+
+    const confirm = window.confirm("Would you like to delete these users?");
+    if (!confirm) {
+      return;
+    }
+
+    const newUsers = usersList.filter(
+      (user) => !chosenUserIds.includes(user.id)
+    );
+
+    setUsersList(newUsers);
   };
 
   //I want to deselect all users
-  const RemoveTicks = () => {};
+  const RemoveTicks = () => {
+    setChosenUserIds([]);
+  };
 
   return (
     <div className="mp5 my-16 animate-fadein">
@@ -155,8 +163,8 @@ const Admin = ({ sessionUser, devMode }) => {
                   selectUser: (
                     <TickCheckbox
                       userId={user.id}
-                      chosenUserIds={chosenUserIds}
-                      setChosenUserIds={setChosenUserIds}
+                      //chosenUserIds={chosenUserIds}
+                      //setChosenUserIds={setChosenUserIds}
                       checked={Ticked}
                       onChange={() => changeTable(user.id)}
                     />

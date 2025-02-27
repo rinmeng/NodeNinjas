@@ -1,10 +1,8 @@
-import React, { useState, useEffect, useCallback, use } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import SearchBar from "../components/SearchBar";
 import TaskDashboard from "../components/TaskDashboard";
 import AddTaskPanel from "../components/AddTaskPanel";
-import Feedback2 from "../components/subcomponents/Feedback2";
-import { CircleAlert, CircleCheck, ListPlus, ListX } from "lucide-react";
 import proxy from "../utils/proxy";
 
 const Dashboard = ({
@@ -12,11 +10,10 @@ const Dashboard = ({
   devMode,
   notifications,
   setNotifications,
+  setFeedbackMessage,
 }) => {
   const [searchCriteria, setSearchCriteria] = useState("");
   const [showAddTaskPanel, setShowAddTaskPanel] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
-  const [showFeedbackMessage, setShowFeedbackMessage] = useState(false);
 
   // Initialize with empty array to prevent filter errors
   const [allTasks, setAllTasks] = useState([]);
@@ -151,16 +148,6 @@ const Dashboard = ({
     sortTasks();
   }, [filterOptions, allTasks, searchCriteria]);
 
-  //check to see if setFeedbackMessage is called
-  useEffect(() => {
-    if (feedbackMessage !== "") {
-      setTimeout(() => {
-        setShowFeedbackMessage(false);
-        setFeedbackMessage("");
-      }, 1000);
-    }
-  }, [showFeedbackMessage, feedbackMessage]);
-
   if (!sessionUser && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -195,6 +182,7 @@ const Dashboard = ({
         setNotifications={setNotifications}
         needsRefetch={needsRefetch}
         setFeedbackMessage={setFeedbackMessage}
+        devMode={devMode}
       />
       <AddTaskPanel
         showAddTaskPanel={showAddTaskPanel}
@@ -205,19 +193,6 @@ const Dashboard = ({
         notifications={notifications}
         setNotifications={setNotifications}
       />
-      {feedbackMessage && (
-        <Feedback2
-          icon={
-            feedbackMessage.toLowerCase().includes("success") ? (
-              <CircleCheck size={24} />
-            ) : (
-              <CircleAlert size={24} />
-            )
-          }
-          message={feedbackMessage}
-          isSuccess={feedbackMessage.toLowerCase().includes("success")}
-        />
-      )}
     </div>
   );
 };

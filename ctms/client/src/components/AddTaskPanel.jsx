@@ -3,6 +3,7 @@ import React, { useState } from "react";
 import IconizedButton from "./subcomponents/IconizedButton";
 
 import proxy from "../utils/proxy";
+import IconButton from "./subcomponents/IconButton";
 
 const AddTaskPanel = ({
   showAddTaskPanel,
@@ -54,6 +55,7 @@ const AddTaskPanel = ({
         priority: task.priority,
         status: task.status,
         assigned_users: assignedUserIDs,
+        owner_id: sessionUser ? sessionUser.id : null,
       }),
       credentials: "include",
     })
@@ -106,15 +108,18 @@ const AddTaskPanel = ({
         showAddTaskPanel ? "block" : "hidden"
       } fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50`}
     >
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4">
+      <div
+        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 
+        -translate-y-1/2 bg-slate-900 
+      rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4 border-2 border-slate-600"
+      >
         <div className="flex flex-row justify-between items-center">
           <div className="title-sm">Add Task</div>
-          <button
+          <IconButton
+            icon={<X size={30} />}
             onClick={() => setShowAddTaskPanel(false)}
-            className="p-1 hover:bg-gray-100 hover:text-black rounded-full t200e"
-          >
-            <X size={30} />
-          </button>
+            color="hover:bg-white hover:text-black"
+          />
         </div>
         <div className="border-b border-slate-600 my-4"></div>
 
@@ -126,6 +131,7 @@ const AddTaskPanel = ({
             className="forms text-left"
             value={task.title}
             onChange={(e) => setTask({ ...task, title: e.target.value })}
+            maxLength="255"
           />
 
           <h1 className="text-md">Description</h1>

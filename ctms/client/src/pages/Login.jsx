@@ -10,18 +10,20 @@ import {
   Contact,
   Shield,
   CircleUserRound,
-  UserX,
-  UserRoundCheck,
   UserCog,
 } from "lucide-react";
 import IconizedButton from "../components/subcomponents/IconizedButton";
 import IconizedTextField from "../components/subcomponents/IconizedTextField";
-import Feedback from "../components/subcomponents/Feedback";
 import TickCheckbox from "../components/subcomponents/TickCheckbox";
 
 const proxy = "http://localhost:15000/";
 
-const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
+const Login = ({
+  setShowNavbar,
+  sessionUser,
+  setSessionUser,
+  setFeedbackMessage,
+}) => {
   const [formData, setFormData] = useState({
     username: "",
     password: "",
@@ -31,12 +33,8 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
     isRemembered: false,
     manager_username: "",
   });
+
   const [showPopup, setShowPopup] = useState(false);
-  const [feedbackMessage, setFeedbackMessage] = useState("");
-  const [showFeedback, setShowFeedback] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(true);
-  const [teamMember, setTeamMember] = useState(true);
-  const timer = 3;
 
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -44,12 +42,6 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       ...prev,
       [name]: type === "checkbox" ? checked : value,
     }));
-  };
-
-  const showFeedbackMessage = (message, success) => {
-    setFeedbackMessage(message);
-    setIsSuccess(success);
-    setShowFeedback(true);
   };
 
   const registerPopup = (e) => {
@@ -73,17 +65,6 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
     };
   }, [showPopup, setShowNavbar]);
 
-  useEffect(() => {
-    let feedbackTimer;
-    if (showFeedback) {
-      feedbackTimer = setTimeout(() => {
-        setShowFeedback(false);
-        setFeedbackMessage("");
-      }, timer * 1000);
-    }
-    return () => clearTimeout(feedbackTimer);
-  }, [showFeedback]);
-
   const addUser = async () => {
     const { displayName, email, username, password, role, manager_username } =
       formData;
@@ -96,13 +77,10 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       !role ||
       !manager_username
     ) {
-      showFeedbackMessage("Please fill in all required fields.", false);
+      setFeedbackMessage("Please fill in all required fields.");
       return;
     } else if (password.length < 8) {
-      showFeedbackMessage(
-        "Password must be at least 8 characters long.",
-        false
-      );
+      setFeedbackMessage("Password must be at least 8 characters long.");
       return;
     }
 
@@ -122,7 +100,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       const managerData = await managerResponse.json();
 
       if (managerResponse.status !== 200) {
-        showFeedbackMessage(managerData.message || "Manager not found.", false);
+        setFeedbackMessage(managerData.message || "Manager not found.");
         return;
       }
 
@@ -148,7 +126,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       const registerData = await registerResponse.json();
 
       if (registerResponse.status === 201) {
-        showFeedbackMessage("Registration successful!", true);
+        setFeedbackMessage("Registration successful!");
 
         // Clear form fields except username and password
         setFormData((prev) => ({
@@ -161,15 +139,12 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
         }));
         setShowPopup(false);
       } else {
-        showFeedbackMessage(
-          registerData.message || "Registration failed.",
-          false
-        );
+        setFeedbackMessage(registerData.message || "Registration failed.");
         setShowPopup(true);
       }
     } catch (error) {
       console.error(error);
-      showFeedbackMessage(error.message || "An error occurred.", false);
+      setFeedbackMessage(error.message || "An error occurred.");
     }
   };
 
@@ -177,7 +152,7 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
   const loginUser = (e) => {
     e.preventDefault();
     if (!formData.username || !formData.password) {
-      showFeedbackMessage("Please fill in all required fields.", false);
+      setFeedbackMessage("Please fill in all required fields.");
       return;
     }
     fetch(proxy + "user/login", {
@@ -201,15 +176,17 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       })
       .then(({ statusCode, data }) => {
         if (statusCode === 200) {
-          showFeedbackMessage("Login successful!", true);
+          setFeedbackMessage("Login successful!");
           setSessionUser(data.session.user);
+        } else if (statusCode === 401 || statusCode === 404) {
+          setFeedbackMessage("Invalid Credentials");
         } else {
-          showFeedbackMessage(data.message || "Login failed.", false);
+          setFeedbackMessage(data.message || "Login failed.");
         }
       })
       .catch((error) => {
         console.error(error);
-        showFeedbackMessage("An error occurred while trying to log in.", false);
+        setFeedbackMessage("An error occurred while trying to log in.");
       });
   };
 
@@ -227,31 +204,20 @@ const Login = ({ setShowNavbar, sessionUser, setSessionUser }) => {
       })
       .then(({ statusCode, data }) => {
         if (statusCode === 200) {
-          showFeedbackMessage("Logout successful!", true);
+          setFeedbackMessage("Logout successful!");
           setSessionUser(null);
         } else {
-          showFeedbackMessage(data.message || "Logout failed.", false);
+          setFeedbackMessage(data.message || "Logout failed.");
         }
       })
       .catch((error) => {
         console.error(error);
-        showFeedbackMessage(
-          "An error occurred while trying to log out.",
-          false
-        );
+        setFeedbackMessage("An error occurred while trying to log out.");
       });
   };
 
   return (
     <div className="animate-fadein">
-      {showFeedback && (
-        <Feedback
-          icon={isSuccess ? <UserRoundCheck size={25} /> : <UserX size={25} />}
-          message={feedbackMessage}
-          seconds={timer}
-          isSuccess={isSuccess}
-        />
-      )}
       <div className="grid grid-cols-2 h-screen">
         <div className="flex flex-col justify-center p-5 bg-slate-950">
           <h1 className="text-7xl font-extrabold text-left">CTMS.</h1>
