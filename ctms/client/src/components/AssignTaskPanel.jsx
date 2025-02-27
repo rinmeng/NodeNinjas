@@ -2,12 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import {
   UserSearch,
   X,
-  Users,
   UserRoundCheck,
   UserX,
-  UserMinus,
-  UserCheck,
-  UserRoundPlus,
   UserPlus,
   UserRoundMinus,
 } from "lucide-react";

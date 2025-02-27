@@ -185,6 +185,7 @@ const Navbar = ({
                 )}
               </div>
             }
+            color="hover:bg-blue-600 text-white"
             onClick={handleBellClick}
           />
 

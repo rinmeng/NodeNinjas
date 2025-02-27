@@ -2,7 +2,6 @@ import React from "react";
 import {
   FilterX,
   ArrowDownAZ,
-  ArrowUpAZ,
   ChevronsUpDown,
   CalendarArrowUp,
   CalendarArrowDown,
