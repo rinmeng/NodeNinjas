@@ -162,7 +162,7 @@ const Dashboard = ({
   }
 
   return (
-    <div className="bg-slate-900 flex flex-col items-center justify-center py-40 p-10 animate-fadein min-h-screen">
+    <div className="flex flex-col items-center justify-center py-40 p-10 animate-fadein min-h-screen">
       <SearchBar
         setSearchCriteria={setSearchCriteria}
         searchCriteria={searchCriteria}

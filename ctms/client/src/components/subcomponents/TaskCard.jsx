@@ -266,58 +266,23 @@ const TaskCard = ({
       }}
       }`}
     >
-      <div className="grid grid-cols-3 gap-4 ">
-        {/* Status */}
-        <div className="flex flex-col space-y-1">
-          <h1 className="text-sm text-slate-400">Status</h1>
-          <div
-            className={`flex justify-center items-center text-md space-x-2 ${getStatusColor(
-              task.status
-            )}`}
-          >
-            {getStatusIcon(task.status)}
-            <p> {getStatusString(task.status)}</p>
-          </div>
-        </div>
-
-        {/* Priority */}
-        <div className="flex flex-col space-y-1">
-          <h1 className="text-sm text-slate-400">Priority</h1>
-          <div
-            className={`flex justify-center items-center text-md space-x-2 ${getPriorityColor(
-              task.priority
-            )}`}
-          >
-            {getPriorityIcon(task.priority)}
-            <p> {getPriorityString(task.priority)}</p>
-          </div>
-        </div>
-
-        {/* Due Date */}
-        <div className="flex flex-col space-y-1">
-          <h1 className="text-sm text-slate-400">Due Date</h1>
-          <p
-            className={`text-md text-center flex flex-wrap justify-center items-center ${getDateColor(
-              task.date
-            )}`}
-          >
-            <CalendarClock size={20} className="mr-2 flex-shrink-0" />
-            <span className="break-words">
-              {getDateWithRelativeTime(task.date)}
-            </span>
-          </p>
-        </div>
-      </div>
-
-      <div className="border-b border-slate-600 my-4"></div>
-
-      <div>
+      <div className="flex flex-col space-y-4">
         <div className="flex justify-between items-center">
           {/* Lock/Unlock button */}
           {isTaskLocked && (
-            <div className="mr-2">
-              <Lock size={20} className="text-red-500 " />
+            <div className="flex items-center">
+              <IconButton
+                icon={<Lock size={20} className="text-red-500" />}
+                tooltip="This task is locked. Contact your admin to make changes."
+              />
+              <div className="border-r-2 border-slate-500 h-6"></div>
             </div>
+          )}
+          {!isTaskOwner && (
+            <IconButton
+              icon={<Users size={20} className="text-white" />}
+              tooltip="You were assigned to this task"
+            />
           )}
 
           {/* Title and toggle */}
@@ -326,13 +291,6 @@ const TaskCard = ({
               onClick={toggleExpanded}
               className="flex items-center justify-between cursor-pointer w-full"
             >
-              {!isTaskOwner && (
-                <IconButton
-                  icon={<Users size={20} />}
-                  tooltip="You were assigned to this task"
-                  color="text-white"
-                />
-              )}
               <h1
                 className={`text-2xl font-semibold flex-grow ${
                   isTaskLocked ? "text-slate-300" : "text-white"
@@ -414,9 +372,55 @@ const TaskCard = ({
           </div>
         </div>
 
+        <div className="border-b border-slate-600 my-2"></div>
+
+        <div className="grid grid-cols-3 gap-4 ">
+          {/* Status */}
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-sm text-slate-400">Status</h1>
+            <div
+              className={`flex justify-center items-center text-md space-x-2 ${getStatusColor(
+                task.status
+              )}`}
+            >
+              {getStatusIcon(task.status)}
+              <p> {getStatusString(task.status)}</p>
+            </div>
+          </div>
+
+          {/* Priority */}
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-sm text-slate-400">Priority</h1>
+            <div
+              className={`flex justify-center items-center text-md space-x-2 ${getPriorityColor(
+                task.priority
+              )}`}
+            >
+              {getPriorityIcon(task.priority)}
+              <p> {getPriorityString(task.priority)}</p>
+            </div>
+          </div>
+
+          {/* Due Date */}
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-sm text-slate-400">Due Date</h1>
+            <p
+              className={`text-md text-center flex flex-wrap justify-center items-center ${getDateColor(
+                task.date
+              )}`}
+            >
+              <CalendarClock size={20} className="mr-2 flex-shrink-0" />
+              <span className="break-words">
+                {getDateWithRelativeTime(task.date)}
+              </span>
+            </p>
+          </div>
+        </div>
+
         {/* Description */}
         {isExpanded && (
           <div>
+            <div className="border-b border-slate-600 my-2"></div>
             <p
               className={`text-md text-slate-300 mb-4 transition-all break-words whitespace-normal ${
                 isTaskLocked ? "select-none" : ""
