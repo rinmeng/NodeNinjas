@@ -18,6 +18,7 @@ import {
   UserRoundPlus,
   Users,
   UserRoundCog,
+  CircleCheck,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
@@ -113,7 +114,7 @@ const TaskCard = ({
       case "in_progress":
         return <CircleDotDashed size={20} />;
       case "completed":
-        return <CircleDot size={20} />;
+        return <CircleCheck size={20} />;
       default:
         return <CircleEllipsis size={20} />;
     }

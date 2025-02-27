@@ -13,6 +13,7 @@ import {
   CircleDot,
   Filter,
   ArrowDownZA,
+  CircleCheck,
 } from "lucide-react";
 
 const FilterOptionsBar = ({
@@ -29,7 +30,7 @@ const FilterOptionsBar = ({
     filterOptions.sortPriorityAsc !== "" ||
     filterOptions.sortStatusAsc !== "";
   return (
-    <div className="flex justify-center items-center space-x-4  m-auto">
+    <div className="flex justify-center items-center space-x-4 m-auto">
       <button
         onClick={removeAllFilters}
         className={
@@ -119,7 +120,7 @@ const FilterOptionsBar = ({
           <CircleDotDashed size={20} />
         ) : null}
         {filterOptions.sortStatusAsc === "completed" ? (
-          <CircleDot size={20} />
+          <CircleCheck size={20} />
         ) : null}
         {filterOptions.sortStatusAsc === "" ? (
           <ChevronsUpDown size={20} />
