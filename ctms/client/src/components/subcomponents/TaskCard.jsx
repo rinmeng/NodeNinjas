@@ -16,7 +16,6 @@ import {
   Lock,
   LockOpen,
   UserRoundPlus,
-  UserRoundCog,
   Users,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
@@ -370,22 +369,24 @@ const TaskCard = ({
                 isDisabled={isTaskLocked}
               />
 
-              <IconButton
-                onClick={handleToggleLock}
-                // Show the OPPOSITE icon on hover to indicate the action that will happen
-                icon={
-                  isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />
-                }
-                hoverIcon={
-                  isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
-                }
-                tooltip={isTaskLocked ? "Unlock this task" : "Lock this task"}
-                color={`${
-                  isTaskLocked
-                    ? "hover:bg-green-500 hover:text-white"
-                    : "hover:bg-red-500 hover:text-white"
-                }`}
-              />
+              {sessionUser.role === "admin" && (
+                <IconButton
+                  onClick={handleToggleLock}
+                  // Show the OPPOSITE icon on hover to indicate the action that will happen
+                  icon={
+                    isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />
+                  }
+                  hoverIcon={
+                    isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
+                  }
+                  tooltip={isTaskLocked ? "Unlock this task" : "Lock this task"}
+                  color={`${
+                    isTaskLocked
+                      ? "hover:bg-green-500 hover:text-white"
+                      : "hover:bg-red-500 hover:text-white"
+                  }`}
+                />
+              )}
             </div>
 
             <IconButton

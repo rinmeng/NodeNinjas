@@ -15,6 +15,7 @@ import {
 import IconizedButton from "../components/subcomponents/IconizedButton";
 import IconizedTextField from "../components/subcomponents/IconizedTextField";
 import TickCheckbox from "../components/subcomponents/TickCheckbox";
+import IconButton from "../components/subcomponents/IconButton";
 
 const proxy = "http://localhost:15000/";
 
@@ -69,44 +70,46 @@ const Login = ({
     const { displayName, email, username, password, role, manager_username } =
       formData;
 
-    if (
-      !displayName ||
-      !email ||
-      !username ||
-      !password ||
-      !role ||
-      !manager_username
-    ) {
+    // In the addUser function
+    if (!displayName || !email || !username || !password || !role) {
       setFeedbackMessage("Please fill in all required fields.");
       return;
     } else if (password.length < 8) {
       setFeedbackMessage("Password must be at least 8 characters long.");
       return;
+    } else if (role === "team_member" && !manager_username) {
+      setFeedbackMessage("Team members must provide their admin's username.");
+      return;
     }
 
     try {
-      // Fetch the manager's user ID
-      const managerResponse = await fetch(
-        proxy + `user/username/${manager_username}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
+      // Only fetch manager's ID if the user is a team member
+      let manager_id = null;
+
+      if (role === "team_member") {
+        // Fetch the manager's user ID
+        const managerResponse = await fetch(
+          proxy + `user/username/${manager_username}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        const managerData = await managerResponse.json();
+
+        if (managerResponse.status !== 200) {
+          setFeedbackMessage(managerData.message || "Manager not found.");
+          return;
         }
-      );
 
-      const managerData = await managerResponse.json();
-
-      if (managerResponse.status !== 200) {
-        setFeedbackMessage(managerData.message || "Manager not found.");
-        return;
+        manager_id = managerData.id;
       }
 
-      const manager_id = managerData.id;
-
-      // Register the new user with the manager_id
+      // Register the new user with the manager_id (null for admins)
       const registerResponse = await fetch(proxy + "user/register", {
         method: "POST",
         headers: {
@@ -318,7 +321,11 @@ const Login = ({
         <div className="bg-slate-600 p-8 rounded-lg w-1/3">
           <div className="flex justify-between items-center mb-4">
             <h1 className="title">Register</h1>
-            <X size={40} onClick={closePopup} className="cursor-pointer" />
+            <IconButton
+              icon={<X size={40} />}
+              onClick={closePopup}
+              color="text-white hover:text-slate-950 hover:bg-white"
+            />
           </div>
           <div className="mb-4">
             <p className="font-extralight text-xl">
@@ -431,7 +438,7 @@ const Login = ({
             <div className="flex justify-end">
               <IconizedButton
                 text="Register"
-                btnStyle="btn-white space-x-2 w-full hover:bg-green-600"
+                btnStyle="btn-white space-x-2 w-full "
                 icon={<TrendingUp size={20} strokeWidth={2} />}
                 onClick={registerUser}
               />

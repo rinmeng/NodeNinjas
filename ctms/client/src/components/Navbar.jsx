@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Mail, X, Bell } from "lucide-react";
+import IconButton from "./subcomponents/IconButton";
 
 // Defines the Notification Panel component
 const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
@@ -139,7 +140,7 @@ const Navbar = ({
   return (
     <nav
       className={`${showNavbar ? "animate-fadein" : "animate-fadeout"}
-    fixed left-0 top-0 w-screen bg-slate-950 p-4 z-10`}
+    fixed left-0 top-0 w-screen bg-slate-950 p-4 z-10 h-auto`}
     >
       <div className="container mx-auto flex justify-between items-center">
         <div className="text-white text-xl">
@@ -147,69 +148,45 @@ const Navbar = ({
             <Link to="/">CTMS.</Link>
           </h1>
         </div>
-        <div className="space-x-4">
-          {/* Deprecated */}
-          {/* {(sessionUser?.role === "admin" || devMode) && (
-            <Link
-              to="/test"
-              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-            >
-              Test Database Connection
-            </Link>
-          )} */}
-
+        <div className="space-x-4 flex justify-center items-center">
           {(sessionUser || devMode) && (
-            <Link
-              to="/"
-              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-            >
+            <Link to="/" className="navbar-links">
               Your Dashboard
             </Link>
           )}
 
           {(sessionUser?.role === "admin" || devMode) && (
-            <Link
-              to="/admin"
-              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-            >
+            <Link to="/admin" className="navbar-links">
               Admin Page
             </Link>
           )}
 
-          <Link
-            to="/about"
-            className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-          >
+          <Link to="/about" className="navbar-links">
             About
           </Link>
 
-          <Link
-            to="/login"
-            className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-          >
+          <Link to="/login" className="navbar-links">
             {sessionUser ? "Profile" : "Login"}
           </Link>
           {(sessionUser || devMode) && (
-            <Link
-              to="/message"
-              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-            >
+            <Link to="/message" className="navbar-links">
               Message
             </Link>
           )}
           {/* Notification Bell */}
-
-          <button
+          <IconButton
+            icon={
+              <div>
+                <Bell size={24} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
+            }
             onClick={handleBellClick}
-            className="text-white hover:text-slate-300 relative p-2"
-          >
-            <Bell size={24} />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </button>
+          />
 
           {isNotificationsVisible && (
             <NotificationPanel
