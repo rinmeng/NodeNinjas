@@ -17,6 +17,8 @@ import {
   LockOpen,
   UserRoundPlus,
   Users,
+  UserRoundCog,
+  CircleCheck,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
@@ -36,6 +38,8 @@ const TaskCard = ({
   const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
   const [isExpanded, setIsExpanded] = useState(false); // Add this state to track expanded state
   const [showAssignTaskPanel, setShowAssignTaskPanel] = useState(false);
+
+  const isTaskOwner = task.owner_id === sessionUser.id;
 
   useEffect(() => {
     // Update the local state when the task prop changes
@@ -110,7 +114,7 @@ const TaskCard = ({
       case "in_progress":
         return <CircleDotDashed size={20} />;
       case "completed":
-        return <CircleDot size={20} />;
+        return <CircleCheck size={20} />;
       default:
         return <CircleEllipsis size={20} />;
     }
@@ -257,7 +261,7 @@ const TaskCard = ({
         isTaskLocked ? "border-red-500" : "border-gray-600"
       } m-auto w-full md:w-3/5 flex flex-col
       bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-4 md:p-6 
-      rounded-xl shadow-lg hover:shadow-2xl my-4 ${
+      rounded-xl shadow-lg hover:shadow-2xl ${
         isTaskLocked ? "opacity-70" : "opacity-100"
       }}
       }`}
@@ -322,6 +326,13 @@ const TaskCard = ({
               onClick={toggleExpanded}
               className="flex items-center justify-between cursor-pointer w-full"
             >
+              {!isTaskOwner && (
+                <IconButton
+                  icon={<Users size={20} />}
+                  tooltip="You were assigned to this task"
+                  color="text-white"
+                />
+              )}
               <h1
                 className={`text-2xl font-semibold flex-grow ${
                   isTaskLocked ? "text-slate-300" : "text-white"
@@ -357,14 +368,14 @@ const TaskCard = ({
                 onClick={handleAssignTask}
                 icon={
                   sessionUser.role === "admin" ? (
-                    <UserRoundPlus size={20} />
+                    <UserRoundCog size={20} />
                   ) : (
                     <Users size={20} />
                   )
                 }
                 tooltip={
                   sessionUser.role === "admin"
-                    ? "Assign this task to other users"
+                    ? "Manage assigned users"
                     : "View assigned users"
                 }
                 isDisabled={isTaskLocked}
@@ -390,15 +401,16 @@ const TaskCard = ({
                 />
               )}
             </div>
-
-            <IconButton
-              onClick={handleDeleteTask}
-              icon={<Trash size={20} />}
-              tooltip="Delete this task"
-              isDisabled={isTaskLocked}
-              disabled={isTaskLocked}
-              color="hover:bg-red-500 hover:text-white"
-            />
+            {isTaskOwner && (
+              <IconButton
+                onClick={handleDeleteTask}
+                icon={<Trash size={20} />}
+                tooltip="Delete this task"
+                isDisabled={isTaskLocked}
+                disabled={isTaskLocked}
+                color="hover:bg-red-500 hover:text-white"
+              />
+            )}
           </div>
         </div>
 

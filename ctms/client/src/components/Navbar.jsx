@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Mail, X, Bell } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 
@@ -126,6 +126,7 @@ const Navbar = ({
 }) => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const location = useLocation();
 
   const handleBellClick = (e) => {
     e.stopPropagation();
@@ -135,6 +136,16 @@ const Navbar = ({
     if (!wasVisible && unreadCount > 0) {
       onMarkAsRead();
     }
+  };
+
+  // Check if the current path matches the link path
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
+  // Get the appropriate class for a nav link based on its active state
+  const getLinkClass = (path) => {
+    return `navbar-links ${isActive(path) ? "bg-blue-600" : ""}`;
   };
 
   return (
@@ -150,29 +161,31 @@ const Navbar = ({
         </div>
         <div className="space-x-4 flex justify-center items-center">
           {(sessionUser || devMode) && (
-            <Link to="/" className="navbar-links">
-              Your Dashboard
+            <Link to="/" className={getLinkClass("/")}>
+              Dashboard
             </Link>
           )}
 
           {(sessionUser?.role === "admin" || devMode) && (
-            <Link to="/admin" className="navbar-links">
+            <Link to="/admin" className={getLinkClass("/admin")}>
               Admin Page
             </Link>
           )}
 
-          <Link to="/about" className="navbar-links">
+          <Link to="/about" className={getLinkClass("/about")}>
             About
           </Link>
 
-          <Link to="/login" className="navbar-links">
+          <Link to="/login" className={getLinkClass("/login")}>
             {sessionUser ? "Profile" : "Login"}
           </Link>
+
           {(sessionUser || devMode) && (
-            <Link to="/message" className="navbar-links">
+            <Link to="/message" className={getLinkClass("/message")}>
               Message
             </Link>
           )}
+
           {/* Notification Bell */}
           <IconButton
             icon={
@@ -185,6 +198,7 @@ const Navbar = ({
                 )}
               </div>
             }
+            color="hover:bg-blue-600 text-white"
             onClick={handleBellClick}
           />
 
