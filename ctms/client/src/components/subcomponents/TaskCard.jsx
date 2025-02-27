@@ -288,7 +288,7 @@ const TaskCard = ({
 
           {/* Title and toggle */}
           <div className="group flex-grow">
-            <button
+            <div
               onClick={toggleExpanded}
               className="flex items-center justify-between cursor-pointer w-full"
             >
@@ -303,6 +303,7 @@ const TaskCard = ({
                 <div className="">
                   {isExpanded ? (
                     <IconButton
+                      onClick={toggleExpanded}
                       icon={<ChevronUp size={20} />}
                       color="text-white hover:bg-slate-600"
                       tooltip="Collapse task details"
@@ -316,7 +317,7 @@ const TaskCard = ({
                   )}
                 </div>
               </div>
-            </button>
+            </div>
           </div>
 
           {/* Action buttons */}
