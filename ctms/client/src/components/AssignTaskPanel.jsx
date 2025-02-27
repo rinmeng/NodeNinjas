@@ -6,6 +6,7 @@ import {
   UserX,
   UserPlus,
   UserRoundMinus,
+  Crown,
 } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 import IconizedButton from "./subcomponents/IconizedButton";
@@ -101,9 +102,10 @@ const AssignTaskPanel = ({
         }
       }
 
-      // Handle unassignments if there are any
+      // Handle unassignments if there are any - filter out task owner
       const userIdsToUnassign = usersToUnassign
         .filter((user) => !selectedUsers.some((su) => su.id === user.id))
+        .filter((user) => user.id !== task.owner_id) // Prevent task owner from being unassigned
         .map((user) => user.id);
 
       if (userIdsToUnassign.length > 0) {
@@ -138,6 +140,12 @@ const AssignTaskPanel = ({
   };
 
   const toggleUserSelection = (user) => {
+    // Check if user is the task owner
+    if (user.id === task.owner_id) {
+      // Do nothing if user is task owner - they cannot be unassigned
+      return;
+    }
+
     // Check if user is pre-assigned
     const isPreAssigned = preAssignedUsers.some((u) => u.id === user.id);
 
@@ -345,6 +353,11 @@ const AssignTaskPanel = ({
     return usersToUnassign.some((user) => user.id === userId);
   };
 
+  // Check if a user is the task owner
+  const isTaskOwner = (userId) => {
+    return task && userId === task.owner_id;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -363,7 +376,7 @@ const AssignTaskPanel = ({
 
         {/* Task Information */}
         <div className="bg-slate-800 p-4 rounded-lg">
-          <h2 className="text-lg font-semibold text-white mb-2">
+          <h2 className="text-lg font-semibold text-white ">
             Task: {task.name}
           </h2>
           <p className="text-slate-300 text-sm truncate">{task.description}</p>
@@ -427,7 +440,11 @@ const AssignTaskPanel = ({
                     <span>
                       @{user.username} ({user.display_name})
                     </span>
-                    <UserRoundCheck size={16} className="ml-2 text-white" />
+                    {isTaskOwner(user.id) ? (
+                      <Crown size={16} className="ml-2 text-yellow-400" />
+                    ) : (
+                      <UserRoundCheck size={16} className="ml-2 text-white" />
+                    )}
                   </div>
                 ))
               ) : (
@@ -463,7 +480,10 @@ const AssignTaskPanel = ({
                     <div
                       key={user.id}
                       className={`flex items-center m-2 ${
-                        isUserPreAssigned(user.id) && isUserToUnassign(user.id)
+                        isTaskOwner(user.id)
+                          ? "bg-yellow-700 opacity-50 cursor-not-allowed"
+                          : isUserPreAssigned(user.id) &&
+                            isUserToUnassign(user.id)
                           ? "bg-red-600 hover:bg-slate-700 cursor-pointer"
                           : isUserPreAssigned(user.id)
                           ? "bg-green-600 hover:bg-red-600 cursor-pointer"
@@ -473,12 +493,15 @@ const AssignTaskPanel = ({
                       } w-fit pill`}
                       onClick={() => toggleUserSelection(user)}
                     >
-                      {/* if they are preassigned make an icon infront of it */}
                       <span>
                         @{user.username} ({user.display_name})
                       </span>
+                      {isTaskOwner(user.id) && (
+                        <Crown size={16} className="ml-2 text-yellow-400" />
+                      )}
                       {isUserPreAssigned(user.id) &&
-                        isUserToUnassign(user.id) && (
+                        isUserToUnassign(user.id) &&
+                        !isTaskOwner(user.id) && (
                           <UserRoundMinus
                             size={16}
                             className="ml-2 text-white"
@@ -486,7 +509,8 @@ const AssignTaskPanel = ({
                         )}
 
                       {isUserPreAssigned(user.id) &&
-                        !isUserToUnassign(user.id) && (
+                        !isUserToUnassign(user.id) &&
+                        !isTaskOwner(user.id) && (
                           <UserRoundCheck
                             size={16}
                             className="ml-2 text-white"
@@ -495,7 +519,8 @@ const AssignTaskPanel = ({
 
                       {/* if they are to be assigned, make an icon of UserRoundPlus */}
                       {!isUserPreAssigned(user.id) &&
-                        isUserSelected(user.id) && (
+                        isUserSelected(user.id) &&
+                        !isTaskOwner(user.id) && (
                           <UserPlus size={16} className="ml-2 text-white" />
                         )}
                     </div>
@@ -513,6 +538,9 @@ const AssignTaskPanel = ({
               <div className="text-xs text-slate-400 mt-1">
                 <p>Already assigned users are highlighted in green.</p>
                 <p>Green: Users to be assigned | Red: Users to be unassigned</p>
+                <p className="font-semibold">
+                  Task owner (yellow crown) cannot be unassigned.
+                </p>
               </div>
             </div>
 
