@@ -100,7 +100,7 @@ async function setupTasks() {
                 status task_status NOT NULL DEFAULT 'pending',
                 priority task_priority NOT NULL DEFAULT 'medium',
                 is_locked BOOLEAN DEFAULT FALSE,
-                owner_id INT NOT NULL,
+                owner_id INT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE SET NULL,
