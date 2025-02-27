@@ -163,32 +163,33 @@ async function setupTasks() {
     }
 }
 
-async function setupMessages() {
+async function setupNotifications() {
     try {
         await pool.query(`
-            DROP TABLE IF EXISTS messages CASCADE;
-            CREATE TABLE messages (
-                id SERIAL PRIMARY KEY, -- Unique message ID
-                sender_id INT NOT NULL,
+            DROP TABLE IF EXISTS notifications CASCADE;
+            CREATE TABLE notifications (
+                id SERIAL PRIMARY KEY,
+                user_id INT NOT NULL,
                 message TEXT NOT NULL,
-                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                receiver_id INT,
-                task_id INT,
-                FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE SET NULL,
-                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL,
-                FOREIGN KEY (task_id) REFERENCES Task (id) ON DELETE SET NULL,
+                type VARCHAR(50) CHECK (type IN ('message', 'task', 'alert')) NOT NULL,
+                status VARCHAR(20) CHECK (status IN ('unread', 'read')) DEFAULT 'unread',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             );
-            CREATE INDEX idx_messages_user_id ON messages (user_id);
-            CREATE INDEX idx_messages_task_id ON messages (task_id);
+
+            -- Indexes for better performance
+            CREATE INDEX idx_notifications_user_id ON notifications (user_id);
+            CREATE INDEX idx_notifications_status ON notifications (user_id, status);
         `);
-        return { message: "Messages table created successfully" };
+
+        return { message: "Notifications table created successfully" };
     } catch (err) {
-        console.error("Error setting up messages table:", err.message);
-        throw new Error("Failed to create Messages table: " + err.message);
+        console.error("Error setting up notifications table:", err.message);
+        throw new Error("Failed to create Notifications table: " + err.message);
     }
 }
+
 
 async function setupNotifications() {
     try {
@@ -196,22 +197,42 @@ async function setupNotifications() {
             DROP TABLE IF EXISTS notifications CASCADE;
             CREATE TABLE notifications (
                 id SERIAL PRIMARY KEY,
-                message TEXT NOT NULL,
                 user_id INT NOT NULL,
-                type VARCHAR(50) NOT NULL,
-                status VARCHAR(20) DEFAULT 'unread',
+                message TEXT NOT NULL,
+                type VARCHAR(50) CHECK (type IN ('message', 'task', 'alert')) NOT NULL,
+                status VARCHAR(20) CHECK (status IN ('unread', 'read')) DEFAULT 'unread',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             );
+
+            -- Indexes for better query performance
             CREATE INDEX idx_notifications_user_id ON notifications (user_id);
+            CREATE INDEX idx_notifications_status ON notifications (user_id, status);
+
+            -- Trigger to update 'updated_at' on row update
+            CREATE OR REPLACE FUNCTION update_timestamp()
+            RETURNS TRIGGER AS $$
+            BEGIN
+                NEW.updated_at = CURRENT_TIMESTAMP;
+                RETURN NEW;
+            END;
+            $$ LANGUAGE plpgsql;
+
+            CREATE TRIGGER set_timestamp
+            BEFORE UPDATE ON notifications
+            FOR EACH ROW
+            EXECUTE FUNCTION update_timestamp();
         `);
+
         return { message: "Notifications table created successfully" };
     } catch (err) {
         console.error("Error setting up notifications table:", err.message);
         throw new Error("Failed to create Notifications table: " + err.message);
     }
 }
+
 
 async function setupUsers() {
     try {
