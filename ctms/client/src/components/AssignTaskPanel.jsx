@@ -6,7 +6,6 @@ import {
   UserX,
   UserPlus,
   UserRoundMinus,
-  Crown,
 } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 import IconizedButton from "./subcomponents/IconizedButton";
