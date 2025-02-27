@@ -38,6 +38,8 @@ const TaskCard = ({
   const [isExpanded, setIsExpanded] = useState(false); // Add this state to track expanded state
   const [showAssignTaskPanel, setShowAssignTaskPanel] = useState(false);
 
+  const isTaskOwner = task.owner_id === sessionUser.id;
+
   useEffect(() => {
     // Update the local state when the task prop changes
     setIsTaskLocked(task.is_locked || false);
@@ -391,15 +393,16 @@ const TaskCard = ({
                 />
               )}
             </div>
-
-            <IconButton
-              onClick={handleDeleteTask}
-              icon={<Trash size={20} />}
-              tooltip="Delete this task"
-              isDisabled={isTaskLocked}
-              disabled={isTaskLocked}
-              color="hover:bg-red-500 hover:text-white"
-            />
+            {isTaskOwner && (
+              <IconButton
+                onClick={handleDeleteTask}
+                icon={<Trash size={20} />}
+                tooltip="Delete this task"
+                isDisabled={isTaskLocked}
+                disabled={isTaskLocked}
+                color="hover:bg-red-500 hover:text-white"
+              />
+            )}
           </div>
         </div>
 
