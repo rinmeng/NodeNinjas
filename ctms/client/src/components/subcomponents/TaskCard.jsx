@@ -261,7 +261,7 @@ const TaskCard = ({
         isTaskLocked ? "border-red-500" : "border-gray-600"
       } m-auto w-full md:w-3/5 flex flex-col
       bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-4 md:p-6 
-      rounded-xl shadow-lg hover:shadow-2xl my-4 ${
+      rounded-xl shadow-lg hover:shadow-2xl ${
         isTaskLocked ? "opacity-70" : "opacity-100"
       }}
       }`}
