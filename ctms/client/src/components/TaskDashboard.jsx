@@ -77,7 +77,7 @@ const TaskDashboard = ({
         </div>
       ) : (
         <div>
-          <h1 className="text-center text-slate-400">
+          <h1 className="text-center text-slate-400 mb-4">
             {taskList.length} tasks found
           </h1>
           <div className="flex flex-col space-y-4">

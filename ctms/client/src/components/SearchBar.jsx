@@ -126,14 +126,14 @@ const SearchBar = ({
         <div className="w-auto flex-grow">
           <div className="flex flex-col m-auto justify-center items-center space-x-4">
             <form
-              className="w-1/4 relative hover:w-2/4 t500e"
+              className="w-2/4 relative hover:w-3/4 t500e"
               onSubmit={handleSearchSubmit}
             >
               <div className="relative flex items-center">
                 <input
                   type="text"
                   value={searchCriteria}
-                  placeholder="Search for tasks..."
+                  placeholder="Search for tasks by title or description..."
                   className="forms w-full pl-10 pr-16 py-2 focus:bg-slate-900 rounded-full"
                   onChange={(e) => {
                     setSearchCriteria(e.target.value);
