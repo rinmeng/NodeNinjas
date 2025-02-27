@@ -61,23 +61,28 @@ const FilterOptionsBar = ({
         <div>Title</div>
       </button>
 
-      {/* Date Filter */}
+      {/* Status Filter */}
       <button
-        onClick={filterTaskByDate}
+        onClick={filterTaskByStatus}
         className={`flex items-center space-x-2 ${
-          filterOptions.sortDateAsc === null
+          filterOptions.sortStatusAsc === ""
             ? "pill-grey border-slate-700 border-4"
             : "pill-green border-white border-4"
         }`}
       >
-        {filterOptions.sortDateAsc ? <CalendarArrowUp size={20} /> : null}
-        {filterOptions.sortDateAsc === false ? (
-          <CalendarArrowDown size={20} />
+        {filterOptions.sortStatusAsc === "pending" ? (
+          <CircleDashed size={20} />
         ) : null}
-        {filterOptions.sortDateAsc === null ? (
+        {filterOptions.sortStatusAsc === "in_progress" ? (
+          <CircleDotDashed size={20} />
+        ) : null}
+        {filterOptions.sortStatusAsc === "completed" ? (
+          <CircleCheck size={20} />
+        ) : null}
+        {filterOptions.sortStatusAsc === "" ? (
           <ChevronsUpDown size={20} />
         ) : null}
-        <div>Date</div>
+        <div>Status</div>
       </button>
 
       {/* Priority Filter */}
@@ -104,28 +109,23 @@ const FilterOptionsBar = ({
         <div>Priority</div>
       </button>
 
-      {/* Status Filter */}
+      {/* Date Filter */}
       <button
-        onClick={filterTaskByStatus}
+        onClick={filterTaskByDate}
         className={`flex items-center space-x-2 ${
-          filterOptions.sortStatusAsc === ""
+          filterOptions.sortDateAsc === null
             ? "pill-grey border-slate-700 border-4"
             : "pill-green border-white border-4"
         }`}
       >
-        {filterOptions.sortStatusAsc === "pending" ? (
-          <CircleDashed size={20} />
+        {filterOptions.sortDateAsc ? <CalendarArrowUp size={20} /> : null}
+        {filterOptions.sortDateAsc === false ? (
+          <CalendarArrowDown size={20} />
         ) : null}
-        {filterOptions.sortStatusAsc === "in_progress" ? (
-          <CircleDotDashed size={20} />
-        ) : null}
-        {filterOptions.sortStatusAsc === "completed" ? (
-          <CircleCheck size={20} />
-        ) : null}
-        {filterOptions.sortStatusAsc === "" ? (
+        {filterOptions.sortDateAsc === null ? (
           <ChevronsUpDown size={20} />
         ) : null}
-        <div>Status</div>
+        <div>Date</div>
       </button>
     </div>
   );
