@@ -349,6 +349,7 @@ const TaskCard = ({
               tooltip="Edit this task"
               isDisabled={isTaskLocked}
               disabled={isTaskLocked}
+              color={"hover:bg-blue-500 hover:text-white"}
             />
 
             <div>
@@ -367,6 +368,7 @@ const TaskCard = ({
                     : "View assigned users"
                 }
                 isDisabled={isTaskLocked}
+                color={"hover:bg-blue-500 hover:text-white"}
               />
 
               {sessionUser.role === "admin" && (
