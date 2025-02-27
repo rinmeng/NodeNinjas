@@ -168,12 +168,14 @@ async function setupMessages() {
         await pool.query(`
             DROP TABLE IF EXISTS messages CASCADE;
             CREATE TABLE messages (
-                id SERIAL PRIMARY KEY,
+                id SERIAL PRIMARY KEY, -- Unique message ID
+                sender_id INT NOT NULL,
                 message TEXT NOT NULL,
                 sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                user_id INT NOT NULL,
+                receiver_id INT,
                 task_id INT,
-                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE SET NULL,
+                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE SET NULL,
                 FOREIGN KEY (task_id) REFERENCES Task (id) ON DELETE SET NULL,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
