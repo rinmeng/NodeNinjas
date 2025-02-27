@@ -1,14 +1,14 @@
-const express = require("express");
-const pool = require("../db");
+const express = require('express');
+const pool = require('../db');
 const router = express.Router();
-const session = require("express-session");
-const pgSession = require("connect-pg-simple")(session);
+const session = require('express-session');
+const pgSession = require('connect-pg-simple')(session);
 
-const { isAuthenticated } = require("../auth");
-const { isAuthAsAdmin } = require("../auth");
+const { isAuthenticated } = require('../auth');
+const { isAuthAsAdmin } = require('../auth');
 
 // GET /task/
-router.get("/", (req, res) => {
+router.get('/', (req, res) => {
     res.send(`
 <!DOCTYPE html>
 <html lang="en">
@@ -182,192 +182,153 @@ router.get("/", (req, res) => {
 });
 
 // GET /task/all - Fetch all tasks
-router.get("/all", isAuthenticated, async (req, res) => {
+router.get('/all', isAuthenticated, async (req, res) => {
     try {
-        const result = await pool.query("SELECT * FROM task ORDER BY id ASC");
+        const result = await pool.query('SELECT * FROM task ORDER BY id ASC');
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json({ message: "Failed to fetch tasks" });
+        res.status(500).json({ message: 'Failed to fetch tasks' });
     }
 });
 
+
 // POST /task/add - Add a new task
-router.post("/add", isAuthenticated, async (req, res) => {
-    const { name, date, description, status, priority, assigned_users } =
-        req.body;
+router.post('/add', isAuthenticated, async (req, res) => {
+    const { name, date, description, status, priority, owner_id } = req.body;
 
     if (!name || !date || !status || !priority) {
         return res.status(400).json({
-            message: "Missing required fields",
+            message: 'Missing required fields'
+
         });
     }
 
     // check to see if name and description is unique or not
-    const checkName = await pool.query("SELECT * FROM task WHERE name = $1", [
-        name,
-    ]);
-    const checkDescription = await pool.query(
-        "SELECT * FROM task WHERE description = $1",
-        [description]
-    );
+    const checkName = await pool.query('SELECT * FROM task WHERE name = $1', [name]);
+    const checkDescription = await pool.query('SELECT * FROM task WHERE description = $1', [description]);
 
     if (checkName.rowCount > 0) {
-        return res.status(400).json({ message: "Task name already exists" });
+        return res.status(400).json({ message: 'Task name already exists' });
     }
     if (checkDescription.rowCount > 0) {
-        return res.status(400).json({ message: "Task description already exists" });
+        return res.status(400).json({ message: 'Task description already exists' });
     }
 
     try {
         // Start transaction
-        await pool.query("BEGIN");
+        await pool.query('BEGIN');
 
         // Insert task
         const taskResult = await pool.query(
-            `INSERT INTO task (name, date, description, status, priority)
-             VALUES ($1, $2, $3, $4, $5) 
+            `INSERT INTO task (name, date, description, status, priority, owner_id)
+             VALUES ($1, $2, $3, $4, $5, $6)
              RETURNING *`,
-            [name, date, description, status || "pending", priority || "medium"]
+            [name, date, description, status || 'pending', priority || 'medium', owner_id]
+        );
+        // asign the task to the owner
+        const assignOwner = await pool.query(
+            `INSERT INTO assignedto (user_id, task_id, assigned_date)
+                VALUES ($1, $2, CURRENT_DATE)`,
+            [owner_id, taskResult.rows[0].id]
         );
 
-        const taskId = taskResult.rows[0].id;
-
-        // Assign users if provided
-        if (assigned_users && assigned_users.length > 0) {
-            const assignValues = assigned_users
-                .map((userId) => {
-                    return `(${userId}, ${taskId}, CURRENT_DATE)`;
-                })
-                .join(",");
-
-            await pool.query(`
-                INSERT INTO AssignedTo (user_id, task_id, assigned_date)
-                VALUES ${assignValues}
-            `);
-        }
-
         // Commit transaction
-        await pool.query("COMMIT");
+        await pool.query('COMMIT');
 
         res.status(201).json(taskResult.rows[0]);
     } catch (err) {
-        await pool.query("ROLLBACK");
-        res.status(500).json({ message: "Failed to create task" });
+        await pool.query('ROLLBACK');
+        res.status(500).json({
+            message: 'Failed to create task'
+        });
     }
 });
 
 // DELETE /task/delete/:id - Delete a task by ID
-router.delete("/delete/:id", isAuthenticated, async (req, res) => {
+router.delete('/delete/:id', isAuthenticated, async (req, res) => {
     const { id } = req.body;
     if (!id) {
-        return res.status(400).json({ message: "Task ID is required" });
+        return res.status(400).json({ message: 'Task ID is required' });
     }
     try {
-        await pool.query("BEGIN");
+        await pool.query('BEGIN');
 
         // Delete assignments first due to foreign key constraint
-        await pool.query("DELETE FROM assignedto WHERE task_id = $1", [id]);
+        await pool.query('DELETE FROM assignedto WHERE task_id = $1', [id]);
 
         // Then delete the task
-        const deleteTask = await pool.query(
-            "DELETE FROM task WHERE id = $1 RETURNING *",
-            [id]
-        );
+        const deleteTask = await pool.query('DELETE FROM task WHERE id = $1 RETURNING *', [id]);
 
         if (deleteTask.rowCount === 0) {
-            await pool.query("ROLLBACK");
-            return res.status(404).json({ message: "Task not found" });
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ message: 'Task not found' });
         }
 
-        await pool.query("COMMIT");
-        res.json({ message: "Task deleted successfully" });
+        await pool.query('COMMIT');
+        res.json({ message: 'Task deleted successfully' });
     } catch (err) {
-        await pool.query("ROLLBACK");
-        res.status(500).json({ message: "Failed to delete task" });
+        await pool.query('ROLLBACK');
+        res.status(500).json({ message: 'Failed to delete task' });
     }
 });
 
 // PUT /task/update/:id - Update a task by ID
-router.put("/update/:id", isAuthenticated, async (req, res) => {
-    const { id, name, date, description, status, priority, assigned_users } =
-        req.body;
+router.put('/update/:id', isAuthenticated, async (req, res) => {
+    const { id, name, date, description, status, priority } = req.body;
 
     try {
-        await pool.query("BEGIN");
+        await pool.query('BEGIN');
 
         // Update task
-        const taskResult = await pool.query(
-            `
+        const taskResult = await pool.query(`
             UPDATE task
             SET name = $1, date = $2, description = $3, status = $4, priority = $5
             WHERE id = $6
             RETURNING *
-        `,
-            [name, date, description, status, priority, id]
-        );
+        `, [name, date, description, status, priority, id]);
 
         if (taskResult.rowCount === 0) {
-            await pool.query("ROLLBACK");
-            return res.status(404).json({ message: "Task not found" });
+            await pool.query('ROLLBACK');
+            return res.status(404).json({ message: 'Task not found' });
         }
 
-        // Remove existing assignments
-        await pool.query("DELETE FROM assignedto WHERE task_id = $1", [id]);
-
-        // Assign users if provided
-        if (assigned_users && assigned_users.length > 0) {
-            // Use parameterized query for safety
-            const assignQuery = `
-                INSERT INTO AssignedTo (user_id, task_id, assigned_date)
-                VALUES ($1, $2, CURRENT_DATE)
-            `;
-
-            // Execute assignments in parallel
-            await Promise.all(
-                assigned_users.map((userId) => pool.query(assignQuery, [userId, id]))
-            );
-        }
-
-        await pool.query("COMMIT");
+        await pool.query('COMMIT');
         res.json(taskResult.rows[0]);
     } catch (err) {
-        await pool.query("ROLLBACK");
-        console.error("Error updating task:", err);
-        res.status(500).json({ message: "Failed to update task" });
+        await pool.query('ROLLBACK');
+        console.error('Error updating task:', err);
+        res.status(500).json({ message: 'Failed to update task' });
     }
 });
 
 // GET /task/:id - Fetch a task by ID
 // Should be used to get a specific task with all assigned users
-router.get("/id/:id", isAuthenticated, async (req, res) => {
-    const { id } = req.body;
+router.get('/id/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
     if (!id) {
-        return res.status(400).json({ message: "Task ID is required" });
+        return res.status(400).json({ message: 'Task ID is required' });
     }
     try {
-        const taskResult = await pool.query(
-            `
+        const taskResult = await pool.query(`
             SELECT t.id, t.name, t.date, t.description, t.status, t.priority, 
             u.id as user_id, u.username, u.display_name
             FROM task t
             LEFT JOIN assignedto a ON t.id = a.task_id
             LEFT JOIN users u ON a.user_id = u.id
             WHERE t.id = $1
-        `,
-            [id]
-        );
+        `, [id]);
 
         if (taskResult.rowCount === 0) {
-            return res.status(404).json({ message: "Task not found" });
+            return res.status(404).json({ message: 'Task not found' });
         }
 
         const task = taskResult.rows[0];
         const assigned_users = taskResult.rows
-            .filter((row) => row.user_id)
-            .map((row) => ({
+            .filter(row => row.user_id)
+            .map(row => ({
                 user_id: row.user_id,
                 username: row.username,
-                display_name: row.display_name,
+                display_name: row.display_name
             }));
 
         res.json({
@@ -377,43 +338,42 @@ router.get("/id/:id", isAuthenticated, async (req, res) => {
             description: task.description,
             status: task.status,
             priority: task.priority,
-            assigned_users,
+            assigned_users
         });
     } catch (err) {
-        res.status(500).json({ message: "Failed to fetch task" });
+        res.status(500).json({ message: 'Failed to fetch task' });
     }
 });
 
-// GET /assignedto/user/:id - Fetch all tasks assigned to a user
+// GET /task/assignedto/user/:id - Fetch all tasks assigned to a user
 // Should be used to get all tasks assigned to a specific user
-router.get("/assignedto/user/:id", isAuthenticated, async (req, res) => {
+router.get('/assignedto/user/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
     if (!id) {
-        return res.status(400).json({ message: "User ID is required" });
+        return res.status(400).json({ message: 'User ID is required' });
     }
     try {
-        const result = await pool.query(
-            `
-            SELECT t.id, t.name, t.date, t.description, t.status, t.priority
+        const result = await pool.query(`
+            SELECT t.id, t.name, t.date, t.description, t.status, t.priority, t.is_locked, t.created_at,
+            u.id as owner_id, u.username as owner_username, u.display_name as owner_display_name
             FROM task t
             JOIN assignedto a ON t.id = a.task_id
+            JOIN users u ON t.owner_id = u.id
             WHERE a.user_id = $1
             ORDER BY t.date DESC
-        `,
-            [id]
-        );
+        `, [id]);
         if (result.rowCount === 0) {
-            return res
-                .status(404)
-                .json({ message: "No tasks found under this user" });
+            return res.status(404).json({ message: 'No tasks found under this user' });
         }
         res.json(result.rows);
     } catch (err) {
-        res.status(500).json({ message: "Failed to fetch tasks" });
+        res.status(500).json({ message: 'Failed to fetch tasks' });
     }
 });
 
-router.get("/assignedto/all", isAuthenticated, async (req, res) => {
+// GET /task/assignedto/all - Fetch all assignedto records
+// Should be used to get all assignedto records
+router.get('/assignedto/all', isAuthenticated, async (req, res) => {
     try {
         const result = await pool.query(`
             SELECT * FROM assignedto;
