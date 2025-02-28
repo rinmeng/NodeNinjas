@@ -1,101 +1,99 @@
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from "react";
+import { Send, X, MessageCircle } from "lucide-react"; // Icons for styling
 
 const ChatWidget = () => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [message, setMessage] = useState('');
-  const [messages, setMessages] = useState([
-    { id: 1, text: 'Hello! How can I help?', sender: 'support' },
-  ]);
-  const messagesEndRef = useRef(null);
+  const [isOpen, setIsOpen] = useState(false); // Chat visibility toggle
+  const [messages, setMessages] = useState([]); // Stores messages
+  const [newMessage, setNewMessage] = useState("");
+  const chatRef = useRef(null); // Reference for the chat box
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
-
-  const handleSend = (e) => {
-    e.preventDefault();
-    if (message.trim()) {
-      setMessages([...messages, { id: Date.now(), text: message, sender: 'user' }]);
-      setMessage('');
+  const handleSendMessage = () => {
+    if (newMessage.trim() !== "") {
+      setMessages([...messages, { text: newMessage, sender: "You" }]);
+      setNewMessage("");
     }
   };
 
-  return (
-    <div className="fixed bottom-4 right-4 z-50">
-      {isOpen ? (
-        <div className="bg-white w-80 h-96 rounded-lg shadow-lg flex flex-col">
-          <div className="bg-blue-600 text-white p-4 rounded-t-lg flex justify-between items-center">
-            <h3 className="font-bold">Live Chat</h3>
-            <button 
-              onClick={() => setIsOpen(false)}
-              className="hover:text-blue-200"
-            >
-              ×
-            </button>
-          </div>
-          
-          <div className="flex-1 overflow-y-auto p-4 space-y-2">
-            {messages.map((msg) => (
-              <div 
-                key={msg.id}
-                className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
-              >
-                <div 
-                  className={`max-w-xs p-2 rounded-lg ${
-                    msg.sender === 'user' 
-                      ? 'bg-blue-600 text-white' 
-                      : 'bg-gray-200 text-gray-800'
-                  }`}
-                >
-                  {msg.text}
-                </div>
-              </div>
-            ))}
-            <div ref={messagesEndRef} />
-          </div>
+  // Handle clicks outside of chat widget
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (chatRef.current && !chatRef.current.contains(event.target)) {
+        setIsOpen(false); // Close chat if clicked outside
+      }
+    };
 
-          <form onSubmit={handleSend} className="p-4 border-t">
-            <div className="flex space-x-2">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type a message..."
-                className="flex-1 border rounded-lg p-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Send
-              </button>
-            </div>
-          </form>
-        </div>
-      ) : (
+    if (isOpen) {
+      document.addEventListener("mousedown", handleClickOutside);
+    } else {
+      document.removeEventListener("mousedown", handleClickOutside);
+    }
+
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isOpen]);
+
+  return (
+    <div className="fixed bottom-5 right-5">
+      {/* Floating Button to Open Chat */}
+      {!isOpen && (
         <button
           onClick={() => setIsOpen(true)}
-          className="bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition-colors"
+          className="bg-blue-500 hover:bg-blue-600 text-white p-4 rounded-full shadow-lg flex items-center justify-center"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            className="h-6 w-6"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-            />
-          </svg>
+          <MessageCircle size={24} />
         </button>
+      )}
+
+      {/* Chat Box (Expands when opened) */}
+      {isOpen && (
+        <div ref={chatRef} className="w-80 bg-slate-800 text-white border border-gray-700 p-4 rounded-2xl shadow-lg animate-fadein">
+          {/* Header */}
+          <div className="flex justify-between items-center border-b border-gray-600 pb-2 mb-3">
+            <h2 className="text-lg font-bold">Chat</h2>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="text-gray-400 hover:text-red-500"
+            >
+              <X size={20} />
+            </button>
+          </div>
+
+          {/* Messages Container */}
+          <div className="h-60 overflow-y-auto bg-slate-700 p-3 rounded-xl mb-3">
+            {messages.length > 0 ? (
+              messages.map((msg, index) => (
+                <div
+                  key={index}
+                  className={`mb-2 p-2 rounded-xl ${
+                    msg.sender === "You"
+                      ? "bg-blue-500 ml-auto w-fit"
+                      : "bg-gray-600"
+                  }`}
+                >
+                  <strong>{msg.sender}:</strong> {msg.text}
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400">No messages yet. Start chatting!</p>
+            )}
+          </div>
+
+          {/* Input & Send Button */}
+          <div className="flex items-center border-t border-gray-600 pt-2">
+            <input
+              type="text"
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              className="bg-slate-700 text-white placeholder-gray-400 p-3 rounded-xl w-full border border-gray-600 focus:border-blue-500 focus:ring-2 focus:ring-blue-500 transition-all"
+              placeholder="Type a message..."
+            />
+            <button
+              onClick={handleSendMessage}
+              className="ml-2 bg-blue-500 hover:bg-blue-600 text-white p-3 rounded-xl"
+            >
+              <Send size={20} />
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

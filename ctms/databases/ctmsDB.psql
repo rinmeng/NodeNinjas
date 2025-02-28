@@ -111,3 +111,25 @@ CREATE TABLE
 
 -- Index for user_id in notifications table for faster queries on user notifications
 CREATE INDEX idx_notifications_user_id ON notifications (user_id);
+
+-- Drop the messages table if it exists
+DROP TABLE IF EXISTS messages CASCADE;
+
+-- Messages Table (Supports Direct Messages)
+CREATE TABLE messages (
+    id SERIAL PRIMARY KEY,          -- Auto-incremented unique message ID
+    message TEXT NOT NULL,          -- Message content
+    sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the message is sent
+    sender_id INT NOT NULL,         -- User who sent the message
+    receiver_id INT NOT NULL,       -- User who receives the message
+    task_id INT,                    -- Optional: Task associated with the message
+    FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE CASCADE,
+    FOREIGN KEY (task_id) REFERENCES Task (id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Index for sender_id and receiver_id to speed up queries
+CREATE INDEX idx_messages_sender_id ON messages (sender_id);
+CREATE INDEX idx_messages_receiver_id ON messages (receiver_id);
