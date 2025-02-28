@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import { Send, X, MessageCircle } from "lucide-react"; // Icons for styling
 
 const API_BASE_URL = "http://localhost:15000"; // Updated to match Docker backend
@@ -14,9 +13,12 @@ const ChatWidget = ({ sessionUser }) => {
   // Fetch all users when chat opens
   useEffect(() => {
     if (isOpen) {
-      axios
-        .get(`${API_BASE_URL}/user`) // Fetch all users
-        .then((res) => setUsers(res.data))
+      fetch(`${API_BASE_URL}/user`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch users");
+          return res.json();
+        })
+        .then((data) => setUsers(data))
         .catch((err) => console.error("Error fetching users:", err));
     }
   }, [isOpen]);
@@ -24,9 +26,12 @@ const ChatWidget = ({ sessionUser }) => {
   // Fetch messages when a user is selected
   useEffect(() => {
     if (selectedUser) {
-      axios
-        .get(`${API_BASE_URL}/message/${sessionUser.id}/${selectedUser.id}`)
-        .then((res) => setMessages(res.data))
+      fetch(`${API_BASE_URL}/message/${sessionUser.id}/${selectedUser.id}`)
+        .then((res) => {
+          if (!res.ok) throw new Error("Failed to fetch messages");
+          return res.json();
+        })
+        .then((data) => setMessages(data))
         .catch((err) => console.error("Error fetching messages:", err));
     }
   }, [selectedUser]);
@@ -37,13 +42,23 @@ const ChatWidget = ({ sessionUser }) => {
 
     const messageData = {
       sender_id: sessionUser.id,
-      receiver_id: selectedUser.id,
-      message: newMessage,
+      recipient_id: selectedUser.id,
+      text: newMessage, // Match column name in DB
     };
 
     try {
-      const res = await axios.post(`${API_BASE_URL}/message`, messageData);
-      setMessages([...messages, res.data]); // Append the new message
+      const res = await fetch(`${API_BASE_URL}/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(messageData),
+      });
+
+      if (!res.ok) throw new Error("Failed to send message");
+
+      const newMsg = await res.json();
+      setMessages([...messages, newMsg]); // Append the new message
       setNewMessage("");
     } catch (err) {
       console.error("Error sending message:", err);
@@ -109,7 +124,7 @@ const ChatWidget = ({ sessionUser }) => {
                   <strong>
                     {msg.sender_id === sessionUser.id ? "You" : selectedUser?.username}:
                   </strong>{" "}
-                  {msg.message}
+                  {msg.text} {/* Match column name in DB */}
                 </div>
               ))
             ) : (
