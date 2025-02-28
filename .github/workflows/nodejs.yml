@@ -1,28 +1,19 @@
 name: Node.js CI
 
 on:
-  push:
-    branches: [ "main" ]
   pull_request:
-    branches: [ "main" ]
+    branches:
+     - main
 
 jobs:
-  build-and-test:
+  test:
     runs-on: ubuntu-latest
-
+    containter:
+      image: node:20
     steps:
-      - name: Check out repository
-        uses: actions/checkout@v2
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
+      - uses: actions/checkout@v3
         with:
-          node-version: "16.x"
-
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./ctms/server  # Update if your package.json is in a different folder
-
-      - name: Run tests
-        run: npm test
-        working-directory: ./ctms/server
+          node-version: '20'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
