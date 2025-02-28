@@ -1,11 +1,10 @@
-
 const express = require("express");
 const router = express.Router();
-const pool = require("../db"); 
+const pool = require("../db"); // Import database connection
 
-// Send a message
+//  Send a message
 router.post("/", async (req, res) => {
-  const { sender_id, recipient_id, text } = req.body;  // Use column names
+  const { sender_id, recipient_id, text } = req.body; // Use correct column names
 
   if (!sender_id || !recipient_id || !text.trim()) {
     return res.status(400).json({ error: "All fields are required." });
@@ -15,7 +14,7 @@ router.post("/", async (req, res) => {
     const result = await pool.query(
       `INSERT INTO messages (sender_id, recipient_id, text) 
        VALUES ($1, $2, $3) RETURNING *`,
-      [sender_id, recipient_id, text]  // Use column names
+      [sender_id, recipient_id, text]  
     );
 
     res.status(201).json(result.rows[0]); // Send back the inserted message
@@ -25,15 +24,9 @@ router.post("/", async (req, res) => {
   }
 });
 
-const express = require('express');
-const router = express.Router();
-const pool = require('../db'); // Import your database connection pool
-
-
-// 🔹 Get messages between two users
+//  Get messages between two users
 router.get("/:sender_id/:recipient_id", async (req, res) => {
   const { sender_id, recipient_id } = req.params;
-
 
   try {
     const result = await pool.query(
@@ -50,8 +43,5 @@ router.get("/:sender_id/:recipient_id", async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve messages." });
   }
 });
-
-// to be implemented
-
 
 module.exports = router;
