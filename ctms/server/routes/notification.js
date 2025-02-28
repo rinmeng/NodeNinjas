@@ -10,7 +10,7 @@ router.post('/add/:ids', isAuthenticated, async (req, res) => {
         return res.status(400).json({ message: 'Please enter all required fields' });
     }
     try {
-        for (const user_id in user_ids) {
+        for (const user_id of user_ids) {
             await pool.query(`INSERT INTO notifications (message,user_id) VALUES($1,$2) RETURNING *`, [message, user_id]);
         }
         res.status(201).json({ message: 'Notificaion added successfully' });
@@ -23,7 +23,7 @@ router.post('/add/:ids', isAuthenticated, async (req, res) => {
 // GET /notification under the user-id
 router.get('/get/all/:user_id', isAuthenticated, async (req, res) => {
 
-    const user_id = req.body;
+    const user_id = req.params.user_id;
     try {
         const notification = await pool.query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC', [user_id]);
 
