@@ -16,8 +16,7 @@ import Chat from "./pages/Chat";
 import Feedback2 from "./components/subcomponents/Feedback2";
 import { CircleAlert, CircleCheck } from "lucide-react";
 
-
-const proxy = "http://localhost:15000/";
+const proxy = "http://localhost:15000";
 
 function App() {
   const [devMode, setDevMode] = useState(false);
@@ -27,13 +26,15 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
-  const [notificationToAdd,setNotificationToAdd] = useState("");
+  const [notificationToAdd, setNotificationToAdd] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [notificationsNeedRefetch, setNotificationsNeedRefetch] =
+    useState(false);
 
   const timer = 2000;
 
   useEffect(() => {
-    fetch(proxy + "user/session", {
+    fetch(`${proxy}/user/session`, {
       credentials: "include", // Important for cross-origin cookies
     })
       .then((res) => res.json())
@@ -51,35 +52,94 @@ function App() {
         setIsLoading(false);
       });
   }, []);
-//adding the notification 
-useEffect(() => {
- async function addnotification(){
-    if (notificationToAdd) {
 
-      try {
-        const response = await fetch(proxy + "notification/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ user_ids : notificationToAdd.user_ids, message: notificationToAdd.message }),
-        });
+  // Adding the notification
+  useEffect(() => {
+    async function addNotification() {
+      if (
+        notificationToAdd &&
+        notificationToAdd.user_ids &&
+        notificationToAdd.user_ids.length > 0
+      ) {
+        try {
+          // In App.jsx
+          const response = await fetch(
+            `${proxy}/notification/add/${notificationToAdd.user_ids}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include", // Add this if you need cookies/auth
+              body: JSON.stringify({
+                user_ids: notificationToAdd.user_ids,
+                message: notificationToAdd.message,
+                type: notificationToAdd.type,
+              }),
+            }
+          );
 
-        if (!response.ok) {
-          throw new Error("Failed to add notification");
+          if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to add notification");
+          }
+          setNotificationToAdd(null);
+          setNotificationsNeedRefetch(true); // Trigger a refetch after adding
+        } catch (error) {
+          console.error("Failed to add notification:", error);
+          setFeedbackMessage(`Failed to add notification: ${error.message}`);
         }
-
-        setFeedbackMessage("Notification added successfully");
-        setNotificationToAdd("");
-      } catch (error) {
-        console.error("Failed to add notification:", error);
-        setFeedbackMessage("Failed to add notification");
       }
     }
- }
-  addnotification();
-}, [notificationToAdd]);
 
+    addNotification();
+  }, [notificationToAdd, setFeedbackMessage, setNotificationToAdd]);
+
+  // Fetching notifications function
+  const fetchNotifications = React.useCallback(async () => {
+    // Check if sessionUser exists before trying to access its properties
+    if (!sessionUser) {
+      return; // Exit the function early if sessionUser doesn't exist
+    }
+
+    try {
+      const response = await fetch(
+        `${proxy}/notification/get/all/${sessionUser.id}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch notifications");
+      }
+
+      const data = await response.json();
+      setNotifications(data);
+      setNotificationsNeedRefetch(false); // Reset the refetch flag
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      setFeedbackMessage(`Failed to fetch notifications: ${error.message}`);
+    }
+  }, [
+    sessionUser,
+    setNotifications,
+    setNotificationsNeedRefetch,
+    setFeedbackMessage,
+  ]);
+
+  // Fetching notifications on component mount and when sessionUser changes
+  useEffect(() => {
+    fetchNotifications();
+  }, [sessionUser, fetchNotifications]);
+
+  // Refetch notifications when needed
+  useEffect(() => {
+    if (notificationsNeedRefetch) {
+      fetchNotifications();
+    }
+  }, [notificationsNeedRefetch, fetchNotifications]);
 
   useEffect(() => {
     if (feedbackMessage !== "") {
@@ -92,19 +152,6 @@ useEffect(() => {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  
-
-  // Mark notifications as read
-  const markNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  // Toggle notification read status
-  const toggleNotificationReadStatus = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
-  };
 
   return (
     <Router>
@@ -113,10 +160,8 @@ useEffect(() => {
         sessionUser={sessionUser}
         devMode={devMode}
         notifications={notifications}
-        setNotifications={setNotifications}
         setNotificationToAdd={setNotificationToAdd}
-        onMarkAsRead={markNotificationsAsRead}
-        onToggleRead={toggleNotificationReadStatus}
+        setNotificationsNeedRefetch={setNotificationsNeedRefetch}
       />
 
       <div>
@@ -128,9 +173,9 @@ useEffect(() => {
                 sessionUser={sessionUser}
                 devMode={devMode}
                 notifications={notifications}
-                setNotifications={setNotifications}
                 setFeedbackMessage={setFeedbackMessage}
                 setNotificationToAdd={setNotificationToAdd}
+                setNotificationsNeedRefetch={setNotificationsNeedRefetch}
               />
             }
           />

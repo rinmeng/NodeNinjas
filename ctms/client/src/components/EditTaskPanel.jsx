@@ -1,18 +1,16 @@
-import React, { useState } from "react";
+import React, { use, useState } from "react";
 import { ClipboardX, Save, X } from "lucide-react";
 import IconizedButton from "./subcomponents/IconizedButton";
 import proxy from "../utils/proxy";
 import IconButton from "./subcomponents/IconButton";
 
 const EditTaskPanel = ({
-  sessionUser,
   taskToEdit,
   isOpen,
   onClose,
   setNeedsRefetch,
-  notifications,
-  setNotifications,
   setFeedbackMessage,
+  setNotificationToAdd,
 }) => {
   const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit);
 
@@ -50,14 +48,6 @@ const EditTaskPanel = ({
       .then((data) => {
         console.log("Updated task:", data);
         setNeedsRefetch(true);
-        // Add a notification to the notifications state
-        const newNotification = {
-          id: data.id,
-          message: `Task "${data.name}" updated successfully!`,
-          description: data.description,
-          timestamp: new Date().toISOString(),
-        };
-        setNotifications([...notifications, newNotification]);
         setFeedbackMessage("Task updated successfully!");
       })
       .catch((error) => {

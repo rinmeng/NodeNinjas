@@ -1,17 +1,92 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Mail, X, Bell } from "lucide-react";
+import {
+  X,
+  Bell,
+  MailWarning,
+  MailCheck,
+  Mail,
+  ListCheck,
+  AlertCircle,
+} from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
+
+import proxy from "../utils/proxy";
 
 // Defines the Notification Panel component
 const NotificationPanel = ({
   notifications,
   onClose,
-  onToggleRead,
-  setNotificationToAdd,
+  setNotificationsNeedRefetch,
 }) => {
-  const [expandedIds, setExpandedIds] = useState(new Set());
   const panelRef = useRef(null);
+
+  const isNotificationRead = (notification) => {
+    return notification.status === "read";
+  };
+
+  const handleReadNotification = (id, status) => async () => {
+    if (status === "unread") {
+      try {
+        await fetch(`${proxy}/notification/read/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        console.error("Failed to mark notification as read:", error);
+      }
+    }
+    if (status === "read") {
+      try {
+        await fetch(`${proxy}/notification/unread/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        console.error("Failed to mark notification as unread:", error);
+      }
+    }
+    setNotificationsNeedRefetch(true);
+  };
+
+  const getNotificationText = (type) => {
+    switch (type) {
+      case "task_assignment":
+        return `You have been assigned to a task`;
+      case "task_unassignment":
+        return `You have been unassigned from a task`;
+      case "alert":
+        return `Alert`;
+      case "message":
+        return `You have a new message`;
+      default:
+        return `New notification`;
+    }
+  };
+
+  const dateToTimeAgo = (date) => {
+    const now = new Date();
+    const diff = now - date;
+
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+    } else if (hours > 0) {
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    } else if (minutes > 0) {
+      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    } else {
+      return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+    }
+  };
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -26,31 +101,25 @@ const NotificationPanel = ({
     };
   }, [onClose]);
 
-  const toggleDescription = (id) => {
-    setExpandedIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
-
   return (
     <div
       ref={panelRef}
-      className="absolute right-4 top-16 bg-white shadow-lg rounded-lg w-80 z-20"
+      className="absolute right-6 top-20 bg-white shadow-lg rounded-lg py-2 w-80 z-20"
     >
-      <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-        <h3 className="font-semibold text-slate-800">Notifications</h3>
-        <button
+      <div className="px-3 py-2 border-b border-slate-400 flex justify-between items-center">
+        <div>
+          <div>
+            <h1 className="font-semibold text-slate-800">Notifications</h1>
+            <p className="text-xs text-slate-500">
+              Mark as read/unread by clicking on them
+            </p>
+          </div>
+        </div>
+        <IconButton
+          icon={<X size={20} />}
           onClick={onClose}
-          className="text-slate-600 hover:text-slate-800"
-        >
-          <X size={20} />
-        </button>
+          color="text-slate-600 hover:text-slate-800 hover:bg-slate-200"
+        />
       </div>
 
       <div className="max-h-96 overflow-y-auto">
@@ -60,63 +129,70 @@ const NotificationPanel = ({
           </div>
         ) : (
           notifications.map((notification) => {
-            const isExpanded = expandedIds.has(notification.id);
-
             return (
               <div
                 key={notification.id}
-                className="p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0"
+                className={`p-4 hover:bg-slate-100 t200e border-b border-slate-400
+                ${
+                  !isNotificationRead(notification)
+                    ? "bg-blue-50" // Changed: Highlight unread with light blue
+                    : "bg-white" // Changed: Read notifications use white
+                }`}
               >
-                <div className="flex items-start gap-3">
-                  {/* Mail icon and read toggle */}
-                  <button
-                    onClick={() => onToggleRead(notification.id)}
-                    className="flex-shrink-0"
-                  >
-                    <Mail
+                <div
+                  className="flex items-start gap-3"
+                  onClick={handleReadNotification(
+                    notification.id,
+                    notification.status
+                  )}
+                >
+                  {isNotificationRead(notification) ? (
+                    <MailCheck
                       size={18}
-                      className={`mt-1 transition-transform duration-200 ease-in-out ${
-                        !notification.read ? "text-blue-600" : "text-slate-600"
-                      }`}
+                      className="mt-1 transition-transform duration-200 ease-in-out text-slate-400" // Changed: More subtle for read
                     />
-                  </button>
+                  ) : (
+                    <MailWarning
+                      size={18}
+                      className="mt-1 transition-transform duration-200 ease-in-out text-blue-600" // Changed: Highlight unread with blue
+                    />
+                  )}
 
                   {/* Main content */}
-                  <div
-                    className="flex-1 cursor-pointer"
-                    onClick={() => toggleDescription(notification.id)}
-                  >
-                    <p className="text-sm text-slate-800">
-                      {notification.message}
+                  <div className="flex-1 cursor-pointer">
+                    <p
+                      className={`text-sm ${
+                        !isNotificationRead(notification)
+                          ? "font-bold text-slate-900"
+                          : "text-slate-700"
+                      }`}
+                    >
+                      {getNotificationText(notification.type)}
                     </p>
-                    <time className="text-xs text-slate-500 mt-1 block">
-                      {new Date(notification.timestamp).toLocaleString()}
-                    </time>
+                    <div>
+                      <p
+                        className={`text-sm ${
+                          !isNotificationRead(notification)
+                            ? "font-bold text-slate-800"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        "{notification.message}"
+                      </p>
+                    </div>
 
-                    {/* Collapisable description */}
-                    {isExpanded && (
-                      <div className="mt-2 text-sm text-slate-600 transition-all duration-300 ease-in-out">
-                        {notification.description}
-                      </div>
-                    )}
+                    <div className="text-xs text-slate-500 mt-1 block">
+                      {dateToTimeAgo(new Date(notification.created_at))}
+                    </div>
                   </div>
-
-                  {/*Mark read/unread button*/}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent the notification from being toggled
-                      onToggleRead(notification.id);
-                    }}
-                    className="text-sm text-slate-500 hover:text-blue-600 ml-2"
-                  >
-                    {notification.read ? "Mark unread" : "Mark read"}
-                  </button>
                 </div>
               </div>
             );
           })
         )}
       </div>
+      {/* make a line of 2px */}
+      <div className="border-t border-slate-400 p-2 text-center"></div>
     </div>
   );
 };
@@ -126,23 +202,17 @@ const Navbar = ({
   sessionUser,
   devMode,
   notifications = [],
-  setNotificatiotoAdd,
-  onMarkAsRead,
-  onToggleRead,
+  setNotificationsNeedRefetch,
 }) => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
   const location = useLocation();
 
   const handleBellClick = (e) => {
     e.stopPropagation();
-    const wasVisible = isNotificationsVisible;
-    setIsNotificationsVisible(!wasVisible);
-
-    if (!wasVisible && unreadCount > 0) {
-      onMarkAsRead();
-    }
+    setIsNotificationsVisible(!isNotificationsVisible);
+    // Removed the automatic marking as read when opening panel
   };
 
   // Check if the current path matches the link path
@@ -175,7 +245,7 @@ const Navbar = ({
 
           {(sessionUser?.role === "admin" || devMode) && (
             <Link to="/admin" className={getLinkClass("/admin")}>
-              Admin Page
+              Admin
             </Link>
           )}
 
@@ -194,26 +264,28 @@ const Navbar = ({
           )}
 
           {/* Notification Bell */}
-          <IconButton
-            icon={
-              <div>
-                <Bell size={24} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </div>
-            }
-            color="hover:bg-blue-600 text-white"
-            onClick={handleBellClick}
-          />
+          {(sessionUser || devMode) && (
+            <IconButton
+              icon={
+                <div>
+                  <Bell size={24} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              }
+              color="hover:bg-blue-600 text-white"
+              onClick={handleBellClick}
+            />
+          )}
 
           {isNotificationsVisible && (
             <NotificationPanel
               notifications={notifications}
               onClose={() => setIsNotificationsVisible(false)}
-              onToggleRead={onToggleRead}
+              setNotificationsNeedRefetch={setNotificationsNeedRefetch}
             />
           )}
         </div>

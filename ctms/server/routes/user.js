@@ -384,10 +384,8 @@ router.post('/logout', (req, res) => {
     if (!req.session.user) {
         return res.status(400).json({ message: "No user to log out" });
     }
-    console.log('Session to destroy:', req.session);
 
     req.session.destroy((err) => {
-        console.log('Session destroyed:', req.sessionID);
         if (err) {
             console.error('Logout error:', err);
             return res.status(500).json({ message: "Error logging out user" });

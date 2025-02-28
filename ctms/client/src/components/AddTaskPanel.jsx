@@ -84,30 +84,7 @@ const AddTaskPanel = ({
           setFeedbackMessage("Task added successfully!");
         }
 
-        // Send a notification to the user
-        const newNotification = {
-          id: notifications.length + 1,
-          message: `Task "${task.title}" added successfully!`,
-          description: task.description,
-          timestamp: new Date().toISOString(),
-          read: false,
-        };
-
-        // Update the notifications state for get assigned task
-        setNotifications([...notifications, newNotification]);
-        
-        const newTaskNotification = {
-          id: setNotificationToAdd.length + 1,
-          message: `Task "${task.title}" added successfully!`,
-          description: task.description,
-          timestamp: new Date().toISOString(),
-          read: false,
-
-        };
-        setNotificationToAdd([...setNotificationToAdd, newTaskNotification]);
         setNeedsRefetch(true);
-
-
         setShowAddTaskPanel(false);
       })
       .catch((err) => {

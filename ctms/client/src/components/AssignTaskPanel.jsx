@@ -69,18 +69,8 @@ const AssignTaskPanel = ({
     }
 
     try {
-
       const userIds = selectedUsers.map((user) => user.id);
-      const response = await fetch(`${proxy}/task/assign/${task.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ user_ids: userIds }),
-        
-      });
-      //console.log(selectedUsers);
+      let changesOccurred = false;
 
       // First, handle new assignments if there are any
       if (selectedUsers.length > 0) {
@@ -94,6 +84,7 @@ const AssignTaskPanel = ({
           .map((user) => user.id);
 
         if (userIdsToAssign.length > 0) {
+          changesOccurred = true; // Mark that changes happened
           const assignResponse = await fetch(
             `${proxy}/task/assign/${task.id}`,
             {
@@ -112,6 +103,15 @@ const AssignTaskPanel = ({
               errorData.message || "Failed to assign task to users"
             );
           }
+
+          // Only add notifications if there are new assignments
+          if (userIdsToAssign.length > 0) {
+            setNotificationToAdd({
+              user_ids: userIdsToAssign,
+              message: task.name,
+              type: "task_assignment",
+            });
+          }
         }
       }
 
@@ -122,6 +122,7 @@ const AssignTaskPanel = ({
         .map((user) => user.id);
 
       if (userIdsToUnassign.length > 0) {
+        changesOccurred = true; // Mark that changes happened
         const unassignResponse = await fetch(
           `${proxy}/task/unassign/${task.id}`,
           {
@@ -140,15 +141,26 @@ const AssignTaskPanel = ({
             errorData.message || "Failed to unassign users from task"
           );
         }
+        setNotificationToAdd({
+          user_ids: userIdsToUnassign,
+          message: task.name,
+          type: "task_unassignment",
+        });
       }
 
+      // Reset states
       setSelectedUsers([]);
-
-      setFeedbackMessage("Task assigned successfully!");
-      setNotificationToAdd({user_ids: userIds, message: `You have been assigned a task, ${task.name}`});
       setUsersToUnassign([]);
-      setFeedbackMessage("Task assignments updated successfully!");
-      setNeedsRefetch(true);
+
+      // Only show feedback message if changes were made
+      if (changesOccurred) {
+        setFeedbackMessage("Task assignments updated successfully!");
+        setNeedsRefetch(true);
+      } else {
+        // No actual changes were made
+        setFeedbackMessage("No changes were made to task assignments.");
+      }
+
       onClose();
     } catch (error) {
       setFeedbackMessage("Failed to update task assignments: " + error.message);
@@ -493,15 +505,15 @@ const AssignTaskPanel = ({
                       key={user.id}
                       className={`flex items-center m-2 ${
                         isTaskOwner(user.id)
-                          ? "bg-green-600 opacity-50 cursor-not-allowed"
+                          ? "bg-gray-600 opacity-50 cursor-not-allowed"
                           : isUserPreAssigned(user.id) &&
                             isUserToUnassign(user.id)
-                          ? "bg-red-600 hover:bg-slate-700 cursor-pointer"
+                          ? "bg-red-600 hover:bg-red-700 cursor-pointer"
                           : isUserPreAssigned(user.id)
                           ? "bg-green-600 hover:bg-red-600 cursor-pointer"
                           : isUserSelected(user.id)
-                          ? "bg-green-600 hover:bg-red-600 cursor-pointer"
-                          : "bg-slate-700 hover:bg-green-600 cursor-pointer"
+                          ? "bg-blue-600 hover:bg-red-600 cursor-pointer"
+                          : "bg-slate-700 hover:bg-blue-600 cursor-pointer"
                       } w-fit pill`}
                       onClick={() => toggleUserSelection(user)}
                     >
@@ -546,7 +558,7 @@ const AssignTaskPanel = ({
 
               <div className="text-xs text-slate-400 mt-1">
                 <p>Already assigned users are highlighted in green.</p>
-                <p>Green: Users to be assigned | Red: Users to be unassigned</p>
+                <p>Blue: Users to be assigned | Red: Users to be unassigned</p>
               </div>
             </div>
 
