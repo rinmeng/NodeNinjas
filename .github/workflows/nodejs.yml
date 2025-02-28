@@ -17,11 +17,11 @@ jobs:
       
       - name: Install dependencies
         run: |
-          cd ./ctms/client
+          cd ctms/client
           npm install
-          npm install --save-dev @testing-library/jest-dom @babel/plugin-proposal-private-property-in-object
+          npm install --save-dev @testing-library/jest-dom @testing-library/react @babel/plugin-proposal-private-property-in-object
           
       - name: Run tests
         run: |
-          cd ./ctms/client
+          cd ctms/client
           npm test -- --watchAll=false
