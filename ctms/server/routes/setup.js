@@ -37,6 +37,7 @@ async function setupAssignedTo() {
             );
             CREATE INDEX idx_assignedto_user_id ON assignedto (user_id);
             CREATE INDEX idx_assignedto_task_id ON assignedto (task_id);
+            
             -- Assign tasks to users
             INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES
             -- Rin's assignments (user_id: 1)
@@ -77,7 +78,35 @@ async function setupAssignedTo() {
             (CURRENT_DATE, 6, 30),
             (CURRENT_DATE, 6, 31);
         `);
-        return { message: "assignedto table created successfully" };
+
+        // Generate notifications only for tasks assigned by admins
+        // In the setup data, all task owners (from Task table) are admins (users 1-5)
+        await pool.query(`
+            WITH task_assignments AS (
+                SELECT 
+                    a.user_id, 
+                    t.name as task_name,
+                    t.owner_id
+                FROM 
+                    assignedto a
+                JOIN 
+                    Task t ON a.task_id = t.id
+                JOIN
+                    users u ON t.owner_id = u.id
+                WHERE
+                    u.role = 'admin'
+            )
+            INSERT INTO notifications (user_id, message, type, status)
+            SELECT 
+                user_id,
+                task_name,
+                'task_assignment',
+                'unread'
+            FROM 
+                task_assignments;
+        `);
+
+        return { message: "assignedto table created successfully with admin-assigned notifications" };
     } catch (err) {
         console.error("Error setting up assignedto table:", err.message);
         throw new Error("Failed to create assignedto table: " + err.message);
@@ -172,7 +201,7 @@ async function setupNotifications() {
                 id SERIAL PRIMARY KEY,
                 user_id INT NOT NULL,
                 message TEXT NOT NULL,
-                type VARCHAR(50) NOT NULL CHECK (type IN ('message', 'task', 'alert')),
+                type VARCHAR(50) NOT NULL CHECK (type IN ('message', 'task_assignment', 'alert', 'task_update')),
                 status VARCHAR(20) DEFAULT 'unread' CHECK (status IN ('unread', 'read')),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE

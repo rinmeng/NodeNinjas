@@ -83,9 +83,7 @@ function App() {
             const errorData = await response.json();
             throw new Error(errorData.message || "Failed to add notification");
           }
-
-          setFeedbackMessage("Notification added successfully");
-          setNotificationToAdd(null); // Use null instead of empty string for an object
+          setNotificationToAdd(null);
           setNotificationsNeedRefetch(true); // Trigger a refetch after adding
         } catch (error) {
           console.error("Failed to add notification:", error);

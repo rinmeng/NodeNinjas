@@ -1,29 +1,17 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { X, Bell, MailWarning, MailCheck } from "lucide-react";
+import {
+  X,
+  Bell,
+  MailWarning,
+  MailCheck,
+  Mail,
+  ListCheck,
+  AlertCircle,
+} from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 
 import proxy from "../utils/proxy";
-
-const dateToTimeAgo = (date) => {
-  const now = new Date();
-  const diff = now - date;
-
-  const seconds = Math.floor(diff / 1000);
-  const minutes = Math.floor(seconds / 60);
-  const hours = Math.floor(minutes / 60);
-  const days = Math.floor(hours / 24);
-
-  if (days > 0) {
-    return `${days} day${days > 1 ? "s" : ""} ago`;
-  } else if (hours > 0) {
-    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  } else if (minutes > 0) {
-    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-  } else {
-    return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
-  }
-};
 
 // Defines the Notification Panel component
 const NotificationPanel = ({
@@ -65,6 +53,39 @@ const NotificationPanel = ({
     setNotificationsNeedRefetch(true);
   };
 
+  const getNotificationText = (type) => {
+    switch (type) {
+      case "task_assignment":
+        return `You have been assigned to a task`;
+      case "alert":
+        return `Alert`;
+      case "message":
+        return `You have a new message`;
+      default:
+        return `New notification`;
+    }
+  };
+
+  const dateToTimeAgo = (date) => {
+    const now = new Date();
+    const diff = now - date;
+
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+    } else if (hours > 0) {
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    } else if (minutes > 0) {
+      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    } else {
+      return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+    }
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
@@ -83,7 +104,7 @@ const NotificationPanel = ({
       ref={panelRef}
       className="absolute right-6 top-16 bg-white shadow-lg rounded-lg py-2 w-80 z-20"
     >
-      <div className="p-3 border-b border-slate-400 flex justify-between items-center">
+      <div className="px-3 py-2 border-b border-slate-400 flex justify-between items-center">
         <div>
           <div>
             <h1 className="font-semibold text-slate-800">Notifications</h1>
@@ -144,8 +165,20 @@ const NotificationPanel = ({
                           : "text-slate-700"
                       }`}
                     >
-                      {notification.message}
+                      {getNotificationText(notification.type)}
                     </p>
+                    <div>
+                      <p
+                        className={`text-sm ${
+                          !isNotificationRead(notification)
+                            ? "font-bold text-slate-800"
+                            : "text-slate-700"
+                        }`}
+                      >
+                        "{notification.message}"
+                      </p>
+                    </div>
+
                     <div className="text-xs text-slate-500 mt-1 block">
                       {dateToTimeAgo(new Date(notification.created_at))}
                     </div>

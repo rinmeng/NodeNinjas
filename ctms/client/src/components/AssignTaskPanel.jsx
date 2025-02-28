@@ -108,8 +108,8 @@ const AssignTaskPanel = ({
           if (userIdsToAssign.length > 0) {
             setNotificationToAdd({
               user_ids: userIdsToAssign,
-              message: `You have been assigned a task: ${task.name}`,
-              type: "task",
+              message: task.name,
+              type: "task_assignment",
             });
           }
         }
