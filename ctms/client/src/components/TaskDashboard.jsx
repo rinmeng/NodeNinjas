@@ -13,6 +13,8 @@ const TaskDashboard = ({
   setNotifications,
   needsRefetch,
   setFeedbackMessage,
+  devMode,
+  setNotificationToAdd,
 }) => {
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
@@ -35,10 +37,6 @@ const TaskDashboard = ({
 
   return (
     <div className="bg-slate-950 w-full h-full rounded-xl p-5 mt-28">
-      <div className="title text-center mb-6">
-        <h1>Task Dashboard</h1>
-      </div>
-
       <div className="flex justify-center items-center space-x-4 ">
         <IconizedButton
           text="Create Task"
@@ -79,18 +77,25 @@ const TaskDashboard = ({
           </p>
         </div>
       ) : (
-        <div className="flex flex-col space-y-4">
-          {taskList.map((task) => (
-            <TaskCard
-              key={task.id}
-              task={task}
-              sessionUser={sessionUser}
-              setNeedsRefetch={setNeedsRefetch}
-              notifications={notifications}
-              setNotifications={setNotifications}
-              setFeedbackMessage={setFeedbackMessage}
-            />
-          ))}
+        <div>
+          <h1 className="text-center text-slate-400 mb-4">
+            {taskList.length} tasks found
+          </h1>
+          <div className="flex flex-col space-y-4">
+            {taskList.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                sessionUser={sessionUser}
+                setNeedsRefetch={setNeedsRefetch}
+                notifications={notifications}
+                setNotifications={setNotifications}
+                setFeedbackMessage={setFeedbackMessage}
+                devMode={devMode}
+                setNotificationToAdd={setNotificationToAdd}
+              />
+            ))}
+          </div>
         </div>
       )}
 

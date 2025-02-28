@@ -1,3 +1,4 @@
+
 const express = require("express");
 const router = express.Router();
 const pool = require("../ctmsDB"); // Ensure this correctly connects to your database
@@ -24,9 +25,15 @@ router.post("/", async (req, res) => {
   }
 });
 
+const express = require('express');
+const router = express.Router();
+const pool = require('../db'); // Import your database connection pool
+
+
 // 🔹 Get messages between two users
 router.get("/:sender_id/:receiver_id", async (req, res) => {
   const { sender_id, receiver_id } = req.params;
+
 
   try {
     const result = await pool.query(
@@ -43,5 +50,8 @@ router.get("/:sender_id/:receiver_id", async (req, res) => {
     res.status(500).json({ error: "Failed to retrieve messages." });
   }
 });
+
+// to be implemented
+
 
 module.exports = router;

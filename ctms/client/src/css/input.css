@@ -116,4 +116,12 @@
   .pill-blue {
     @apply bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 t200e;
   }
+
+  .pill {
+    @apply px-4 py-2 rounded-full t200e;
+  }
+
+  .navbar-links {
+    @apply text-white hover:bg-blue-700 px-3 py-2 rounded-md t200e;
+  }
 }

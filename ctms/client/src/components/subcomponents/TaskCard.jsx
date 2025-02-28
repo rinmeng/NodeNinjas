@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   CircleDashed,
   CircleDot,
@@ -6,16 +6,25 @@ import {
   CircleEllipsis,
   Clock,
   ClockAlert,
-  ClockArrowDown,
   ClockArrowUp,
+  ClockArrowDown,
   ChevronDown,
   ChevronUp,
   CalendarClock,
   SquarePen,
   Trash,
+  Lock,
+  LockOpen,
+  UserRoundPlus,
+  Users,
+  UserRoundCog,
+  CircleCheck,
+  ShieldCheck,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
+import IconButton from "./IconButton";
+import AssignTaskPanel from "../AssignTaskPanel";
 
 const TaskCard = ({
   task,
@@ -24,11 +33,37 @@ const TaskCard = ({
   notifications,
   setNotifications,
   setFeedbackMessage,
+  setNotificationToAdd,
+  devMode,
 }) => {
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
+  const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
+  const [isExpanded, setIsExpanded] = useState(false); // Add this state to track expanded state
+  const [showAssignTaskPanel, setShowAssignTaskPanel] = useState(false);
+
+  const isTaskOwner = task.owner_id === sessionUser.id;
+
+  useEffect(() => {
+    // Update the local state when the task prop changes
+    setIsTaskLocked(task.is_locked || false);
+  }, [task.is_locked]);
 
   const handleEditTask = () => {
+    if (isTaskLocked) {
+      if (sessionUser.role === "admin") {
+        setFeedbackMessage("Task is locked. Unlock it first to edit.");
+      } else {
+        setFeedbackMessage(
+          "Task is locked. Contact your admin to make changes."
+        );
+      }
+      return;
+    }
     setShowUpdateTaskPanel(!showUpdateTaskPanel);
+  };
+
+  const toggleExpanded = () => {
+    setIsExpanded(!isExpanded);
   };
 
   const getDateWithRelativeTime = (dateString) => {
@@ -43,7 +78,7 @@ const TaskCard = ({
     const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
 
     // Format the date properly
-    const formattedDate = taskDate.toLocaleDateString("en-US", {
+    const formattedDate = taskDate.toLocaleDateString("en-CA", {
       weekday: "short",
       month: "numeric",
       day: "numeric",
@@ -81,7 +116,7 @@ const TaskCard = ({
       case "in_progress":
         return <CircleDotDashed size={20} />;
       case "completed":
-        return <CircleDot size={20} />;
+        return <CircleCheck size={20} />;
       default:
         return <CircleEllipsis size={20} />;
     }
@@ -159,7 +194,17 @@ const TaskCard = ({
   };
 
   const handleDeleteTask = () => {
-    // Implement delete task functionality here
+    if (isTaskLocked) {
+      if (sessionUser.role === "admin") {
+        setFeedbackMessage("Task is locked. Unlock it first to delete.");
+      } else {
+        setFeedbackMessage(
+          "Task is locked. Contact your admin to make changes."
+        );
+      }
+      return;
+    }
+
     fetch(`${proxy}/task/delete/:id`, {
       method: "DELETE",
       headers: {
@@ -169,15 +214,8 @@ const TaskCard = ({
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(data);
+        console.log("Task deleted successfully:", data);
         setNeedsRefetch(true);
-        const newNotifications = {
-          id: notifications.length + 1,
-          message: `Task "${task.name}" deleted successfully!`,
-          description: task.description,
-          timestamp: new Date().toISOString(),
-        };
-        setNotifications([...notifications, newNotifications]);
         setFeedbackMessage("Task deleted successfully!");
       })
       .catch((err) => {
@@ -186,111 +224,257 @@ const TaskCard = ({
       });
   };
 
+  const handleToggleLock = () => {
+    const lockEndpoint = isTaskLocked ? "unlock" : "lock";
+
+    fetch(`${proxy}/task/${lockEndpoint}/:id`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ id: task.id }),
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        console.log(
+          `Task ${isTaskLocked ? "unlocked" : "locked"} successfully:`,
+          data
+        );
+        setIsTaskLocked(!isTaskLocked);
+        setNeedsRefetch(true);
+        setFeedbackMessage(
+          `Task ${isTaskLocked ? "unlocked" : "locked"} successfully!`
+        );
+      })
+      .catch((err) => {
+        console.log(err);
+        setFeedbackMessage(err.message || "Failed to lock/unlock task.");
+      });
+  };
+
+  const handleAssignTask = () => {
+    setShowAssignTaskPanel(!showAssignTaskPanel);
+
+  };
+
   return (
     <div
       key={task.id}
-      className="border-2 border-gray-600 m-auto w-1/2 flex flex-col
-      bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-6 
-      rounded-xl shadow-lg hover:shadow-2xl my-4"
+      className={`border-2 ${
+        isTaskLocked ? "border-red-500" : "border-gray-600"
+      } m-auto w-full md:w-3/5 flex flex-col
+      bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-4 md:p-6 
+      rounded-xl shadow-lg hover:shadow-2xl ${
+        isTaskLocked ? "opacity-70" : "opacity-100"
+      }}
+      }`}
     >
-      <div className="grid grid-cols-3 gap-4 ">
-        {/* Status */}
-        <div className="flex flex-col space-y-1">
-          <h1 className="text-sm text-slate-400">Status</h1>
-          <div
-            className={`flex justify-center items-center text-md space-x-2 ${getStatusColor(
-              task.status
-            )}`}
-          >
-            {getStatusIcon(task.status)}
-            <p> {getStatusString(task.status)}</p>
-          </div>
-        </div>
-
-        {/* Priority */}
-        <div className="flex flex-col space-y-1">
-          <h1 className="text-sm text-slate-400">Priority</h1>
-          <div
-            className={`flex justify-center items-center text-md space-x-2 ${getPriorityColor(
-              task.priority
-            )}`}
-          >
-            {getPriorityIcon(task.priority)}
-            <p> {getPriorityString(task.priority)}</p>
-          </div>
-        </div>
-
-        {/* Due Date */}
-        <div className="flex flex-col space-y-1">
-          <h1 className="text-sm text-slate-400">Due Date</h1>
-          <p
-            className={`text-md text-center flex justify-center ${getDateColor(
-              task.date
-            )}`}
-          >
-            <CalendarClock size={20} className="mr-2" />
-            {getDateWithRelativeTime(task.date)}
-          </p>
-        </div>
-      </div>
-
-      <div className="border-b border-slate-600 my-4"></div>
-
-      <div>
-        <input
-          type="checkbox"
-          id={`toggle-${task.id}`}
-          className="hidden peer"
-        />
+      <div className="flex flex-col space-y-4">
         <div className="flex justify-between items-center">
-          {/* Separate group for the title and chevron */}
+          {/* Lock/Unlock button */}
+          {isTaskLocked && (
+            <div className="flex items-center">
+              <IconButton
+                icon={<Lock size={20} className="text-red-500" />}
+                tooltip="This task is locked. Contact your admin to make changes."
+              />
+              <div className="border-r-2 border-slate-500 h-6"></div>
+            </div>
+          )}
+          {!isTaskOwner && (
+            <IconButton
+              icon={<ShieldCheck size={20} className="text-white" />}
+              tooltip="You were assigned to this task by your admin."
+            />
+          )}
+
+          {/* Title and toggle */}
           <div className="group flex-grow">
-            <label
-              htmlFor={`toggle-${task.id}`}
-              className="flex items-center justify-between cursor-pointer"
+            <div
+              onClick={toggleExpanded}
+              className="flex items-center justify-between cursor-pointer w-full"
             >
-              <h1 className="text-2xl font-semibold text-white mb-2 flex-grow">
+              <h1
+                className={`text-2xl font-semibold flex-grow ${
+                  isTaskLocked ? "text-slate-300" : "text-white"
+                } break-all overflow-hidden text-left`}
+              >
                 {task.name}
               </h1>
               <div className="flex items-center space-x-2">
-                <div className="p-2 rounded-full group-hover:bg-slate-700 t200e text-slate-400 group-hover:text-white">
-                  <ChevronDown size={20} className="peer-checked:hidden" />
-                  <ChevronUp size={20} className="hidden peer-checked:block" />
+                <div className="">
+                  {isExpanded ? (
+                    <IconButton
+                      onClick={toggleExpanded}
+                      icon={<ChevronUp size={20} />}
+                      color="text-white hover:bg-slate-600"
+                      tooltip="Collapse task details"
+                    />
+                  ) : (
+                    <IconButton
+                      icon={<ChevronDown size={20} />}
+                      color="text-white hover:bg-slate-600"
+                      tooltip="Expand task details"
+                    />
+                  )}
                 </div>
               </div>
-            </label>
+            </div>
           </div>
 
-          {/* Separate individual buttons */}
+          {/* Action buttons */}
           <div className="flex items-center">
-            <button
+            <IconButton
               onClick={handleEditTask}
-              className="p-2 rounded-full hover:bg-blue-700 t200e text-slate-500 hover:text-white"
-            >
-              <SquarePen size={20} />
-            </button>
-            <button
-              onClick={handleDeleteTask}
-              className="p-2 rounded-full hover:bg-red-700 t200e text-red-500 hover:text-white"
-            >
-              <Trash size={20} />
-            </button>
+              icon={<SquarePen size={20} />}
+              tooltip="Edit this task"
+              isDisabled={isTaskLocked}
+              disabled={isTaskLocked}
+              color={"hover:bg-blue-500 hover:text-white"}
+            />
+
+            <div>
+              <IconButton
+                onClick={handleAssignTask}
+                icon={
+                  sessionUser.role === "admin" ? (
+                    <UserRoundCog size={20} />
+                  ) : (
+                    <Users size={20} />
+                  )
+                }
+                tooltip={
+                  sessionUser.role === "admin"
+                    ? "Manage assigned users"
+                    : "View assigned users"
+                }
+                isDisabled={isTaskLocked}
+                color={"hover:bg-blue-500 hover:text-white"}
+              />
+
+              {sessionUser.role === "admin" && (
+                <IconButton
+                  onClick={handleToggleLock}
+                  // Show the OPPOSITE icon on hover to indicate the action that will happen
+                  icon={
+                    isTaskLocked ? <Lock size={20} /> : <LockOpen size={20} />
+                  }
+                  hoverIcon={
+                    isTaskLocked ? <LockOpen size={20} /> : <Lock size={20} />
+                  }
+                  tooltip={isTaskLocked ? "Unlock this task" : "Lock this task"}
+                  color={`${
+                    isTaskLocked
+                      ? "hover:bg-green-500 hover:text-white"
+                      : "hover:bg-red-500 hover:text-white"
+                  }`}
+                />
+              )}
+            </div>
+            {isTaskOwner && (
+              <IconButton
+                onClick={handleDeleteTask}
+                icon={<Trash size={20} />}
+                tooltip="Delete this task"
+                isDisabled={isTaskLocked}
+                disabled={isTaskLocked}
+                color="hover:bg-red-500 hover:text-white"
+              />
+            )}
           </div>
         </div>
-        <p className="hidden peer-checked:block text-md text-slate-300 mb-4 transition-all">
-          {task.description}
-        </p>
+
+        <div className="border-b border-slate-600 my-2"></div>
+
+        <div className="grid grid-cols-3 gap-4 ">
+          {/* Status */}
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-sm text-slate-400">Status</h1>
+            <div
+              className={`flex justify-center items-center text-md space-x-2 ${getStatusColor(
+                task.status
+              )}`}
+            >
+              {getStatusIcon(task.status)}
+              <p> {getStatusString(task.status)}</p>
+            </div>
+          </div>
+
+          {/* Priority */}
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-sm text-slate-400">Priority</h1>
+            <div
+              className={`flex justify-center items-center text-md space-x-2 ${getPriorityColor(
+                task.priority
+              )}`}
+            >
+              {getPriorityIcon(task.priority)}
+              <p> {getPriorityString(task.priority)}</p>
+            </div>
+          </div>
+
+          {/* Due Date */}
+          <div className="flex flex-col space-y-1">
+            <h1 className="text-sm text-slate-400">Due Date</h1>
+            <p
+              className={`text-md text-center flex flex-wrap justify-center items-center ${getDateColor(
+                task.date
+              )}`}
+            >
+              <CalendarClock size={20} className="mr-2 flex-shrink-0" />
+              <span className="break-words">
+                {getDateWithRelativeTime(task.date)}
+              </span>
+            </p>
+          </div>
+        </div>
+
+        {/* Description */}
+        {isExpanded && (
+          <div>
+            <div className="border-b border-slate-600 my-2"></div>
+            <p
+              className={`text-md text-slate-300 mb-4 transition-all break-words whitespace-normal ${
+                isTaskLocked ? "select-none" : ""
+              }`}
+            >
+              {task.description}
+            </p>
+            <p>
+              <span className="text-slate-400">Created by:</span> @
+              {task.owner_username} ({task.owner_display_name})
+            </p>
+            <p>
+              <span className="text-slate-400">Created on:</span>{" "}
+              {getDateWithRelativeTime(task.created_at)}
+            </p>
+          </div>
+        )}
       </div>
 
-      <EditTaskPanel
-        sessionUser={sessionUser}
-        taskToEdit={task}
-        isOpen={showUpdateTaskPanel}
-        onClose={handleEditTask}
+      {/* Only show edit panel if not locked */}
+      {!isTaskLocked && (
+        <EditTaskPanel
+          sessionUser={sessionUser}
+          taskToEdit={task}
+          isOpen={showUpdateTaskPanel}
+          onClose={handleEditTask}
+          setNeedsRefetch={setNeedsRefetch}
+          notifications={notifications}
+          setNotifications={setNotifications}
+          setFeedbackMessage={setFeedbackMessage}
+        />
+      )}
+
+      {/* Only show assign panel if not locked */}
+      <AssignTaskPanel
+        task={task}
+        isOpen={showAssignTaskPanel}
+        onClose={() => setShowAssignTaskPanel(false)}
         setNeedsRefetch={setNeedsRefetch}
-        notifications={notifications}
-        setNotifications={setNotifications}
         setFeedbackMessage={setFeedbackMessage}
+        sessionUser={sessionUser}
+        setNotificationToAdd={setNotificationToAdd}
       />
     </div>
   );

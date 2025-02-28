@@ -1,3 +1,4 @@
+const setupPgSession = require('./routes/setupPgSession');
 const express = require('express');
 const pool = require('./db');
 const cors = require('cors');
@@ -12,6 +13,12 @@ const notification = require('./routes/notification');
 const PORT = 5001;
 const app = express();
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:13000'];
+
+
+const sessionStore = new pgSession({
+    pool: pool,
+    tableName: 'user_sessions'
+});
 
 app.use(express.json());
 
@@ -29,11 +36,8 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Create session store
-const sessionStore = new pgSession({
-    pool: pool,
-    tableName: 'user_sessions'
-});
+// call to setup pgSession table
+setupPgSession();
 
 // Configure session with dynamic maxAge
 app.use(session({
@@ -71,5 +75,4 @@ if (process.env.NODE_ENV !== 'test') {
         console.log('Visit it at: http://localhost:' + PORT);
     });
 }
-
 module.exports = app;

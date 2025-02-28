@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
-import {
+import Chat from "./Chat";
   Search,
   Filter,
   RefreshCw,
@@ -28,8 +28,9 @@ import {
   X,
 } from "lucide-react";
 import TaskItem from "../components/subcomponents/TaskItem";
+import Chat from "./Chat";
 
-const Home = ({ sessionUser, devMode, notifications, setNotifications }) => {
+const Home = ({ sessionUser, devMode, notifications, setNotifications,setNotificationToAdd }) => {
   // Create dummy tasks
   const [tasks, setTasks] = useState([
     {
@@ -162,6 +163,18 @@ const Home = ({ sessionUser, devMode, notifications, setNotifications }) => {
 
     // This should trigger a state update
     setNotifications((prev) => [newNotification, ...prev]);
+
+    //get notfication for assgined tasks
+    const getNotification = {
+      id: Date.now(),
+      message: `Task "${taskTitle}" ${action} successfully`,
+      description: taskDescription,
+      timestamp: new Date().toISOString(),
+      read: false,
+    };
+    setNotificationToAdd((prev)=>[getNotification,...prev]);
+
+
 
     // Reset the form
     setTaskTitle("");
@@ -563,6 +576,10 @@ const Home = ({ sessionUser, devMode, notifications, setNotifications }) => {
           </form>
         </div>
       </div>
+      <div className="mt-10">
+      <h2 className="text-2xl font-bold text-white mb-4">Live Chat</h2>
+      <Chat />
+    </div>
     </div>
   );
 };

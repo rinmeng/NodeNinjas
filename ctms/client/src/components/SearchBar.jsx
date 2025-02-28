@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { ChevronDown, Search, X } from "lucide-react";
+import {
+  ChevronDown,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  X,
+} from "lucide-react";
 import FilterOptionsBar from "./FilterOptionsBar";
+import IconButton from "./subcomponents/IconButton";
 
 const SearchBar = ({
   setSearchCriteria,
@@ -10,6 +17,8 @@ const SearchBar = ({
 }) => {
   // Used for setting the search icon to be active or not
   const [isSearchActive, setIsSearchActive] = useState(false);
+  // New state for controlling the chevron/sidebar expansion
+  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
@@ -21,8 +30,8 @@ const SearchBar = ({
     setSearchCriteria("");
     setIsSearchActive(false);
   };
+
   // if search criteria was erased and empty, set tasks to all tasks
-  // Instead, use useEffect if you need to handle empty search criteria
   useEffect(() => {
     if (!searchCriteria) {
       setSearchCriteria("");
@@ -73,6 +82,7 @@ const SearchBar = ({
       setFilterOptions({ ...filterOptions, sortStatusAsc: "" });
     }
   };
+
   const removeAllFilters = () => {
     setFilterOptions({
       sortTitleAsc: null,
@@ -82,57 +92,85 @@ const SearchBar = ({
     });
   };
 
+  // Toggle chevron and sidebar expansion
+  const toggleExpansion = () => {
+    setIsExpanded(!isExpanded);
+  };
+
   return (
     <div className="m-5 w-3/4 fixed top-0 translate-y-1/3 z-30 t200e">
-      <div className="glass-slate mp5 rounded-full t500e">
-        <div className="flex flex-col m-auto justify-center items-center space-x-4">
-          <form
-            className="w-1/4 relative hover:w-2/4 t500e"
-            onSubmit={handleSearchSubmit}
-          >
-            <div className="relative flex items-center">
-              <input
-                type="text"
-                value={searchCriteria}
-                placeholder="Search for tasks..."
-                className="forms w-full pl-10 pr-16 py-2 focus:bg-slate-900 rounded-full"
-                onChange={(e) => {
-                  setSearchCriteria(e.target.value);
-                  setIsSearchActive(e.target.value.length > 0);
-                }}
-              />
-              <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
-                <Search
-                  size={25}
-                  className={`${
-                    isSearchActive ? "text-white" : "text-gray-500"
-                  } t200e`}
-                />
-              </div>
-              <button
-                type="button"
-                onClick={handleClearSearch}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white"
-              >
-                <X size={30} />
-              </button>
-            </div>
-          </form>
+      <div
+        className={`glass-slate mp5 rounded-full t500e w-full 
+        flex flex-row justify-center items-center
+        ${isExpanded ? "translate-x-full" : " translate-x-0"}`}
+      >
+        {/* Chevron button that changes icon based on state */}
+        <div onClick={toggleExpansion} className="cursor-pointer t200e">
+          {isExpanded ? (
+            <IconButton
+              icon={<ChevronLeft size={50} />}
+              color="text-white opacity-50 hover:opacity-100 hover:bg-blue-600"
+              onClick={toggleExpansion}
+              tooltip={"Toggle Search Bar"}
+            />
+          ) : (
+            <IconButton
+              icon={<ChevronRight size={50} />}
+              color="text-white opacity-50 hover:opacity-100 hover:bg-blue-600"
+              onClick={toggleExpansion}
+              tooltip={"Toggle Search Bar"}
+            />
+          )}
         </div>
 
-        {/* Filter options */}
-        <div className="mt-4">
-          <FilterOptionsBar
-            filterOptions={filterOptions}
-            removeAllFilters={removeAllFilters}
-            filterTaskByTitle={filterTaskByTitle}
-            filterTaskByDate={filterTaskByDate}
-            filterTaskByPriority={filterTaskByPriority}
-            filterTaskByStatus={filterTaskByStatus}
-          />
+        <div className="w-auto flex-grow">
+          <div className="flex flex-col m-auto justify-center items-center space-x-4">
+            <form
+              className="w-2/4 relative hover:w-3/4 t500e"
+              onSubmit={handleSearchSubmit}
+            >
+              <div className="relative flex items-center">
+                <input
+                  type="text"
+                  value={searchCriteria}
+                  placeholder="Search for tasks by title or description..."
+                  className="forms w-full pl-10 pr-16 py-2 focus:bg-slate-900 rounded-full"
+                  onChange={(e) => {
+                    setSearchCriteria(e.target.value);
+                    setIsSearchActive(e.target.value.length > 0);
+                  }}
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
+                  <Search
+                    size={25}
+                    className={`${
+                      isSearchActive ? "text-white" : "text-gray-500"
+                    } t200e`}
+                  />
+                </div>
+                <button
+                  type="button"
+                  onClick={handleClearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white"
+                >
+                  <X size={30} />
+                </button>
+              </div>
+            </form>
+          </div>
+          {/* Filter options */}
+          <div className="mt-4 w-full">
+            <FilterOptionsBar
+              filterOptions={filterOptions}
+              removeAllFilters={removeAllFilters}
+              filterTaskByTitle={filterTaskByTitle}
+              filterTaskByDate={filterTaskByDate}
+              filterTaskByPriority={filterTaskByPriority}
+              filterTaskByStatus={filterTaskByStatus}
+            />
+          </div>
         </div>
       </div>
-      {/* <ChevronDown size={30} className="text-white" /> */}
     </div>
   );
 };

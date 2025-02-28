@@ -75,18 +75,17 @@ CREATE INDEX idx_assignedto_task_id ON AssignedTo (task_id);
 -- Messages Table
 DROP TABLE IF EXISTS messages CASCADE;
 
-CREATE TABLE
-    messages (
-        id SERIAL PRIMARY KEY, -- Auto-incremented unique message ID
-        message TEXT NOT NULL, -- Message content
-        sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- Timestamp when the message is sent
-        user_id INT NOT NULL, -- Sender of the message
-        task_id INT, -- Optional: Task associated with the message
-        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-        FOREIGN KEY (task_id) REFERENCES Task (id) ON DELETE SET NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-    );
+CREATE TABLE messages (
+  id SERIAL PRIMARY KEY,
+  sender_id INT NOT NULL,
+  recipient_id INT NOT NULL,
+  text TEXT NOT NULL,
+  FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
+  FOREIGN KEY (task_id) REFERENCES Task (id) ON DELETE SET NULL,
+  sent_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+
+);
 
 -- Index for user_id in messages table
 CREATE INDEX idx_messages_user_id ON messages (user_id);
