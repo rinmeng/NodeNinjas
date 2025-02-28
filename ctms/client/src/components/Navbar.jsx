@@ -1,6 +1,15 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Mail, X, Bell, MailWarning, MailCheck } from "lucide-react";
+import {
+  Mail,
+  X,
+  Bell,
+  MailWarning,
+  MailCheck,
+  View,
+  Eye,
+  EyeOff,
+} from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 
 const dateToTimeAgo = (date) => {
@@ -31,6 +40,11 @@ const NotificationPanel = ({ notifications, onClose }) => {
     return notification.status === "read";
   };
 
+  const handleReadNotification = (e) => {
+    e.stopPropagation();
+    console.log("Mark as read");
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
@@ -49,9 +63,14 @@ const NotificationPanel = ({ notifications, onClose }) => {
       ref={panelRef}
       className="absolute right-6 top-16 bg-white shadow-lg rounded-lg py-2 w-80 z-20"
     >
-      <div className=" p-3 border-b border-slate-200 flex justify-between items-center">
+      <div className="p-3 border-b border-slate-400 flex justify-between items-center">
         <div>
-          <h3 className="font-semibold text-slate-800">Notifications</h3>
+          <div>
+            <h1 className="font-semibold text-slate-800">Notifications</h1>
+            <p className="text-xs text-slate-500">
+              Mark as read/unread by clicking on them
+            </p>
+          </div>
         </div>
         <IconButton
           icon={<X size={20} />}
@@ -77,7 +96,10 @@ const NotificationPanel = ({ notifications, onClose }) => {
                     : "bg-slate-200"
                 }`}
               >
-                <div className="flex items-start gap-3">
+                <div
+                  className="flex items-start gap-3"
+                  onClick={handleReadNotification}
+                >
                   {isNotificationRead(notification) ? (
                     <MailCheck
                       size={18}
@@ -109,6 +131,8 @@ const NotificationPanel = ({ notifications, onClose }) => {
           })
         )}
       </div>
+      {/* make a line of 2px */}
+      <div className="border-t border-slate-400 p-2 text-center"></div>
     </div>
   );
 };
