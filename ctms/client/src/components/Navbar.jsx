@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Mail, X, Bell } from "lucide-react";
+import { Mail, X, Bell, MailWarning, MailCheck } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 
 const dateToTimeAgo = (date) => {
@@ -27,6 +27,10 @@ const dateToTimeAgo = (date) => {
 const NotificationPanel = ({ notifications, onClose }) => {
   const panelRef = useRef(null);
 
+  const isNotificationRead = (notification) => {
+    return notification.status === "read";
+  };
+
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (panelRef.current && !panelRef.current.contains(event.target)) {
@@ -43,7 +47,7 @@ const NotificationPanel = ({ notifications, onClose }) => {
   return (
     <div
       ref={panelRef}
-      className="absolute right-4 top-16 bg-white shadow-lg rounded-lg w-80 z-20"
+      className="absolute right-4 top-16 bg-white shadow-lg rounded-lg py-2 w-80 z-20"
     >
       <div className="p-4 border-b border-slate-200 flex justify-between items-center">
         <h3 className="font-semibold text-slate-800">Notifications</h3>
@@ -65,16 +69,31 @@ const NotificationPanel = ({ notifications, onClose }) => {
             return (
               <div
                 key={notification.id}
-                className="p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0"
+                className={`p-4 hover:bg-slate-200 t200e border-b border-slate-400
+                ${
+                  !isNotificationRead(notification)
+                    ? "bg-slate-300"
+                    : "bg-slate-200"
+                }`}
               >
                 <div className="flex items-start gap-3">
                   {/* Mail icon*/}
-                  <Mail
-                    size={18}
-                    className={`mt-1 transition-transform duration-200 ease-in-out ${
-                      !notification.read ? "text-blue-600" : "text-slate-600"
-                    }`}
-                  />
+
+                  {isNotificationRead(notification) ? (
+                    <MailCheck
+                      size={18}
+                      className={
+                        "mt-1 transition-transform duration-200 ease-in-out text-blue-600"
+                      }
+                    />
+                  ) : (
+                    <MailWarning
+                      size={18}
+                      className={
+                        "mt-1 transition-transform duration-200 ease-in-out  text-slate-600"
+                      }
+                    />
+                  )}
 
                   {/* Main content */}
                   <div className="flex-1 cursor-pointer">
