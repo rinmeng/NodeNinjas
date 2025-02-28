@@ -3,6 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { X, Bell, MailWarning, MailCheck } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 
+import proxy from "../utils/proxy";
+
 const dateToTimeAgo = (date) => {
   const now = new Date();
   const diff = now - date;
@@ -24,16 +26,43 @@ const dateToTimeAgo = (date) => {
 };
 
 // Defines the Notification Panel component
-const NotificationPanel = ({ notifications, onClose }) => {
+const NotificationPanel = ({
+  notifications,
+  onClose,
+  setNotificationsNeedRefetch,
+}) => {
   const panelRef = useRef(null);
 
   const isNotificationRead = (notification) => {
     return notification.status === "read";
   };
 
-  const handleReadNotification = (e) => {
-    e.stopPropagation();
-    console.log("Mark as read");
+  const handleReadNotification = (id, status) => async () => {
+    if (status === "unread") {
+      try {
+        await fetch(`${proxy}/notification/read/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        console.error("Failed to mark notification as read:", error);
+      }
+    }
+    if (status === "read") {
+      try {
+        await fetch(`${proxy}/notification/unread/${id}`, {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+          },
+        });
+      } catch (error) {
+        console.error("Failed to mark notification as unread:", error);
+      }
+    }
+    setNotificationsNeedRefetch(true);
   };
 
   useEffect(() => {
@@ -80,36 +109,41 @@ const NotificationPanel = ({ notifications, onClose }) => {
             return (
               <div
                 key={notification.id}
-                className={`p-4 hover:bg-slate-200 t200e border-b border-slate-400
+                className={`p-4 hover:bg-slate-100 t200e border-b border-slate-400
                 ${
                   !isNotificationRead(notification)
-                    ? "bg-slate-300"
-                    : "bg-slate-200"
+                    ? "bg-blue-50" // Changed: Highlight unread with light blue
+                    : "bg-white" // Changed: Read notifications use white
                 }`}
               >
                 <div
                   className="flex items-start gap-3"
-                  onClick={handleReadNotification}
+                  onClick={handleReadNotification(
+                    notification.id,
+                    notification.status
+                  )}
                 >
                   {isNotificationRead(notification) ? (
                     <MailCheck
                       size={18}
-                      className={
-                        "mt-1 transition-transform duration-200 ease-in-out text-blue-600"
-                      }
+                      className="mt-1 transition-transform duration-200 ease-in-out text-slate-400" // Changed: More subtle for read
                     />
                   ) : (
                     <MailWarning
                       size={18}
-                      className={
-                        "mt-1 transition-transform duration-200 ease-in-out  text-slate-600"
-                      }
+                      className="mt-1 transition-transform duration-200 ease-in-out text-blue-600" // Changed: Highlight unread with blue
                     />
                   )}
 
                   {/* Main content */}
                   <div className="flex-1 cursor-pointer">
-                    <p className="text-sm text-slate-800">
+                    <p
+                      className={`text-sm ${
+                        !isNotificationRead(notification)
+                          ? "font-bold text-slate-900"
+                          : "text-slate-700"
+                      }`}
+                    >
                       {notification.message}
                     </p>
                     <div className="text-xs text-slate-500 mt-1 block">
@@ -128,7 +162,13 @@ const NotificationPanel = ({ notifications, onClose }) => {
   );
 };
 
-const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [] }) => {
+const Navbar = ({
+  showNavbar,
+  sessionUser,
+  devMode,
+  notifications = [],
+  setNotificationsNeedRefetch,
+}) => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
@@ -208,6 +248,7 @@ const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [] }) => {
             <NotificationPanel
               notifications={notifications}
               onClose={() => setIsNotificationsVisible(false)}
+              setNotificationsNeedRefetch={setNotificationsNeedRefetch}
             />
           )}
         </div>
