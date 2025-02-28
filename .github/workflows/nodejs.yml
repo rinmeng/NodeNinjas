@@ -20,6 +20,7 @@ jobs:
           cd ctms/client
           npm install
           npm install --save-dev @testing-library/jest-dom @testing-library/react @babel/plugin-proposal-private-property-in-object
+          npm install react-router-dom
           
       - name: Run tests
         run: |
