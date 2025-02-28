@@ -114,13 +114,7 @@ const NotificationPanel = ({ notifications, onClose }) => {
   );
 };
 
-const Navbar = ({
-  showNavbar,
-  sessionUser,
-  devMode,
-  notifications = [],
-  onMarkSingleAsRead,
-}) => {
+const Navbar = ({ showNavbar, sessionUser, devMode, notifications = [] }) => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
@@ -200,7 +194,6 @@ const Navbar = ({
             <NotificationPanel
               notifications={notifications}
               onClose={() => setIsNotificationsVisible(false)}
-              onMarkSingleAsRead={onMarkSingleAsRead}
             />
           )}
         </div>
