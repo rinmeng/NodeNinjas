@@ -1,7 +1,6 @@
 name: Node.js CI
 
 on:
-  # Run on pushes to main and pull requests targeting main
   push:
     branches: [ "main" ]
   pull_request:
@@ -22,8 +21,7 @@ jobs:
 
       - name: Install dependencies
         run: npm install
-        working-directory: ./ctms/server
-        
+        working-directory: ./ctms/server  # Update if your package.json is in a different folder
 
       - name: Run tests
         run: npm test
