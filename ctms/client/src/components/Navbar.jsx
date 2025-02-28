@@ -3,13 +3,28 @@ import { Link, useLocation } from "react-router-dom";
 import { Mail, X, Bell } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 
+const dateToTimeAgo = (date) => {
+  const now = new Date();
+  const diff = now - date;
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) {
+    return `${days} day${days > 1 ? "s" : ""} ago`;
+  } else if (hours > 0) {
+    return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  } else if (minutes > 0) {
+    return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  } else {
+    return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+  }
+};
+
 // Defines the Notification Panel component
-const NotificationPanel = ({
-  notifications,
-  onClose,
-  onToggleRead,
-  setNotificationToAdd,
-}) => {
+const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
   const [expandedIds, setExpandedIds] = useState(new Set());
   const panelRef = useRef(null);
 
@@ -90,7 +105,7 @@ const NotificationPanel = ({
                       {notification.message}
                     </p>
                     <time className="text-xs text-slate-500 mt-1 block">
-                      {new Date(notification.timestamp).toLocaleString()}
+                      {dateToTimeAgo(new Date(notification.created_at))}
                     </time>
 
                     {/* Collapisable description */}
@@ -126,7 +141,6 @@ const Navbar = ({
   sessionUser,
   devMode,
   notifications = [],
-  setNotificatiotoAdd,
   onMarkAsRead,
   onToggleRead,
 }) => {

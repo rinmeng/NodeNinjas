@@ -92,7 +92,38 @@ function App() {
     }
 
     addNotification(); // Fixed the function name (proper casing)
-  }, [notificationToAdd, proxy, setFeedbackMessage]);
+  }, [notificationToAdd, setFeedbackMessage, setNotificationToAdd]);
+
+  // Fetching notifications everytime they refresh
+  useEffect(() => {
+    async function fetchNotifications() {
+      // Check if sessionUser exists before trying to access its properties
+      if (!sessionUser) {
+        return; // Exit the function early if sessionUser doesn't exist
+      }
+
+      try {
+        const response = await fetch(
+          `${proxy}/notification/get/all/${sessionUser.id}`,
+          {
+            credentials: "include",
+          }
+        );
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.message || "Failed to fetch notifications");
+        }
+
+        const data = await response.json();
+        setNotifications(data);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+        setFeedbackMessage(`Failed to fetch notifications: ${error.message}`);
+      }
+    }
+    fetchNotifications();
+  }, [setNotifications, sessionUser]);
 
   useEffect(() => {
     if (feedbackMessage !== "") {
