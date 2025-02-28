@@ -31,7 +31,7 @@ const Login = ({
     displayName: "",
     email: "",
     role: "team_member",
-    isRemembered: false,
+    isRemembered: true,
     manager_username: "",
   });
 
@@ -209,6 +209,13 @@ const Login = ({
         if (statusCode === 200) {
           setFeedbackMessage("Logout successful!");
           setSessionUser(null);
+          // reset the form data
+          setFormData((prev) => ({
+            ...prev,
+            username: "",
+            password: "",
+            isRemembered: true,
+          }));
         } else {
           setFeedbackMessage(data.message || "Logout failed.");
         }

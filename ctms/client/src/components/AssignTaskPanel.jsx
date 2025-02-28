@@ -109,7 +109,7 @@ const AssignTaskPanel = ({
             setNotificationToAdd({
               user_ids: userIdsToAssign,
               message: task.name,
-              type: "task_assignment",
+              type: "task",
             });
           }
         }
@@ -503,7 +503,7 @@ const AssignTaskPanel = ({
                           ? "bg-green-600 opacity-50 cursor-not-allowed"
                           : isUserPreAssigned(user.id) &&
                             isUserToUnassign(user.id)
-                          ? "bg-red-600 hover:bg-slate-700 cursor-pointer"
+                          ? "bg-red-600 hover:bg-red-700 cursor-pointer"
                           : isUserPreAssigned(user.id)
                           ? "bg-green-600 hover:bg-red-600 cursor-pointer"
                           : isUserSelected(user.id)
