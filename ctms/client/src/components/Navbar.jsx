@@ -24,8 +24,7 @@ const dateToTimeAgo = (date) => {
 };
 
 // Defines the Notification Panel component
-const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
-  const [expandedIds, setExpandedIds] = useState(new Set());
+const NotificationPanel = ({ notifications, onClose }) => {
   const panelRef = useRef(null);
 
   useEffect(() => {
@@ -40,18 +39,6 @@ const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [onClose]);
-
-  const toggleDescription = (id) => {
-    setExpandedIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
 
   return (
     <div
@@ -75,57 +62,29 @@ const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
           </div>
         ) : (
           notifications.map((notification) => {
-            const isExpanded = expandedIds.has(notification.id);
-
             return (
               <div
                 key={notification.id}
                 className="p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0"
               >
                 <div className="flex items-start gap-3">
-                  {/* Mail icon and read toggle */}
-                  <button
-                    onClick={() => onToggleRead(notification.id)}
-                    className="flex-shrink-0"
-                  >
-                    <Mail
-                      size={18}
-                      className={`mt-1 transition-transform duration-200 ease-in-out ${
-                        !notification.read ? "text-blue-600" : "text-slate-600"
-                      }`}
-                    />
-                  </button>
+                  {/* Mail icon*/}
+                  <Mail
+                    size={18}
+                    className={`mt-1 transition-transform duration-200 ease-in-out ${
+                      !notification.read ? "text-blue-600" : "text-slate-600"
+                    }`}
+                  />
 
                   {/* Main content */}
-                  <div
-                    className="flex-1 cursor-pointer"
-                    onClick={() => toggleDescription(notification.id)}
-                  >
+                  <div className="flex-1 cursor-pointer">
                     <p className="text-sm text-slate-800">
                       {notification.message}
                     </p>
-                    <time className="text-xs text-slate-500 mt-1 block">
+                    <div className="text-xs text-slate-500 mt-1 block">
                       {dateToTimeAgo(new Date(notification.created_at))}
-                    </time>
-
-                    {/* Collapisable description */}
-                    {isExpanded && (
-                      <div className="mt-2 text-sm text-slate-600 transition-all duration-300 ease-in-out">
-                        {notification.description}
-                      </div>
-                    )}
+                    </div>
                   </div>
-
-                  {/*Mark read/unread button*/}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent the notification from being toggled
-                      onToggleRead(notification.id);
-                    }}
-                    className="text-sm text-slate-500 hover:text-blue-600 ml-2"
-                  >
-                    {notification.read ? "Mark unread" : "Mark read"}
-                  </button>
                 </div>
               </div>
             );
@@ -141,8 +100,7 @@ const Navbar = ({
   sessionUser,
   devMode,
   notifications = [],
-  onMarkAsRead,
-  onToggleRead,
+  onMarkSingleAsRead,
 }) => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
@@ -151,12 +109,8 @@ const Navbar = ({
 
   const handleBellClick = (e) => {
     e.stopPropagation();
-    const wasVisible = isNotificationsVisible;
-    setIsNotificationsVisible(!wasVisible);
-
-    if (!wasVisible && unreadCount > 0) {
-      onMarkAsRead();
-    }
+    setIsNotificationsVisible(!isNotificationsVisible);
+    // Removed the automatic marking as read when opening panel
   };
 
   // Check if the current path matches the link path
@@ -227,7 +181,7 @@ const Navbar = ({
             <NotificationPanel
               notifications={notifications}
               onClose={() => setIsNotificationsVisible(false)}
-              onToggleRead={onToggleRead}
+              onMarkSingleAsRead={onMarkSingleAsRead}
             />
           )}
         </div>

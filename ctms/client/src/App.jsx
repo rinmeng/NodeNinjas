@@ -28,6 +28,8 @@ function App() {
   const [notifications, setNotifications] = useState([]);
   const [notificationToAdd, setNotificationToAdd] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [notificationsNeedRefetch, setNotificationsNeedRefetch] =
+    useState(false);
 
   const timer = 2000;
 
@@ -84,6 +86,7 @@ function App() {
 
           setFeedbackMessage("Notification added successfully");
           setNotificationToAdd(null); // Use null instead of empty string for an object
+          setNotificationsNeedRefetch(true); // Trigger a refetch after adding
         } catch (error) {
           console.error("Failed to add notification:", error);
           setFeedbackMessage(`Failed to add notification: ${error.message}`);
@@ -91,39 +94,54 @@ function App() {
       }
     }
 
-    addNotification(); // Fixed the function name (proper casing)
+    addNotification();
   }, [notificationToAdd, setFeedbackMessage, setNotificationToAdd]);
 
-  // Fetching notifications everytime they refresh
-  useEffect(() => {
-    async function fetchNotifications() {
-      // Check if sessionUser exists before trying to access its properties
-      if (!sessionUser) {
-        return; // Exit the function early if sessionUser doesn't exist
-      }
-
-      try {
-        const response = await fetch(
-          `${proxy}/notification/get/all/${sessionUser.id}`,
-          {
-            credentials: "include",
-          }
-        );
-
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.message || "Failed to fetch notifications");
-        }
-
-        const data = await response.json();
-        setNotifications(data);
-      } catch (error) {
-        console.error("Failed to fetch notifications:", error);
-        setFeedbackMessage(`Failed to fetch notifications: ${error.message}`);
-      }
+  // Fetching notifications function
+  const fetchNotifications = React.useCallback(async () => {
+    // Check if sessionUser exists before trying to access its properties
+    if (!sessionUser) {
+      return; // Exit the function early if sessionUser doesn't exist
     }
+
+    try {
+      const response = await fetch(
+        `${proxy}/notification/get/all/${sessionUser.id}`,
+        {
+          credentials: "include",
+        }
+      );
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to fetch notifications");
+      }
+
+      const data = await response.json();
+      setNotifications(data);
+      setNotificationsNeedRefetch(false); // Reset the refetch flag
+    } catch (error) {
+      console.error("Failed to fetch notifications:", error);
+      setFeedbackMessage(`Failed to fetch notifications: ${error.message}`);
+    }
+  }, [
+    sessionUser,
+    setNotifications,
+    setNotificationsNeedRefetch,
+    setFeedbackMessage,
+  ]);
+
+  // Fetching notifications on component mount and when sessionUser changes
+  useEffect(() => {
     fetchNotifications();
-  }, [setNotifications, sessionUser]);
+  }, [sessionUser, fetchNotifications]);
+
+  // Refetch notifications when needed
+  useEffect(() => {
+    if (notificationsNeedRefetch) {
+      fetchNotifications();
+    }
+  }, [notificationsNeedRefetch, fetchNotifications]);
 
   useEffect(() => {
     if (feedbackMessage !== "") {
@@ -137,18 +155,6 @@ function App() {
     return <div>Loading...</div>;
   }
 
-  // Mark notifications as read
-  const markNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  // Toggle notification read status
-  const toggleNotificationReadStatus = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
-  };
-
   return (
     <Router>
       <Navbar
@@ -158,8 +164,7 @@ function App() {
         notifications={notifications}
         setNotifications={setNotifications}
         setNotificationToAdd={setNotificationToAdd}
-        onMarkAsRead={markNotificationsAsRead}
-        onToggleRead={toggleNotificationReadStatus}
+        setNotificationsNeedRefetch={setNotificationsNeedRefetch}
       />
 
       <div>
@@ -174,6 +179,7 @@ function App() {
                 setNotifications={setNotifications}
                 setFeedbackMessage={setFeedbackMessage}
                 setNotificationToAdd={setNotificationToAdd}
+                setNotificationsNeedRefetch={setNotificationsNeedRefetch}
               />
             }
           />
