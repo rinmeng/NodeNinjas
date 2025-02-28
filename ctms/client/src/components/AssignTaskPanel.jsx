@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { UserSearch, X, Users, UserRoundCheck, UserX } from "lucide-react";
+import {
+  UserSearch,
+  X,
+  UserRoundCheck,
+  UserX,
+  UserPlus,
+  UserRoundMinus,
+} from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 import IconizedButton from "./subcomponents/IconizedButton";
 import proxy from "../utils/proxy";
@@ -16,12 +23,14 @@ const AssignTaskPanel = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [preAssignedUsers, setPreAssignedUsers] = useState([]); // Track already assigned users
+  const [usersToUnassign, setUsersToUnassign] = useState([]); // Track users to be unassigned
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = (e) => {
     setSearchQuery(e.target.value);
   };
+
   const getDateWithRelativeTime = (dateString) => {
     if (!dateString) return "Invalid Date"; // Handle empty values safely
 
@@ -50,15 +59,17 @@ const AssignTaskPanel = ({
     return formattedDate;
   };
 
-  const handleAssignUsers = async () => {
-    if (selectedUsers.length === 0) {
+  const handleManageUsers = async () => {
+    // Handle case when there's nothing to do
+    if (selectedUsers.length === 0 && usersToUnassign.length === 0) {
       setFeedbackMessage(
-        "Please select at least one user to assign the task to."
+        "Please select users to assign or unassign from the task."
       );
       return;
     }
 
     try {
+
       const userIds = selectedUsers.map((user) => user.id);
       const response = await fetch(`${proxy}/task/assign/${task.id}`, {
         method: "POST",
@@ -71,30 +82,108 @@ const AssignTaskPanel = ({
       });
       //console.log(selectedUsers);
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Failed to assign task to users");
+      // First, handle new assignments if there are any
+      if (selectedUsers.length > 0) {
+        // Filter out pre-assigned users that are not in the usersToUnassign list
+        const userIdsToAssign = selectedUsers
+          .filter(
+            (user) =>
+              !preAssignedUsers.some((pu) => pu.id === user.id) ||
+              usersToUnassign.some((uu) => uu.id === user.id)
+          )
+          .map((user) => user.id);
+
+        if (userIdsToAssign.length > 0) {
+          const assignResponse = await fetch(
+            `${proxy}/task/assign/${task.id}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include",
+              body: JSON.stringify({ user_ids: userIdsToAssign }),
+            }
+          );
+
+          if (!assignResponse.ok) {
+            const errorData = await assignResponse.json();
+            throw new Error(
+              errorData.message || "Failed to assign task to users"
+            );
+          }
+        }
       }
+
+      // Handle unassignments if there are any - filter out task owner
+      const userIdsToUnassign = usersToUnassign
+        .filter((user) => !selectedUsers.some((su) => su.id === user.id))
+        .filter((user) => user.id !== task.owner_id) // Prevent task owner from being unassigned
+        .map((user) => user.id);
+
+      if (userIdsToUnassign.length > 0) {
+        const unassignResponse = await fetch(
+          `${proxy}/task/unassign/${task.id}`,
+          {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify({ user_ids: userIdsToUnassign }),
+          }
+        );
+
+        if (!unassignResponse.ok) {
+          const errorData = await unassignResponse.json();
+          throw new Error(
+            errorData.message || "Failed to unassign users from task"
+          );
+        }
+      }
+
       setSelectedUsers([]);
+
       setFeedbackMessage("Task assigned successfully!");
       setNotificationToAdd({user_ids: userIds, message: `You have been assigned a task, ${task.name}`});
+      setUsersToUnassign([]);
+      setFeedbackMessage("Task assignments updated successfully!");
       setNeedsRefetch(true);
       onClose();
     } catch (error) {
-      setFeedbackMessage("Failed to assign task: " + error.message);
+      setFeedbackMessage("Failed to update task assignments: " + error.message);
     }
   };
 
   const toggleUserSelection = (user) => {
-    // Check if user is pre-assigned - if so, do nothing
-    if (preAssignedUsers.find((u) => u.id === user.id)) {
+    // Check if user is the task owner
+    if (user.id === task.owner_id) {
+      // Do nothing if user is task owner - they cannot be unassigned
       return;
     }
 
-    if (selectedUsers.find((u) => u.id === user.id)) {
-      setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
+    // Check if user is pre-assigned
+    const isPreAssigned = preAssignedUsers.some((u) => u.id === user.id);
+
+    if (isPreAssigned) {
+      // If pre-assigned and not in usersToUnassign, add to usersToUnassign
+      if (!usersToUnassign.some((u) => u.id === user.id)) {
+        setUsersToUnassign([...usersToUnassign, user]);
+        // Also remove from selectedUsers if present
+        setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
+      } else {
+        // If already in usersToUnassign, remove from it (cancel unassigning)
+        setUsersToUnassign(usersToUnassign.filter((u) => u.id !== user.id));
+        // And add back to selectedUsers
+        setSelectedUsers([...selectedUsers, user]);
+      }
     } else {
-      setSelectedUsers([...selectedUsers, user]);
+      // Regular toggle for non-pre-assigned users
+      if (selectedUsers.some((u) => u.id === user.id)) {
+        setSelectedUsers(selectedUsers.filter((u) => u.id !== user.id));
+      } else {
+        setSelectedUsers([...selectedUsers, user]);
+      }
     }
   };
 
@@ -180,6 +269,7 @@ const AssignTaskPanel = ({
 
   const fetchAssignedUsersNotAdmin = useCallback(async () => {
     if (!task) return;
+    setIsLoading(true);
 
     try {
       // Fetch all assignedto records for this task, and put them in the selected users
@@ -197,32 +287,39 @@ const AssignTaskPanel = ({
       }
 
       const data = await response.json();
-      setSelectedUsers(data.assigned_users);
+      setSelectedUsers(data.assigned_users || []);
     } catch (error) {
       console.error("Error fetching assigned users:", error);
       setFeedbackMessage(
         error.message || "Failed to fetch currently assigned users"
       );
+    } finally {
+      setIsLoading(false);
     }
   }, [task, setFeedbackMessage]);
 
   // Initialize data when panel opens
   useEffect(() => {
-    if (isOpen && task && sessionUser.role === "admin") {
-      const initializeData = async () => {
-        // First fetch all available users
-        const users = await findAvailableUsers();
-        // Then fetch and set the assigned users
-        await fetchAssignedUsers(users);
-      };
+    if (isOpen && task) {
+      if (sessionUser.role === "admin") {
+        const initializeData = async () => {
+          // First fetch all available users
+          const users = await findAvailableUsers();
+          // Then fetch and set the assigned users
+          await fetchAssignedUsers(users);
+        };
 
-      initializeData();
+        initializeData();
+      } else {
+        // For non-admin users
+        fetchAssignedUsersNotAdmin();
+      }
     } else {
       // Reset states when panel closes
       setSearchQuery("");
       setSelectedUsers([]);
       setPreAssignedUsers([]);
-      fetchAssignedUsersNotAdmin();
+      setUsersToUnassign([]);
     }
   }, [
     isOpen,
@@ -233,8 +330,20 @@ const AssignTaskPanel = ({
     fetchAssignedUsersNotAdmin,
   ]);
 
-  // Filter available users based on search query
+  // Filter available users based on search query (for admins)
   const filteredUsers = availableUsers.filter((user) => {
+    if (!searchQuery) return true;
+
+    const query = searchQuery.toLowerCase();
+    return (
+      user.username?.toLowerCase().includes(query) ||
+      user.display_name?.toLowerCase().includes(query) ||
+      user.email?.toLowerCase().includes(query)
+    );
+  });
+
+  // Filter selected users based on search query (for both admins and non-admins)
+  const filteredSelectedUsers = selectedUsers.filter((user) => {
     if (!searchQuery) return true;
 
     const query = searchQuery.toLowerCase();
@@ -255,6 +364,16 @@ const AssignTaskPanel = ({
     return preAssignedUsers.some((user) => user.id === userId);
   };
 
+  // Check if a user is marked for unassignment
+  const isUserToUnassign = (userId) => {
+    return usersToUnassign.some((user) => user.id === userId);
+  };
+
+  // Check if a user is the task owner
+  const isTaskOwner = (userId) => {
+    return task && userId === task.owner_id;
+  };
+
   if (!isOpen) return null;
 
   return (
@@ -273,7 +392,7 @@ const AssignTaskPanel = ({
 
         {/* Task Information */}
         <div className="bg-slate-800 p-4 rounded-lg">
-          <h2 className="text-lg font-semibold text-white mb-2">
+          <h2 className="text-lg font-semibold text-white ">
             Task: {task.name}
           </h2>
           <p className="text-slate-300 text-sm truncate">{task.description}</p>
@@ -291,53 +410,59 @@ const AssignTaskPanel = ({
           </p>
         </div>
 
-        {sessionUser.role === "admin" && (
-          <div>
-            <h1 className="text-md mb-2 ">Search Users</h1>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <UserSearch size={20} className="text-slate-400" />
-              </div>
-              <input
-                type="text"
-                placeholder="Search by name, username, or email..."
-                className="forms text-left pl-10 w-full"
-                value={searchQuery}
-                onChange={handleSearch}
-              />
+        {/* Search Users - For both admin and non-admin */}
+        <div>
+          <h1 className="text-md mb-2 ">Search Users</h1>
+          <div className="relative">
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <UserSearch size={20} className="text-slate-400" />
             </div>
+            <input
+              type="text"
+              placeholder="Search by name, username, or email..."
+              className="forms text-left pl-10 w-full"
+              value={searchQuery}
+              onChange={handleSearch}
+            />
           </div>
-        )}
-        {/* Selected Users */}
+        </div>
+
+        {/* Selected Users - For non-admin users */}
         {sessionUser.role !== "admin" && (
           <div className="mt-4">
             <h1 className="text-md mb-2">
-              Assigned Users ({selectedUsers.length})
+              Assigned Users ({filteredSelectedUsers.length}/
+              {selectedUsers.length})
             </h1>
             <div
               className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
-              ${selectedUsers.length === 0 ? "justify-center" : "justify-start"}
+              ${
+                filteredSelectedUsers.length === 0
+                  ? "justify-center"
+                  : "justify-start"
+              }
             `}
             >
-              {selectedUsers.length > 0 ? (
-                selectedUsers.map((user) => (
-                  <div>
-                    {sessionUser.role !== "admin" && (
-                      <div
-                        key={user.id}
-                        className="flex items-center m-2 w-fit pill-grey"
-                      >
-                        <span>
-                          @{user.username} ({user.display_name})
-                        </span>
-                      </div>
-                    )}
+              {isLoading ? (
+                <div className="text-slate-400 text-center py-4">
+                  Loading assigned users...
+                </div>
+              ) : filteredSelectedUsers.length > 0 ? (
+                filteredSelectedUsers.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center m-2 w-fit pill-green"
+                  >
+                    <span>
+                      @{user.username} ({user.display_name})
+                    </span>
+                    <UserRoundCheck size={16} className="ml-2 text-white" />
                   </div>
                 ))
               ) : (
                 <div className="text-slate-400 text-center py-2">
-                  {sessionUser.role === "admin"
-                    ? "No users assigned to this task"
+                  {searchQuery
+                    ? "No users match your search"
                     : "This task has no assigned users"}
                 </div>
               )}
@@ -345,12 +470,12 @@ const AssignTaskPanel = ({
           </div>
         )}
 
-        {/* Search Results */}
+        {/* Search Results - For admin only */}
         {sessionUser.role === "admin" && (
           <div className="space-y-4">
             <div>
               <h1 className="text-md mb-2">
-                Assign Users ({selectedUsers.length}/{availableUsers.length})
+                Manage Users ({selectedUsers.length}/{availableUsers.length})
               </h1>
               <div
                 className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
@@ -367,17 +492,46 @@ const AssignTaskPanel = ({
                     <div
                       key={user.id}
                       className={`flex items-center m-2 ${
-                        isUserPreAssigned(user.id)
-                          ? "bg-slate-500 opacity-50 cursor-not-allowed"
+                        isTaskOwner(user.id)
+                          ? "bg-green-600 opacity-50 cursor-not-allowed"
+                          : isUserPreAssigned(user.id) &&
+                            isUserToUnassign(user.id)
+                          ? "bg-red-600 hover:bg-slate-700 cursor-pointer"
+                          : isUserPreAssigned(user.id)
+                          ? "bg-green-600 hover:bg-red-600 cursor-pointer"
                           : isUserSelected(user.id)
                           ? "bg-green-600 hover:bg-red-600 cursor-pointer"
-                          : "bg-slate-700 hover:bg-blue-600 cursor-pointer"
+                          : "bg-slate-700 hover:bg-green-600 cursor-pointer"
                       } w-fit pill`}
                       onClick={() => toggleUserSelection(user)}
                     >
                       <span>
                         @{user.username} ({user.display_name})
                       </span>
+                      {isUserPreAssigned(user.id) &&
+                        isUserToUnassign(user.id) &&
+                        !isTaskOwner(user.id) && (
+                          <UserRoundMinus
+                            size={16}
+                            className="ml-2 text-white"
+                          />
+                        )}
+
+                      {isUserPreAssigned(user.id) &&
+                        !isUserToUnassign(user.id) &&
+                        !isTaskOwner(user.id) && (
+                          <UserRoundCheck
+                            size={16}
+                            className="ml-2 text-white"
+                          />
+                        )}
+
+                      {/* if they are to be assigned, make an icon of UserRoundPlus */}
+                      {!isUserPreAssigned(user.id) &&
+                        isUserSelected(user.id) &&
+                        !isTaskOwner(user.id) && (
+                          <UserPlus size={16} className="ml-2 text-white" />
+                        )}
                     </div>
                   ))
                 ) : (
@@ -390,19 +544,18 @@ const AssignTaskPanel = ({
                 )}
               </div>
 
-              {sessionUser.role === "admin" && (
-                <div className="text-xs text-slate-400 mt-1">
-                  Greyed out users are already assigned.
-                </div>
-              )}
+              <div className="text-xs text-slate-400 mt-1">
+                <p>Already assigned users are highlighted in green.</p>
+                <p>Green: Users to be assigned | Red: Users to be unassigned</p>
+              </div>
             </div>
 
             <div className="border-b border-slate-600"></div>
             <div className="flex justify-center items-center ">
               <IconizedButton
                 icon={<UserRoundCheck size={24} className="ml-2" />}
-                text="Assign Users"
-                onClick={handleAssignUsers}
+                text="Update Assignments"
+                onClick={handleManageUsers}
                 btnStyle="btn-blue"
               />
             </div>
