@@ -1,0 +1,30 @@
+name: Node.js CI
+
+on:
+  # Run on pushes to main and pull requests targeting main
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16.x"
+
+      - name: Install dependencies
+        run: npm install
+        working-directory: ./ctms/server
+        
+
+      - name: Run tests
+        run: npm test
+        working-directory: ./ctms/server
