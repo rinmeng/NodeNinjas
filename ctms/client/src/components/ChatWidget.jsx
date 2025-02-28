@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Send, X, MessageCircle } from "lucide-react"; // Icons for styling
 
-const API_BASE_URL = "http://localhost:15000"; // Updated to match Docker backend
+const proxy = "http://localhost:15000"; // Updated to match Docker backend
 
 const ChatWidget = ({ sessionUser }) => {
   const [isOpen, setIsOpen] = useState(false); // Toggle chat visibility
@@ -13,7 +13,7 @@ const ChatWidget = ({ sessionUser }) => {
   // Fetch all users when chat opens
   useEffect(() => {
     if (isOpen) {
-      fetch(`${API_BASE_URL}/user`)
+      fetch(`${proxy}/user`)
         .then((res) => {
           if (!res.ok) throw new Error("Failed to fetch users");
           return res.json();
@@ -26,7 +26,7 @@ const ChatWidget = ({ sessionUser }) => {
   // Fetch messages when a user is selected
   useEffect(() => {
     if (selectedUser) {
-      fetch(`${API_BASE_URL}/message/${sessionUser.id}/${selectedUser.id}`)
+      fetch(`${proxy}/message/${sessionUser.id}/${selectedUser.id}`)
         .then((res) => {
           if (!res.ok) throw new Error("Failed to fetch messages");
           return res.json();
@@ -47,7 +47,7 @@ const ChatWidget = ({ sessionUser }) => {
     };
 
     try {
-      const res = await fetch(`${API_BASE_URL}/message`, {
+      const res = await fetch(`${proxy}/message`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
