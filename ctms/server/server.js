@@ -83,31 +83,31 @@ app.use('/message', message);
 app.use('/notification', notification);
 
 // 🔴 Socket.IO Logic 🔴
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
+// io.on('connection', (socket) => {
+//     console.log('A user connected:', socket.id);
 
-    // Handling notifications
-    socket.on('sendNotification', async (data) => {
-        console.log('New notification:', data);
+//     // Handling notifications
+//     socket.on('sendNotification', async (data) => {
+//         console.log('New notification:', data);
 
-        const { user_id, message, type } = data;
-        try {
-            await pool.query(
-                `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)`,
-                [user_id, message, type]
-            );
+//         const { user_id, message, type } = data;
+//         try {
+//             await pool.query(
+//                 `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)`,
+//                 [user_id, message, type]
+//             );
 
-            // Send notification to the specific user
-            io.emit(`notification:${user_id}`, data);
-        } catch (err) {
-            console.error('Error saving notification:', err);
-        }
-    });
+//             // Send notification to the specific user
+//             io.emit(`notification:${user_id}`, data);
+//         } catch (err) {
+//             console.error('Error saving notification:', err);
+//         }
+//     });
 
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-    });
-});
+//     socket.on('disconnect', () => {
+//         console.log('User disconnected:', socket.id);
+//     });
+// });
 
 // Start server
 if (process.env.NODE_ENV !== 'test') {
