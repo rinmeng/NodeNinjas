@@ -112,7 +112,6 @@ const AssignTaskPanel = ({
               type: "task",
             });
           }
-          console.log(userIdsToAssign);
         }
       }
 

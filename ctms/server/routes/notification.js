@@ -5,21 +5,29 @@ const { isAuthenticated } = require('../auth');
 
 //post a notification
 router.post('/add/:ids', isAuthenticated, async (req, res) => {
-    const { message, user_ids } = req.body;
-    if (!message || !user_ids) {
+    const { message, user_ids, type } = req.body;
+    if (!message || !user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
         return res.status(400).json({ message: 'Please enter all required fields' });
     }
+
     try {
-        for (const user_id of user_ids) {
-            await pool.query(`INSERT INTO notifications (message,user_id) VALUES($1,$2) RETURNING *`, [message, user_id]);
-        }
-        res.status(201).json({ message: 'Notificaion added successfully' });
+        // Using unnest to convert the array to a set of rows
+        const query = `
+            INSERT INTO notifications (message, user_id, type)
+            SELECT $1, unnest($2::int[]), $3
+            RETURNING *
+        `;
+
+        await pool.query(query, [message, user_ids, type]);
+
+        res.status(201).json({ message: 'Notification added successfully' });
     }
     catch (err) {
         console.error(err.message);
         res.status(500).json({ message: 'Failed to add notification' });
     }
 });
+
 // GET /notification under the user-id
 router.get('/get/all/:user_id', isAuthenticated, async (req, res) => {
 

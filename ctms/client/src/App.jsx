@@ -16,7 +16,7 @@ import Chat from "./pages/Chat";
 import Feedback2 from "./components/subcomponents/Feedback2";
 import { CircleAlert, CircleCheck } from "lucide-react";
 
-const proxy = "http://localhost:15000/";
+const proxy = "http://localhost:15000";
 
 function App() {
   const [devMode, setDevMode] = useState(false);
@@ -50,37 +50,49 @@ function App() {
         setIsLoading(false);
       });
   }, []);
-  //adding the notification
+
+  // Adding the notification
   useEffect(() => {
-    async function addnotification() {
-      if (notificationToAdd) {
+    async function addNotification() {
+      if (
+        notificationToAdd &&
+        notificationToAdd.user_ids &&
+        notificationToAdd.user_ids.length > 0
+      ) {
         try {
-          const response = await fetch(proxy + "notification/add", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              user_ids: notificationToAdd.user_ids,
-              message: notificationToAdd.message,
-              type: notificationToAdd.type,
-            }),
-          });
+          // In App.jsx
+          const response = await fetch(
+            `${proxy}/notification/add/${notificationToAdd.user_ids}`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              credentials: "include", // Add this if you need cookies/auth
+              body: JSON.stringify({
+                user_ids: notificationToAdd.user_ids,
+                message: notificationToAdd.message,
+                type: notificationToAdd.type,
+              }),
+            }
+          );
 
           if (!response.ok) {
-            throw new Error("Failed to add notification");
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Failed to add notification");
           }
 
           setFeedbackMessage("Notification added successfully");
-          setNotificationToAdd("");
+          setNotificationToAdd(null); // Use null instead of empty string for an object
         } catch (error) {
           console.error("Failed to add notification:", error);
-          setFeedbackMessage("Failed to add notification");
+          setFeedbackMessage(`Failed to add notification: ${error.message}`);
         }
       }
     }
-    addnotification();
-  }, [notificationToAdd]);
+
+    addNotification(); // Fixed the function name (proper casing)
+  }, [notificationToAdd, proxy, setFeedbackMessage]);
 
   useEffect(() => {
     if (feedbackMessage !== "") {
