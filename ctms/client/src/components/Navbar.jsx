@@ -47,16 +47,17 @@ const NotificationPanel = ({ notifications, onClose }) => {
   return (
     <div
       ref={panelRef}
-      className="absolute right-4 top-16 bg-white shadow-lg rounded-lg py-2 w-80 z-20"
+      className="absolute right-6 top-16 bg-white shadow-lg rounded-lg py-2 w-80 z-20"
     >
-      <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-        <h3 className="font-semibold text-slate-800">Notifications</h3>
-        <button
+      <div className=" p-3 border-b border-slate-200 flex justify-between items-center">
+        <div>
+          <h3 className="font-semibold text-slate-800">Notifications</h3>
+        </div>
+        <IconButton
+          icon={<X size={20} />}
           onClick={onClose}
-          className="text-slate-600 hover:text-slate-800"
-        >
-          <X size={20} />
-        </button>
+          color="text-slate-600 hover:text-slate-800 hover:bg-slate-200"
+        />
       </div>
 
       <div className="max-h-96 overflow-y-auto">
@@ -77,8 +78,6 @@ const NotificationPanel = ({ notifications, onClose }) => {
                 }`}
               >
                 <div className="flex items-start gap-3">
-                  {/* Mail icon*/}
-
                   {isNotificationRead(notification) ? (
                     <MailCheck
                       size={18}
