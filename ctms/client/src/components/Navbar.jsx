@@ -103,7 +103,7 @@ const Navbar = ({
   onMarkSingleAsRead,
 }) => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
-  const unreadCount = notifications.filter((n) => !n.read).length;
+  const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
   const location = useLocation();
 
