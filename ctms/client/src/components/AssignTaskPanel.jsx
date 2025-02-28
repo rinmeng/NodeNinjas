@@ -109,7 +109,7 @@ const AssignTaskPanel = ({
             setNotificationToAdd({
               user_ids: userIdsToAssign,
               message: task.name,
-              type: "task",
+              type: "task_assignment",
             });
           }
         }
@@ -500,15 +500,15 @@ const AssignTaskPanel = ({
                       key={user.id}
                       className={`flex items-center m-2 ${
                         isTaskOwner(user.id)
-                          ? "bg-green-600 opacity-50 cursor-not-allowed"
+                          ? "bg-gray-600 opacity-50 cursor-not-allowed"
                           : isUserPreAssigned(user.id) &&
                             isUserToUnassign(user.id)
                           ? "bg-red-600 hover:bg-red-700 cursor-pointer"
                           : isUserPreAssigned(user.id)
                           ? "bg-green-600 hover:bg-red-600 cursor-pointer"
                           : isUserSelected(user.id)
-                          ? "bg-green-600 hover:bg-red-600 cursor-pointer"
-                          : "bg-slate-700 hover:bg-green-600 cursor-pointer"
+                          ? "bg-blue-600 hover:bg-red-600 cursor-pointer"
+                          : "bg-slate-700 hover:bg-blue-600 cursor-pointer"
                       } w-fit pill`}
                       onClick={() => toggleUserSelection(user)}
                     >
@@ -553,7 +553,7 @@ const AssignTaskPanel = ({
 
               <div className="text-xs text-slate-400 mt-1">
                 <p>Already assigned users are highlighted in green.</p>
-                <p>Green: Users to be assigned | Red: Users to be unassigned</p>
+                <p>Blue: Users to be assigned | Red: Users to be unassigned</p>
               </div>
             </div>
 
