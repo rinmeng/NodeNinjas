@@ -9,6 +9,7 @@ import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
 import Dashboard from "./pages/Dashboard";
+import ChatWidget from "./components/ChatWidget";
 
 const proxy = "http://localhost:15000/";
 
@@ -104,6 +105,7 @@ function App() {
           <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatWidget />
       </div>
     </Router>
   );
