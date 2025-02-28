@@ -101,7 +101,13 @@ function App() {
 
           <Route
             path="/admin"
-            element={<Admin sessionUser={sessionUser} devMode={devMode} />}
+            element={
+              <Admin
+                sessionUser={sessionUser}
+                devMode={devMode}
+                setFeedbackMessage={setFeedbackMessage}
+              />
+            }
           />
           <Route path="/about" element={<About />} />
           <Route
