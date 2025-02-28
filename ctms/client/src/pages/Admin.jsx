@@ -18,11 +18,11 @@ const Admin = ({ sessionUser, devMode }) => {
 
   // UseState for the list of tasks you can view
   const [taskList, setTaskList] = useState([]);
-
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -102,6 +102,8 @@ const Admin = ({ sessionUser, devMode }) => {
         setUsersList(null);
       });
   };
+  
+
 
   return (
     <div className="mp5 my-16 animate-fadein">

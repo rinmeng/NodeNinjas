@@ -196,11 +196,12 @@ async function setupNotifications() {
                 id SERIAL PRIMARY KEY,
                 message TEXT NOT NULL,
                 user_id INT NOT NULL,
-                type VARCHAR(50) NOT NULL,
+                type VARCHAR(50),
                 status VARCHAR(20) DEFAULT 'unread',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            
+                
             );
             CREATE INDEX idx_notifications_user_id ON notifications (user_id);
         `);

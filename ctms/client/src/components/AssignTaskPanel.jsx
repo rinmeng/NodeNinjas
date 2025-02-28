@@ -10,6 +10,7 @@ const AssignTaskPanel = ({
   onClose,
   setNeedsRefetch,
   setFeedbackMessage,
+  setNotificationToAdd,
   sessionUser,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -66,7 +67,9 @@ const AssignTaskPanel = ({
         },
         credentials: "include",
         body: JSON.stringify({ user_ids: userIds }),
+        
       });
+      //console.log(selectedUsers);
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -74,6 +77,7 @@ const AssignTaskPanel = ({
       }
       setSelectedUsers([]);
       setFeedbackMessage("Task assigned successfully!");
+      setNotificationToAdd({user_ids: userIds, message: `You have been assigned a task, ${task.name}`});
       setNeedsRefetch(true);
       onClose();
     } catch (error) {

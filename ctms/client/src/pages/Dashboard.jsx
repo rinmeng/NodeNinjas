@@ -11,6 +11,7 @@ const Dashboard = ({
   notifications,
   setNotifications,
   setFeedbackMessage,
+  setNotificationToAdd,
 }) => {
   const [searchCriteria, setSearchCriteria] = useState("");
   const [showAddTaskPanel, setShowAddTaskPanel] = useState(false);
@@ -180,6 +181,7 @@ const Dashboard = ({
         setNeedsRefetch={setNeedsRefetch}
         notifications={notifications}
         setNotifications={setNotifications}
+        setNotificationToAdd={setNotificationToAdd}
         needsRefetch={needsRefetch}
         setFeedbackMessage={setFeedbackMessage}
         devMode={devMode}
@@ -191,6 +193,7 @@ const Dashboard = ({
         sessionUser={sessionUser}
         setNeedsRefetch={setNeedsRefetch}
         notifications={notifications}
+        setNotificationToAdd={setNotificationToAdd}
         setNotifications={setNotifications}
       />
     </div>

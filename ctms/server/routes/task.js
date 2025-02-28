@@ -451,7 +451,7 @@ router.post('/assign/:id', isAuthenticated, async (req, res) => {
         // Filter out already assigned users
         const newUserIds = user_ids.filter(id => !assignedUserIds.includes(id));
 
-        // If there are new users to assign, insert them
+        // If there are new users to assign, insert them and notified them        
         if (newUserIds.length > 0) {
             const assignValues = newUserIds.map(userId => {
                 return `(${userId}, ${id}, CURRENT_DATE)`;
@@ -461,7 +461,12 @@ router.post('/assign/:id', isAuthenticated, async (req, res) => {
                 INSERT INTO AssignedTo (user_id, task_id, assigned_date)
                 VALUES ${assignValues}
             `);
+            
         }
+                
+            
+        
+    
 
         // Provide detailed response about what happened
         const response = {

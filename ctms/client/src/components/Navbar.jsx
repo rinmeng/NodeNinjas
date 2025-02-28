@@ -4,9 +4,10 @@ import { Mail, X, Bell } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 
 // Defines the Notification Panel component
-const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
+const NotificationPanel = ({ notifications, onClose, onToggleRead ,setNotificationToAdd}) => {
   const [expandedIds, setExpandedIds] = useState(new Set());
   const panelRef = useRef(null);
+  
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -49,7 +50,7 @@ const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
       </div>
 
       <div className="max-h-96 overflow-y-auto">
-        {notifications.length === 0 ? (
+        {notifications.length  === 0 ? (
           <div className="p-4 text-center text-slate-500">
             No new notifications
           </div>
@@ -108,6 +109,8 @@ const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
                   </button>
                 </div>
               </div>
+              
+              
             );
           })
         )}
@@ -121,11 +124,14 @@ const Navbar = ({
   sessionUser,
   devMode,
   notifications = [],
+  setNotificatiotoAdd,
   onMarkAsRead,
   onToggleRead,
 }) => {
   const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
   const unreadCount = notifications.filter((n) => !n.read).length;
+  
+  
 
   const handleBellClick = (e) => {
     e.stopPropagation();
@@ -136,6 +142,7 @@ const Navbar = ({
       onMarkAsRead();
     }
   };
+  
 
   return (
     <nav
