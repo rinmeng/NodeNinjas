@@ -30,7 +30,6 @@ router.post('/add/:ids', isAuthenticated, async (req, res) => {
 
 // GET /notification under the user-id
 router.get('/get/all/:user_id', isAuthenticated, async (req, res) => {
-
     const user_id = req.params.user_id;
     try {
         const notification = await pool.query('SELECT * FROM notifications WHERE user_id = $1 ORDER BY created_at DESC', [user_id]);

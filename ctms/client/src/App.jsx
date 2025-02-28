@@ -32,7 +32,7 @@ function App() {
   const timer = 2000;
 
   useEffect(() => {
-    fetch(proxy + "user/session", {
+    fetch(`${proxy}/user/session`, {
       credentials: "include", // Important for cross-origin cookies
     })
       .then((res) => res.json())
