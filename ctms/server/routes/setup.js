@@ -168,24 +168,16 @@ async function setupNotifications() {
     try {
         await pool.query(`
             DROP TABLE IF EXISTS notifications CASCADE;
+            CREATE TYPE notification_type AS ENUM('message', 'task', 'alert');
+            CREATE TYPE notification_status AS ENUM('unread', 'read');
             CREATE TABLE notifications (
                 id SERIAL PRIMARY KEY,
                 user_id INT NOT NULL,
-
-                type VARCHAR(50),
-                status VARCHAR(20) DEFAULT 'unread',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            
-                
-
                 message TEXT NOT NULL,
-                type VARCHAR(50) CHECK (type IN ('message', 'task', 'alert')) NOT NULL,
-                status VARCHAR(20) CHECK (status IN ('unread', 'read')) DEFAULT 'unread',
+                type notification_type NOT NULL,
+                status notification_status NOT NULL DEFAULT 'unread',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
-
             );
 
             -- Indexes for better performance
@@ -214,7 +206,7 @@ async function setupMessages() {
 
                 FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
                 FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE SET NULL,
-                FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE SET NULL
+                FOREIGN KEY (task_id) REFERENCES task (id) ON DELETE SET NULL
             );
 
             -- Indexes for faster lookups
