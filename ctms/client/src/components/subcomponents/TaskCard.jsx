@@ -28,8 +28,6 @@ const TaskCard = ({
   task,
   sessionUser,
   setNeedsRefetch,
-  notifications,
-  setNotifications,
   setFeedbackMessage,
   setNotificationToAdd,
   devMode,
@@ -459,8 +457,7 @@ const TaskCard = ({
           isOpen={showUpdateTaskPanel}
           onClose={handleEditTask}
           setNeedsRefetch={setNeedsRefetch}
-          notifications={notifications}
-          setNotifications={setNotifications}
+          setNotificationToAdd={setNotificationToAdd}
           setFeedbackMessage={setFeedbackMessage}
         />
       )}

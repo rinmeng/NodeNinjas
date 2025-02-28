@@ -160,7 +160,6 @@ function App() {
         sessionUser={sessionUser}
         devMode={devMode}
         notifications={notifications}
-        setNotifications={setNotifications}
         setNotificationToAdd={setNotificationToAdd}
         setNotificationsNeedRefetch={setNotificationsNeedRefetch}
       />
@@ -174,7 +173,6 @@ function App() {
                 sessionUser={sessionUser}
                 devMode={devMode}
                 notifications={notifications}
-                setNotifications={setNotifications}
                 setFeedbackMessage={setFeedbackMessage}
                 setNotificationToAdd={setNotificationToAdd}
                 setNotificationsNeedRefetch={setNotificationsNeedRefetch}

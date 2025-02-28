@@ -8,8 +8,6 @@ import proxy from "../utils/proxy";
 const Dashboard = ({
   sessionUser,
   devMode,
-  notifications,
-  setNotifications,
   setFeedbackMessage,
   setNotificationToAdd,
 }) => {
@@ -179,8 +177,6 @@ const Dashboard = ({
         showEditTaskPanel={showEditTaskPanel}
         setShowEditTaskPanel={setShowEditTaskPanel}
         setNeedsRefetch={setNeedsRefetch}
-        notifications={notifications}
-        setNotifications={setNotifications}
         setNotificationToAdd={setNotificationToAdd}
         needsRefetch={needsRefetch}
         setFeedbackMessage={setFeedbackMessage}
@@ -192,9 +188,7 @@ const Dashboard = ({
         setFeedbackMessage={setFeedbackMessage}
         sessionUser={sessionUser}
         setNeedsRefetch={setNeedsRefetch}
-        notifications={notifications}
         setNotificationToAdd={setNotificationToAdd}
-        setNotifications={setNotifications}
       />
     </div>
   );
