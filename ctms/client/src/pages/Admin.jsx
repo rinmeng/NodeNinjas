@@ -6,9 +6,10 @@ import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 
 const proxy = "http://localhost:15000/";
 
-const Admin = ({ sessionUser, devMode }) => {
+const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]); // This is my useState for when a checkbox is ticked for the list of users
+  const validDeletions = []; //I made an array to store users who can be successfully deleted from the Admin table
 
   useEffect(() => {
     fetchUsers();
@@ -69,15 +70,18 @@ const Admin = ({ sessionUser, devMode }) => {
     });
   };
 
+  //function which deletes the selected users from the Admin table
   const deleteUsers = () => {
     //There will be an alert when no users are selected after pressing the "Delete Selected Users" button
     if (chosenUserIds.length === 0) {
-      alert("You haven't selected any users!");
+      setFeedbackMessage("No users are selected!");
       return;
     }
 
     //After I delete one or more users, I will update the backend as well
     chosenUserIds.forEach((userId) => {
+      //I added a variable to store users that can be successfully deleted and exclude any admin who manages existing users.
+
       fetch(proxy + `user/delete/${userId}`, {
         method: "DELETE",
         headers: {
@@ -88,25 +92,39 @@ const Admin = ({ sessionUser, devMode }) => {
         .then(async (res) => {
           if (!res.ok) {
             const error = await res.json();
-            console.log(chosenUserIds);
-            throw new Error(error.message || "The users can't be loaded");
+            setFeedbackMessage(error);
           }
           return res.json();
         })
         .then((data) => {
           console.log("Deleted user", data);
-          setChosenUserIds((prev) =>
-            prev.filter((id) => !chosenUserIds.includes(id))
-          );
+          validDeletions.push(userId);
+          console.log(validDeletions);
         })
         .catch((error) => {
+          setFeedbackMessage(
+            "At least one of the users can't be deleted as they are an admin"
+          );
           fetchUsers();
-          console.error("error fetching data:", error);
+        })
+        .finally(() => {
+          if (!validDeletions.length > 0) {
+            setFeedbackMessage("No users were deleted");
+          } else {
+            setChosenUserIds((prev) =>
+              prev.filter((id) => !validDeletions.includes(id))
+            );
+            setFeedbackMessage(
+              "Successful user deletion for user(s) with ID of " +
+                `${validDeletions}`
+            );
+          }
         });
     });
 
     const confirm = window.confirm("Would you like to delete these users?");
     if (!confirm) {
+      setFeedbackMessage("You didn't delete any users");
       return;
     }
 
