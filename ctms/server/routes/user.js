@@ -305,6 +305,29 @@ router.get('/', (req, res) => {
                     <p class="text-gray-200"><strong>500:</strong> Internal server error</p>
                 </div>
             </div>
+
+            <div class="bg-gray-700 p-4 rounded-lg mt-8">
+                <h2 class="text-xl font-semibold text-purple-300 mb-2">Users Schema</h2>
+                <pre class="bg-gray-600 p-3 rounded mt-2 text-sm text-gray-200">
+CREATE TYPE user_role AS ENUM('admin', 'team_member');
+CREATE TABLE users(
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role user_role NOT NULL DEFAULT 'team_member',
+    display_name VARCHAR(100),
+    manager_id INT,
+    FOREIGN KEY(manager_id) REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+
+                </pre>
+            </div>
         </div>
     </div>
 </body>
