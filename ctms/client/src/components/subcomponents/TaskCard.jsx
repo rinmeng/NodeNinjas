@@ -254,7 +254,6 @@ const TaskCard = ({
 
   const handleAssignTask = () => {
     setShowAssignTaskPanel(!showAssignTaskPanel);
-
   };
 
   return (
@@ -278,7 +277,9 @@ const TaskCard = ({
                 icon={<Lock size={20} className="text-red-500" />}
                 tooltip="This task is locked. Contact your admin to make changes."
               />
-              <div className="border-r-2 border-slate-500 h-6"></div>
+              {!isTaskOwner && (
+                <div className="border-r-2 border-slate-500 h-6"></div>
+              )}
             </div>
           )}
           {!isTaskOwner && (
