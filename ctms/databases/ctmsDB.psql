@@ -109,3 +109,4 @@ CREATE TABLE
     );
 
 -- Index for user_id in notifications table for faster queries on user notifications
+CREATE INDEX idx_notifications_user_id ON notifications (user_id);
