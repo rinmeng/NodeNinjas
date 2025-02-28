@@ -205,7 +205,7 @@ async function setupMessages() {
 
                 FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
                 FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE SET NULL,
-                FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE SET NULL
+                FOREIGN KEY (task_id) REFERENCES task (id) ON DELETE SET NULL
             );
 
             -- Indexes for faster lookups
