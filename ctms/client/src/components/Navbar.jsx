@@ -1,15 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import {
-  Mail,
-  X,
-  Bell,
-  MailWarning,
-  MailCheck,
-  View,
-  Eye,
-  EyeOff,
-} from "lucide-react";
+import { X, Bell, MailWarning, MailCheck } from "lucide-react";
 import IconButton from "./subcomponents/IconButton";
 
 const dateToTimeAgo = (date) => {

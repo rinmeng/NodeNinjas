@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import {
   CircleDashed,
-  CircleDot,
   CircleDotDashed,
   CircleEllipsis,
   Clock,
@@ -15,7 +14,6 @@ import {
   Trash,
   Lock,
   LockOpen,
-  UserRoundPlus,
   Users,
   UserRoundCog,
   CircleCheck,
