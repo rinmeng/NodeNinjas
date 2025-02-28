@@ -461,22 +461,8 @@ router.post('/assign/:id', isAuthenticated, async (req, res) => {
                 INSERT INTO AssignedTo (user_id, task_id, assigned_date)
                 VALUES ${assignValues}
             `);
-            
+
         }
-
-                
-            
-        
-    
-
-        // Provide detailed response about what happened
-        const response = {
-            message: 'Assignment process completed',
-            assigned: newUserIds,
-            skipped: assignedUserIds
-        };
-
-        res.json(response);
         res.status(201).json({
             message: 'Assignment process completed'
         });
