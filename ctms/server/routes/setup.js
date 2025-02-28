@@ -163,30 +163,6 @@ async function setupTasks() {
     }
 }
 
-async function setupMessages() {
-    try {
-        await pool.query(`
-            DROP TABLE IF EXISTS messages CASCADE;
-            CREATE TABLE messages (
-                id SERIAL PRIMARY KEY,
-                message TEXT NOT NULL,
-                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                user_id INT NOT NULL,
-                task_id INT,
-                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-                FOREIGN KEY (task_id) REFERENCES Task (id) ON DELETE SET NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-            CREATE INDEX idx_messages_user_id ON messages (user_id);
-            CREATE INDEX idx_messages_task_id ON messages (task_id);
-        `);
-        return { message: "Messages table created successfully" };
-    } catch (err) {
-        console.error("Error setting up messages table:", err.message);
-        throw new Error("Failed to create Messages table: " + err.message);
-    }
-}
 
 async function setupNotifications() {
     try {
@@ -194,22 +170,57 @@ async function setupNotifications() {
             DROP TABLE IF EXISTS notifications CASCADE;
             CREATE TABLE notifications (
                 id SERIAL PRIMARY KEY,
-                message TEXT NOT NULL,
                 user_id INT NOT NULL,
-                type VARCHAR(50) NOT NULL,
-                status VARCHAR(20) DEFAULT 'unread',
+                message TEXT NOT NULL,
+                type VARCHAR(50) CHECK (type IN ('message', 'task', 'alert')) NOT NULL,
+                status VARCHAR(20) CHECK (status IN ('unread', 'read')) DEFAULT 'unread',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             );
+
+            -- Indexes for better performance
             CREATE INDEX idx_notifications_user_id ON notifications (user_id);
+            CREATE INDEX idx_notifications_status ON notifications (user_id, status);
         `);
+
         return { message: "Notifications table created successfully" };
     } catch (err) {
         console.error("Error setting up notifications table:", err.message);
         throw new Error("Failed to create Notifications table: " + err.message);
     }
 }
+
+async function setupMessages() {
+    try {
+        await pool.query(`
+            DROP TABLE IF EXISTS messages CASCADE;
+            CREATE TABLE messages (
+                id SERIAL PRIMARY KEY, -- Unique message ID
+                sender_id INT NOT NULL,
+                receiver_id INT,
+                task_id INT,
+                message TEXT NOT NULL,
+                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE SET NULL,
+                FOREIGN KEY (task_id) REFERENCES tasks (id) ON DELETE SET NULL
+            );
+
+            -- Indexes for faster lookups
+            CREATE INDEX idx_messages_sender_id ON messages (sender_id);
+            CREATE INDEX idx_messages_receiver_id ON messages (receiver_id);
+            CREATE INDEX idx_messages_task_id ON messages (task_id);
+        `);
+
+        return { message: "Messages table created successfully" };
+    } catch (err) {
+        console.error("Error setting up messages table:", err.message);
+        throw new Error("Failed to create Messages table: " + err.message);
+    }
+}
+
 
 async function setupUsers() {
     try {
