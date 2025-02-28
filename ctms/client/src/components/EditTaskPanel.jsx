@@ -10,8 +10,6 @@ const EditTaskPanel = ({
   isOpen,
   onClose,
   setNeedsRefetch,
-  notifications,
-  setNotifications,
   setFeedbackMessage,
 }) => {
   const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit);
@@ -50,15 +48,9 @@ const EditTaskPanel = ({
       .then((data) => {
         console.log("Updated task:", data);
         setNeedsRefetch(true);
-        // Add a notification to the notifications state
-        const newNotification = {
-          id: data.id,
-          message: `Task "${data.name}" updated successfully!`,
-          description: data.description,
-          timestamp: new Date().toISOString(),
-        };
-        setNotifications([...notifications, newNotification]);
         setFeedbackMessage("Task updated successfully!");
+
+        // add a notification to the database
       })
       .catch((error) => {
         console.error("Failed to update task:", error);

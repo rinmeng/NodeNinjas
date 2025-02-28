@@ -57,6 +57,8 @@ const NotificationPanel = ({
     switch (type) {
       case "task_assignment":
         return `You have been assigned to a task`;
+      case "task_unassignment":
+        return `You have been unassigned from a task`;
       case "alert":
         return `Alert`;
       case "message":
@@ -102,7 +104,7 @@ const NotificationPanel = ({
   return (
     <div
       ref={panelRef}
-      className="absolute right-6 top-16 bg-white shadow-lg rounded-lg py-2 w-80 z-20"
+      className="absolute right-6 top-20 bg-white shadow-lg rounded-lg py-2 w-80 z-20"
     >
       <div className="px-3 py-2 border-b border-slate-400 flex justify-between items-center">
         <div>
@@ -243,7 +245,7 @@ const Navbar = ({
 
           {(sessionUser?.role === "admin" || devMode) && (
             <Link to="/admin" className={getLinkClass("/admin")}>
-              Admin Page
+              Admin
             </Link>
           )}
 
@@ -262,20 +264,22 @@ const Navbar = ({
           )}
 
           {/* Notification Bell */}
-          <IconButton
-            icon={
-              <div>
-                <Bell size={24} />
-                {unreadCount > 0 && (
-                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                    {unreadCount}
-                  </span>
-                )}
-              </div>
-            }
-            color="hover:bg-blue-600 text-white"
-            onClick={handleBellClick}
-          />
+          {(sessionUser || devMode) && (
+            <IconButton
+              icon={
+                <div>
+                  <Bell size={24} />
+                  {unreadCount > 0 && (
+                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              }
+              color="hover:bg-blue-600 text-white"
+              onClick={handleBellClick}
+            />
+          )}
 
           {isNotificationsVisible && (
             <NotificationPanel

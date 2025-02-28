@@ -79,20 +79,22 @@ async function setupAssignedTo() {
             (CURRENT_DATE, 6, 31);
         `);
 
-        // Generate notifications ONLY for non-admin users (team members)
+        // Generate notifications only for tasks assigned by admins
+        // In the setup data, all task owners (from Task table) are admins (users 1-5)
         await pool.query(`
             WITH task_assignments AS (
                 SELECT 
                     a.user_id, 
-                    t.name as task_name
+                    t.name as task_name,
+                    t.owner_id
                 FROM 
                     assignedto a
                 JOIN 
                     Task t ON a.task_id = t.id
                 JOIN
-                    users u ON a.user_id = u.id
+                    users u ON t.owner_id = u.id
                 WHERE
-                    u.role = 'team_member'  -- Only for team members
+                    u.role = 'admin'
             )
             INSERT INTO notifications (user_id, message, type, status)
             SELECT 
@@ -104,7 +106,7 @@ async function setupAssignedTo() {
                 task_assignments;
         `);
 
-        return { message: "assignedto table created successfully with team member notifications only" };
+        return { message: "assignedto table created successfully with admin-assigned notifications" };
     } catch (err) {
         console.error("Error setting up assignedto table:", err.message);
         throw new Error("Failed to create assignedto table: " + err.message);
@@ -199,7 +201,7 @@ async function setupNotifications() {
                 id SERIAL PRIMARY KEY,
                 user_id INT NOT NULL,
                 message TEXT NOT NULL,
-                type VARCHAR(50) NOT NULL CHECK (type IN ('message', 'task_assignment', 'alert', 'task_update')),
+                type VARCHAR(50) NOT NULL CHECK (type IN ('message', 'task_assignment', 'alert', 'task_update', 'task_unassignment')),
                 status VARCHAR(20) DEFAULT 'unread' CHECK (status IN ('unread', 'read')),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE

@@ -141,6 +141,11 @@ const AssignTaskPanel = ({
             errorData.message || "Failed to unassign users from task"
           );
         }
+        setNotificationToAdd({
+          user_ids: userIdsToUnassign,
+          message: task.name,
+          type: "task_unassignment",
+        });
       }
 
       // Reset states
