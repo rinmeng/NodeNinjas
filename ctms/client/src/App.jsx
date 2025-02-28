@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import About from "./pages/About";
@@ -23,7 +23,7 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
-
+  const [notificationToAdd,setNotificationToAdd] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
 
   const timer = 2000;
@@ -47,6 +47,35 @@ function App() {
         setIsLoading(false);
       });
   }, []);
+//adding the notification 
+useEffect(() => {
+ async function addnotification(){
+    if (notificationToAdd) {
+
+      try {
+        const response = await fetch(proxy + "notification/add", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ user_ids : notificationToAdd.user_ids, message: notificationToAdd.message }),
+        });
+
+        if (!response.ok) {
+          throw new Error("Failed to add notification");
+        }
+
+        setFeedbackMessage("Notification added successfully");
+        setNotificationToAdd("");
+      } catch (error) {
+        console.error("Failed to add notification:", error);
+        setFeedbackMessage("Failed to add notification");
+      }
+    }
+ }
+  addnotification();
+}, [notificationToAdd]);
+
 
   useEffect(() => {
     if (feedbackMessage !== "") {
@@ -59,6 +88,7 @@ function App() {
   if (isLoading) {
     return <div>Loading...</div>;
   }
+  
 
   // Mark notifications as read
   const markNotificationsAsRead = () => {
@@ -80,6 +110,7 @@ function App() {
         devMode={devMode}
         notifications={notifications}
         setNotifications={setNotifications}
+        setNotificationToAdd={setNotificationToAdd}
         onMarkAsRead={markNotificationsAsRead}
         onToggleRead={toggleNotificationReadStatus}
       />
@@ -95,13 +126,20 @@ function App() {
                 notifications={notifications}
                 setNotifications={setNotifications}
                 setFeedbackMessage={setFeedbackMessage}
+                setNotificationToAdd={setNotificationToAdd}
               />
             }
           />
 
           <Route
             path="/admin"
-            element={<Admin sessionUser={sessionUser} devMode={devMode} />}
+            element={
+              <Admin
+                sessionUser={sessionUser}
+                devMode={devMode}
+                setFeedbackMessage={setFeedbackMessage}
+              />
+            }
           />
           <Route path="/about" element={<About />} />
           <Route

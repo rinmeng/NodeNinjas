@@ -14,6 +14,7 @@ const TaskDashboard = ({
   needsRefetch,
   setFeedbackMessage,
   devMode,
+  setNotificationToAdd,
 }) => {
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
@@ -91,6 +92,7 @@ const TaskDashboard = ({
                 setNotifications={setNotifications}
                 setFeedbackMessage={setFeedbackMessage}
                 devMode={devMode}
+                setNotificationToAdd={setNotificationToAdd}
               />
             ))}
           </div>

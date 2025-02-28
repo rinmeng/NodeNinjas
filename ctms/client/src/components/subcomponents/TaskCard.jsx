@@ -33,6 +33,7 @@ const TaskCard = ({
   notifications,
   setNotifications,
   setFeedbackMessage,
+  setNotificationToAdd,
   devMode,
 }) => {
   const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
@@ -253,6 +254,7 @@ const TaskCard = ({
 
   const handleAssignTask = () => {
     setShowAssignTaskPanel(!showAssignTaskPanel);
+
   };
 
   return (
@@ -472,6 +474,7 @@ const TaskCard = ({
         setNeedsRefetch={setNeedsRefetch}
         setFeedbackMessage={setFeedbackMessage}
         sessionUser={sessionUser}
+        setNotificationToAdd={setNotificationToAdd}
       />
     </div>
   );
