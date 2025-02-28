@@ -171,12 +171,21 @@ async function setupNotifications() {
             CREATE TABLE notifications (
                 id SERIAL PRIMARY KEY,
                 user_id INT NOT NULL,
+
+                type VARCHAR(50),
+                status VARCHAR(20) DEFAULT 'unread',
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            
+                
+
                 message TEXT NOT NULL,
                 type VARCHAR(50) CHECK (type IN ('message', 'task', 'alert')) NOT NULL,
                 status VARCHAR(20) CHECK (status IN ('unread', 'read')) DEFAULT 'unread',
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+
             );
 
             -- Indexes for better performance

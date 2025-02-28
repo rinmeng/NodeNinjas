@@ -13,6 +13,7 @@ const AddTaskPanel = ({
   setNeedsRefetch,
   notifications,
   setNotifications,
+  setNotificationToAdd,
 }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
@@ -92,8 +93,20 @@ const AddTaskPanel = ({
           read: false,
         };
 
+        // Update the notifications state for get assigned task
         setNotifications([...notifications, newNotification]);
+        
+        const newTaskNotification = {
+          id: setNotificationToAdd.length + 1,
+          message: `Task "${task.title}" added successfully!`,
+          description: task.description,
+          timestamp: new Date().toISOString(),
+          read: false,
+
+        };
+        setNotificationToAdd([...setNotificationToAdd, newTaskNotification]);
         setNeedsRefetch(true);
+
 
         setShowAddTaskPanel(false);
       })

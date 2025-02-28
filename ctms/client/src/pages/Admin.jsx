@@ -8,13 +8,23 @@ const proxy = "http://localhost:15000/";
 
 const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const [usersList, setUsersList] = useState([]);
+
+
+  //This is my UseState for filtering my data in the table
+  const [filterData, setFilterData] = useState("");
+
+  // UseState for the list of tasks you can view
+  const [taskList, setTaskList] = useState([]);
+
   const [chosenUserIds, setChosenUserIds] = useState([]); // This is my useState for when a checkbox is ticked for the list of users
   const validDeletions = []; //I made an array to store users who can be successfully deleted from the Admin table
+
 
   useEffect(() => {
     fetchUsers();
   }, []);
 
+  
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -58,6 +68,8 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         setUsersList(null);
       });
   };
+  
+
 
   const changeTable = (userId) => {
     setChosenUserIds((prev) => {

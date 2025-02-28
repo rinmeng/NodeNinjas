@@ -17,6 +17,7 @@ const AssignTaskPanel = ({
   onClose,
   setNeedsRefetch,
   setFeedbackMessage,
+  setNotificationToAdd,
   sessionUser,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -68,6 +69,19 @@ const AssignTaskPanel = ({
     }
 
     try {
+
+      const userIds = selectedUsers.map((user) => user.id);
+      const response = await fetch(`${proxy}/task/assign/${task.id}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        credentials: "include",
+        body: JSON.stringify({ user_ids: userIds }),
+        
+      });
+      //console.log(selectedUsers);
+
       // First, handle new assignments if there are any
       if (selectedUsers.length > 0) {
         // Filter out pre-assigned users that are not in the usersToUnassign list
@@ -129,6 +143,9 @@ const AssignTaskPanel = ({
       }
 
       setSelectedUsers([]);
+
+      setFeedbackMessage("Task assigned successfully!");
+      setNotificationToAdd({user_ids: userIds, message: `You have been assigned a task, ${task.name}`});
       setUsersToUnassign([]);
       setFeedbackMessage("Task assignments updated successfully!");
       setNeedsRefetch(true);
