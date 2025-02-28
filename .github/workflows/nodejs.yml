@@ -30,7 +30,7 @@ jobs:
       - name: Install dependencies
         run: |
           cd ctms/client
-          npm ci
+          npm install
           npm install --save react-router-dom
           npm install --save-dev @testing-library/jest-dom @testing-library/react @babel/plugin-proposal-private-property-in-object
           
