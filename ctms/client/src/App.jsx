@@ -9,9 +9,13 @@ import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import "./css/output.css";
 import Dashboard from "./pages/Dashboard";
+
+import ChatWidget from "./components/ChatWidget";
+
 import Chat from "./pages/Chat";
 import Feedback2 from "./components/subcomponents/Feedback2";
 import { CircleAlert, CircleCheck } from "lucide-react";
+
 
 const proxy = "http://localhost:15000/";
 
@@ -161,6 +165,7 @@ useEffect(() => {
           <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <ChatWidget />
       </div>
 
       <div>
