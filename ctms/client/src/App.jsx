@@ -16,7 +16,6 @@ import Chat from "./pages/Chat";
 import Feedback2 from "./components/subcomponents/Feedback2";
 import { CircleAlert, CircleCheck } from "lucide-react";
 
-
 const proxy = "http://localhost:15000/";
 
 function App() {
@@ -27,7 +26,7 @@ function App() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
-  const [notificationToAdd,setNotificationToAdd] = useState("");
+  const [notificationToAdd, setNotificationToAdd] = useState("");
   const [feedbackMessage, setFeedbackMessage] = useState("");
 
   const timer = 2000;
@@ -51,35 +50,37 @@ function App() {
         setIsLoading(false);
       });
   }, []);
-//adding the notification 
-useEffect(() => {
- async function addnotification(){
-    if (notificationToAdd) {
+  //adding the notification
+  useEffect(() => {
+    async function addnotification() {
+      if (notificationToAdd) {
+        try {
+          const response = await fetch(proxy + "notification/add", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              user_ids: notificationToAdd.user_ids,
+              message: notificationToAdd.message,
+              type: notificationToAdd.type,
+            }),
+          });
 
-      try {
-        const response = await fetch(proxy + "notification/add", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ user_ids : notificationToAdd.user_ids, message: notificationToAdd.message }),
-        });
+          if (!response.ok) {
+            throw new Error("Failed to add notification");
+          }
 
-        if (!response.ok) {
-          throw new Error("Failed to add notification");
+          setFeedbackMessage("Notification added successfully");
+          setNotificationToAdd("");
+        } catch (error) {
+          console.error("Failed to add notification:", error);
+          setFeedbackMessage("Failed to add notification");
         }
-
-        setFeedbackMessage("Notification added successfully");
-        setNotificationToAdd("");
-      } catch (error) {
-        console.error("Failed to add notification:", error);
-        setFeedbackMessage("Failed to add notification");
       }
     }
- }
-  addnotification();
-}, [notificationToAdd]);
-
+    addnotification();
+  }, [notificationToAdd]);
 
   useEffect(() => {
     if (feedbackMessage !== "") {
@@ -92,7 +93,6 @@ useEffect(() => {
   if (isLoading) {
     return <div>Loading...</div>;
   }
-  
 
   // Mark notifications as read
   const markNotificationsAsRead = () => {

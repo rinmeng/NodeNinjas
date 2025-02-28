@@ -69,18 +69,8 @@ const AssignTaskPanel = ({
     }
 
     try {
-
       const userIds = selectedUsers.map((user) => user.id);
-      const response = await fetch(`${proxy}/task/assign/${task.id}`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ user_ids: userIds }),
-        
-      });
-      //console.log(selectedUsers);
+      let changesOccurred = false;
 
       // First, handle new assignments if there are any
       if (selectedUsers.length > 0) {
@@ -94,6 +84,7 @@ const AssignTaskPanel = ({
           .map((user) => user.id);
 
         if (userIdsToAssign.length > 0) {
+          changesOccurred = true; // Mark that changes happened
           const assignResponse = await fetch(
             `${proxy}/task/assign/${task.id}`,
             {
@@ -112,6 +103,16 @@ const AssignTaskPanel = ({
               errorData.message || "Failed to assign task to users"
             );
           }
+
+          // Only add notifications if there are new assignments
+          if (userIdsToAssign.length > 0) {
+            setNotificationToAdd({
+              user_ids: userIdsToAssign,
+              message: `You have been assigned a task, ${task.name}`,
+              type: "task",
+            });
+          }
+          console.log(userIdsToAssign);
         }
       }
 
@@ -122,6 +123,7 @@ const AssignTaskPanel = ({
         .map((user) => user.id);
 
       if (userIdsToUnassign.length > 0) {
+        changesOccurred = true; // Mark that changes happened
         const unassignResponse = await fetch(
           `${proxy}/task/unassign/${task.id}`,
           {
@@ -142,13 +144,19 @@ const AssignTaskPanel = ({
         }
       }
 
+      // Reset states
       setSelectedUsers([]);
-
-      setFeedbackMessage("Task assigned successfully!");
-      setNotificationToAdd({user_ids: userIds, message: `You have been assigned a task, ${task.name}`});
       setUsersToUnassign([]);
-      setFeedbackMessage("Task assignments updated successfully!");
-      setNeedsRefetch(true);
+
+      // Only show feedback message if changes were made
+      if (changesOccurred) {
+        setFeedbackMessage("Task assignments updated successfully!");
+        setNeedsRefetch(true);
+      } else {
+        // No actual changes were made
+        setFeedbackMessage("No changes were made to task assignments.");
+      }
+
       onClose();
     } catch (error) {
       setFeedbackMessage("Failed to update task assignments: " + error.message);
