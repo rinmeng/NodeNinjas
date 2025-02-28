@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const pool = require("../db"); // Ensure this correctly connects to your database
+const pool = require("../ctmsDB"); // Ensure this correctly connects to your database
 
 //  Send a message
 router.post("/", async (req, res) => {
