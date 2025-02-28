@@ -11,7 +11,7 @@ const ChatWidget = ({ sessionUser }) => {
   const [messages, setMessages] = useState([]); // Chat history
   const [newMessage, setNewMessage] = useState("");
 
-  // 🔹 Fetch all users when chat opens
+  // Fetch all users when chat opens
   useEffect(() => {
     if (isOpen) {
       axios
@@ -21,7 +21,7 @@ const ChatWidget = ({ sessionUser }) => {
     }
   }, [isOpen]);
 
-  // 🔹 Fetch messages when a user is selected
+  // Fetch messages when a user is selected
   useEffect(() => {
     if (selectedUser) {
       axios
@@ -31,7 +31,7 @@ const ChatWidget = ({ sessionUser }) => {
     }
   }, [selectedUser]);
 
-  // 🔹 Send a message
+  // Send a message
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !selectedUser) return;
 

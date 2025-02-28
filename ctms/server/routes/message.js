@@ -1,21 +1,21 @@
 
 const express = require("express");
 const router = express.Router();
-const pool = require("../ctmsDB"); // Ensure this correctly connects to your database
+const pool = require("../db"); 
 
-//  Send a message
+// Send a message
 router.post("/", async (req, res) => {
-  const { sender_id, receiver_id, message } = req.body;
+  const { sender_id, recipient_id, text } = req.body;  // Use column names
 
-  if (!sender_id || !receiver_id || !message.trim()) {
+  if (!sender_id || !recipient_id || !text.trim()) {
     return res.status(400).json({ error: "All fields are required." });
   }
 
   try {
     const result = await pool.query(
-      `INSERT INTO messages (sender_id, receiver_id, message) 
+      `INSERT INTO messages (sender_id, recipient_id, text) 
        VALUES ($1, $2, $3) RETURNING *`,
-      [sender_id, receiver_id, message]
+      [sender_id, recipient_id, text]  // Use column names
     );
 
     res.status(201).json(result.rows[0]); // Send back the inserted message
@@ -31,17 +31,17 @@ const pool = require('../db'); // Import your database connection pool
 
 
 // 🔹 Get messages between two users
-router.get("/:sender_id/:receiver_id", async (req, res) => {
-  const { sender_id, receiver_id } = req.params;
+router.get("/:sender_id/:recipient_id", async (req, res) => {
+  const { sender_id, recipient_id } = req.params;
 
 
   try {
     const result = await pool.query(
       `SELECT * FROM messages 
-       WHERE (sender_id = $1 AND receiver_id = $2) 
-          OR (sender_id = $2 AND receiver_id = $1)
+       WHERE (sender_id = $1 AND recipient_id = $2) 
+          OR (sender_id = $2 AND recipient_id = $1)
        ORDER BY sent_at ASC`,
-      [sender_id, receiver_id]
+      [sender_id, recipient_id]  
     );
 
     res.json(result.rows);
