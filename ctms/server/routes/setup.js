@@ -168,14 +168,12 @@ async function setupNotifications() {
     try {
         await pool.query(`
             DROP TABLE IF EXISTS notifications CASCADE;
-            CREATE TYPE notification_type AS ENUM('message', 'task', 'alert');
-            CREATE TYPE notification_status AS ENUM('unread', 'read');
             CREATE TABLE notifications (
                 id SERIAL PRIMARY KEY,
                 user_id INT NOT NULL,
                 message TEXT NOT NULL,
-                type notification_type NOT NULL,
-                status notification_status NOT NULL DEFAULT 'unread',
+                type VARCHAR(50) NOT NULL CHECK (type IN ('message', 'task', 'alert')),
+                status VARCHAR(20) DEFAULT 'unread' CHECK (status IN ('unread', 'read')),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             );
