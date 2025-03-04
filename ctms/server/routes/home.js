@@ -26,6 +26,12 @@ router.get('/', (req, res) => {
 
             <!-- Endpoints Grid -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <!-- Setup Endpoint -->
+                <a href="${proxy}/setup" class="block p-6 bg-gray-700 border border-gray-600 rounded-lg shadow hover:bg-gray-600 transition duration-300">
+                    <h3 class="text-xl font-semibold text-gray-100 mb-2">Setup Endpoint</h3>
+                    <p class="text-gray-300">Database setup and initialization</p>
+                </a>
+
                 <!-- User Endpoint -->
                 <a href="${proxy}/user" class="block p-6 bg-gray-700 border border-gray-600 rounded-lg shadow hover:bg-gray-600 transition duration-300">
                     <h3 class="text-xl font-semibold text-gray-100 mb-2">User Endpoint</h3>
@@ -36,12 +42,6 @@ router.get('/', (req, res) => {
                 <a href="${proxy}/task" class="block p-6 bg-gray-700 border border-gray-600 rounded-lg shadow hover:bg-gray-600 transition duration-300">
                     <h3 class="text-xl font-semibold text-gray-100 mb-2">Task Endpoint</h3>
                     <p class="text-gray-300">Task creation and management</p>
-                </a>
-
-                <!-- Setup Endpoint -->
-                <a href="${proxy}/setup" class="block p-6 bg-gray-700 border border-gray-600 rounded-lg shadow hover:bg-gray-600 transition duration-300">
-                    <h3 class="text-xl font-semibold text-gray-100 mb-2">Setup Endpoint</h3>
-                    <p class="text-gray-300">Database setup and initialization</p>
                 </a>
 
                 <!-- Notification Endpoint -->

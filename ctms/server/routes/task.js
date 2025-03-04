@@ -9,8 +9,7 @@ const { isAuthAsAdmin } = require('../auth');
 
 // GET /task/
 router.get('/', (req, res) => {
-    res.send(`
-<!DOCTYPE html>
+    res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -18,7 +17,7 @@ router.get('/', (req, res) => {
     <title>Task Endpoint Documentation</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.0.2/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body class="bg-gray-900 min-h-screen p-8 text-gray-100">
+<body class="bg-gray-900 min-h-screen p-8">
     <div class="max-w-4xl mx-auto bg-gray-800 rounded-lg shadow-lg p-8">
         <h1 class="text-3xl font-bold text-gray-100 mb-6">Task Endpoint Documentation</h1>
         
@@ -26,88 +25,49 @@ router.get('/', (req, res) => {
             <!-- Authentication Note -->
             <div class="bg-gray-700 p-4 rounded-lg">
                 <h2 class="text-xl font-semibold text-blue-300 mb-2">Authentication</h2>
-                <p class="text-gray-200">All task endpoints require authentication via <code class="bg-gray-600 px-1 rounded">isAuthenticated</code> middleware.</p>
+                <p class="text-gray-200">All endpoints require authentication. Task routes are protected by <code class="bg-gray-600 px-1 rounded">isAuthenticated</code> middleware.</p>
             </div>
 
             <!-- Endpoints Section -->
             <div class="space-y-6">
+                <!-- GET /task/all -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /task/all</h3>
+                    <p class="text-gray-300 mt-2">Retrieves all tasks from the database, ordered by ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+[
+    {
+        "id": number,
+        "name": string,
+        "date": date,
+        "description": string,
+        "status": string,
+        "priority": string,
+        "owner_id": number,
+        "is_locked": boolean,
+        "created_at": timestamp
+    }
+]
+                        </pre>
+                    </div>
+                </div>
+
                 <!-- POST /task/add -->
                 <div class="border-l-4 border-blue-500 pl-4">
                     <h3 class="text-xl font-semibold text-gray-100">POST /task/add</h3>
-                    <p class="text-gray-300 mt-2">Creates a new task with optional user assignments.</p>
+                    <p class="text-gray-300 mt-2">Creates a new task and assigns it to the owner.</p>
                     <div class="mt-3">
                         <h4 class="font-medium text-gray-200">Request Body:</h4>
                         <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
 {
-    "name": string,       // Required
-    "date": date,        // Required
+    "name": string,          // Required
+    "date": date,            // Required
     "description": string,
-    "status": "pending" | "in_progress" | "completed",  // Required
-    "priority": "low" | "medium" | "high",             // Required
-    "assigned_users": number[]  // Optional array of user IDs
-}
-                        </pre>
-                    </div>
-                    <div class="mt-3">
-                        <h4 class="font-medium text-gray-200">Notes:</h4>
-                        <ul class="list-disc ml-5 text-gray-300">
-                            <li>Status defaults to "pending" if not provided</li>
-                            <li>Priority defaults to "medium" if not provided</li>
-                            <li>assigned_users is optional</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- PUT /task/update/:id -->
-                <div class="border-l-4 border-yellow-500 pl-4">
-                    <h3 class="text-xl font-semibold text-gray-100">PUT /task/update/:id</h3>
-                    <p class="text-gray-300 mt-2">Updates an existing task and its assignments.</p>
-                    <div class="mt-3">
-                        <h4 class="font-medium text-gray-200">Request Body:</h4>
-                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
-{
-    "id": number,        // Required
-    "name": string,
-    "date": date,
-    "description": string,
-    "status": "pending" | "in_progress" | "completed",
-    "priority": "low" | "medium" | "high",
-    "assigned_users": number[]  // Array of user IDs
-}
-                        </pre>
-                    </div>
-                    <div class="mt-3">
-                        <h4 class="font-medium text-gray-200">Notes:</h4>
-                        <ul class="list-disc ml-5 text-gray-300">
-                            <li>Updates will replace all existing assignments</li>
-                            <li>Existing assignments are removed before new ones are added</li>
-                        </ul>
-                    </div>
-                </div>
-
-                <!-- DELETE /task/delete/:id -->
-                <div class="border-l-4 border-red-500 pl-4">
-                    <h3 class="text-xl font-semibold text-gray-100">DELETE /task/delete/:id</h3>
-                    <p class="text-gray-300 mt-2">Deletes a task by ID.</p>
-                    <div class="mt-3">
-                        <h4 class="font-medium text-gray-200">Request Body:</h4>
-                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
-{
-    "id": number  // Required
-}
-                        </pre>
-                    </div>
-                </div>
-
-                <!-- GET /task/id/:id -->
-                <div class="border-l-4 border-green-500 pl-4">
-                    <h3 class="text-xl font-semibold text-gray-100">GET /task/id/:id</h3>
-                    <p class="text-gray-300 mt-2">Retrieves a specific task with all assigned users.</p>
-                    <div class="mt-3">
-                        <h4 class="font-medium text-gray-200">Request Body:</h4>
-                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
-{
-    "id": number  // Required
+    "status": string,        // Required (defaults to "pending" if not specified)
+    "priority": string,      // Required (defaults to "medium" if not specified)
+    "owner_id": number       // Required
 }
                         </pre>
                     </div>
@@ -119,8 +79,98 @@ router.get('/', (req, res) => {
     "name": string,
     "date": date,
     "description": string,
-    "status": "pending" | "in_progress" | "completed",
-    "priority": "low" | "medium" | "high",
+    "status": string,
+    "priority": string,
+    "owner_id": number,
+    "is_locked": boolean,
+    "created_at": timestamp
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Notes:</h4>
+                        <ul class="list-disc ml-5 text-gray-300">
+                            <li>Task name and description must be unique</li>
+                            <li>The owner is automatically assigned to the task</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- DELETE /task/delete/:id -->
+                <div class="border-l-4 border-red-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">DELETE /task/delete/:id</h3>
+                    <p class="text-gray-300 mt-2">Deletes a task by ID and removes all assignments.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number    // Required
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "message": "Task deleted successfully"
+}
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- PUT /task/update/:id -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">PUT /task/update/:id</h3>
+                    <p class="text-gray-300 mt-2">Updates a task's information by ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "name": string,
+    "date": date,
+    "description": string,
+    "status": string,
+    "priority": string
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "name": string,
+    "date": date,
+    "description": string,
+    "status": string,
+    "priority": string,
+    "owner_id": number,
+    "is_locked": boolean,
+    "created_at": timestamp
+}
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- GET /task/id/:id -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /task/id/:id</h3>
+                    <p class="text-gray-300 mt-2">Retrieves a task by ID, including all assigned users.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - Task ID (number)</p>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "name": string,
+    "date": date,
+    "description": string,
+    "status": string,
+    "priority": string,
     "assigned_users": [
         {
             "user_id": number,
@@ -138,12 +188,8 @@ router.get('/', (req, res) => {
                     <h3 class="text-xl font-semibold text-gray-100">GET /task/assignedto/user/:id</h3>
                     <p class="text-gray-300 mt-2">Retrieves all tasks assigned to a specific user.</p>
                     <div class="mt-3">
-                        <h4 class="font-medium text-gray-200">Request Body:</h4>
-                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
-{
-    "id": number  // Required
-}
-                        </pre>
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - User ID (number)</p>
                     </div>
                     <div class="mt-3">
                         <h4 class="font-medium text-gray-200">Response:</h4>
@@ -154,10 +200,152 @@ router.get('/', (req, res) => {
         "name": string,
         "date": date,
         "description": string,
-        "status": "pending" | "in_progress" | "completed",
-        "priority": "low" | "medium" | "high"
+        "status": string,
+        "priority": string,
+        "is_locked": boolean,
+        "created_at": timestamp,
+        "owner_id": number,
+        "owner_username": string,
+        "owner_display_name": string
     }
 ]
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- GET /task/assignedto/all -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /task/assignedto/all</h3>
+                    <p class="text-gray-300 mt-2">Retrieves all task-to-user assignments.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+[
+    {
+        "user_id": number,
+        "task_id": number,
+        "assigned_date": date
+    }
+]
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- PUT /task/lock/:id -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">PUT /task/lock/:id</h3>
+                    <p class="text-gray-300 mt-2">Locks a task by ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number    // Required
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "name": string,
+    "date": date,
+    "description": string,
+    "status": string,
+    "priority": string,
+    "owner_id": number,
+    "is_locked": true,
+    "created_at": timestamp
+}
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- PUT /task/unlock/:id -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">PUT /task/unlock/:id</h3>
+                    <p class="text-gray-300 mt-2">Unlocks a task by ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number    // Required
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "name": string,
+    "date": date,
+    "description": string,
+    "status": string,
+    "priority": string,
+    "owner_id": number,
+    "is_locked": false,
+    "created_at": timestamp
+}
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- POST /task/assign/:id -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">POST /task/assign/:id</h3>
+                    <p class="text-gray-300 mt-2">Assigns a task to one or more users.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - Task ID (number)</p>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "user_ids": number[]    // Required - Array of user IDs
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "message": "Assignment process completed"
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Notes:</h4>
+                        <ul class="list-disc ml-5 text-gray-300">
+                            <li>Already assigned users will be filtered out</li>
+                            <li>Only new assignments will be created</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- DELETE /task/unassign/:id -->
+                <div class="border-l-4 border-red-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">DELETE /task/unassign/:id</h3>
+                    <p class="text-gray-300 mt-2">Unassigns a task from one or more users.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - Task ID (number)</p>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "user_ids": number[]    // Required - Array of user IDs
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "message": "Unassignment process completed"
+}
                         </pre>
                     </div>
                 </div>
@@ -165,20 +353,51 @@ router.get('/', (req, res) => {
 
             <!-- Error Handling -->
             <div class="bg-gray-700 p-4 rounded-lg mt-8">
-                <h2 class="text-xl font-semibold text-red-300 mb-2">Error Responses</h2>
+                <h2 class="text-xl font-semibold text-yellow-300 mb-2">Error Responses</h2>
                 <div class="space-y-2">
-                    <p class="text-gray-200"><strong>400:</strong> Missing required fields</p>
-                    <p class="text-gray-200"><strong>404:</strong> Task or user not found</p>
-                    <p class="text-gray-200"><strong>401:</strong> Unauthorized access</p>
+                    <p class="text-gray-200"><strong>400:</strong> Bad request (missing required fields)</p>
+                    <p class="text-gray-200"><strong>401:</strong> Unauthorized access (not authenticated)</p>
+                    <p class="text-gray-200"><strong>404:</strong> Resource not found</p>
                     <p class="text-gray-200"><strong>500:</strong> Internal server error</p>
                 </div>
-                <p class="text-gray-200 mt-4">Note: All error responses follow the format: <code class="bg-gray-600 px-1 rounded">{ "message": string }</code></p>
+                <div class="mt-4">
+                    <h3 class="font-medium text-gray-200">Common Error Messages:</h3>
+                    <ul class="list-disc ml-5 text-gray-300">
+                        <li>"Missing required fields"</li>
+                        <li>"Task name already exists"</li>
+                        <li>"Task description already exists"</li>
+                        <li>"Task not found"</li>
+                        <li>"No assignments found"</li>
+                        <li>"No tasks found under this user"</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="bg-gray-700 p-4 rounded-lg mt-8">
+                <h2 class="text-xl font-semibold text-purple-300 mb-2">Task Schema</h2>
+                <pre class="bg-gray-600 p-3 rounded mt-2 text-sm text-gray-200">
+CREATE TYPE task_status AS ENUM('pending', 'in_progress', 'completed');
+CREATE TYPE task_priority AS ENUM('low', 'medium', 'high');
+DROP TABLE IF EXISTS Task CASCADE;
+CREATE TABLE Task(
+    id SERIAL PRIMARY KEY,
+    name VARCHAR(255) UNIQUE NOT NULL,
+    description TEXT,
+    date DATE NOT NULL,
+    status task_status NOT NULL DEFAULT 'pending',
+    priority task_priority NOT NULL DEFAULT 'medium',
+    is_locked BOOLEAN DEFAULT FALSE,
+    owner_id INT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE SET NULL,
+    CONSTRAINT unique_description UNIQUE (description)
+);
+                </pre>
             </div>
         </div>
     </div>
 </body>
-</html>
-        `);
+</html>`);
 });
 
 // GET /task/all - Fetch all tasks
