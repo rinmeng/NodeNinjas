@@ -5,7 +5,8 @@ const router = express.Router();
 async function setupPgSession() {
     try {
         await pool.query(`
-            DROP TABLE IF EXISTS user_sessions CASCADE;
+            DROP TABLE IF EXISTS user_sessions CASCADE;`);
+        await pool.query(`
             CREATE TABLE user_sessions (
                 sid VARCHAR(100) PRIMARY KEY,
                 sess JSON NOT NULL,
