@@ -7,6 +7,8 @@ import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 const proxy = "http://localhost:15000/";
 
 const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
+ 
+
   const [usersList, setUsersList] = useState([]);
 
 
@@ -19,11 +21,10 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const [chosenUserIds, setChosenUserIds] = useState([]); // This is my useState for when a checkbox is ticked for the list of users
   const validDeletions = []; //I made an array to store users who can be successfully deleted from the Admin table
 
-
   useEffect(() => {
     fetchUsers();
   }, []);
-
+  
   
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
@@ -46,6 +47,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
     { header: "Email Address", key: "email" },
     { header: "Role", key: "role" },
     { header: "Select User", key: "selectUser" },
+    {header:"Change Role",key:"changeRole"},
   ];
 
   //We are obtaining the users from our database
@@ -152,6 +154,42 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const RemoveTicks = () => {
     setChosenUserIds([]);
   };
+  //updating the user's role
+  const updateUserRole = (userId, newRole) => {
+    fetch(proxy + `user/updateRole/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ role: newRole }),
+    })
+      .then(async (res) => {
+        if (!res.ok) {
+          const error = await res.json();
+          setFeedbackMessage(error.message || "Failed to update role");
+          throw new Error(error.message || "Failed to update role");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setFeedbackMessage("Role updated successfully");
+       
+        //update userlist state immediately
+        setUsersList((prev) =>
+          prev.map((user) => 
+            user.id === userId ? { ...user, role: newRole } : user
+      )
+        );
+        fetchUsers(); // Fetch update from backend
+      })
+          
+
+      .catch((error) => {
+        console.error("Error updating role:", error);
+      });
+  };
+
 
   return (
     <div className="mp5 my-16 animate-fadein">
@@ -200,6 +238,16 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
                       checked={Ticked}
                       onChange={() => changeTable(user.id)}
                     />
+                  ),
+                  changeRole: (
+                    <select
+                      value={user.role}
+                      onChange={(e) => updateUserRole(user.id, e.target.value)}
+                      className="bg-yellow-500 text-white rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                    >
+                      <option value="admin">Admin</option>
+                      <option value="team_member">team_member</option>
+                    </select>
                   ),
                 };
               })}
