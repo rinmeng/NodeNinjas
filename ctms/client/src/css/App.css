@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+@layer components {
+  .glass-slate {
+    @apply bg-slate-800/50 backdrop-filter backdrop-blur-xl shadow-lg;
+  }
+
+  .glass-blue {
+    @apply bg-blue-800/50 backdrop-filter backdrop-blur-lg shadow-lg;
+  }
+
+  .strong-slate {
+    @apply bg-slate-800/95 backdrop-filter backdrop-blur-3xl shadow-lg;
+  }
+
+  .glass-amber {
+    @apply bg-amber-800/50 backdrop-filter backdrop-blur-lg shadow-lg;
+  }
+
+  .glass-green {
+    @apply bg-green-800/50 backdrop-filter backdrop-blur-lg shadow-lg;
+  }
+
+  .mp5 {
+    @apply m-5 p-5;
+  }
+
+  .title {
+    @apply text-5xl font-bold;
+  }
+  .title-sm {
+    @apply text-2xl font-bold;
+  }
+
+  .text-field-icon {
+    @apply absolute left-3 w-5 h-5 text-gray-400;
+  }
+
+  .text-field {
+    @apply p-2 text-xl bg-slate-700  items-center focus:bg-slate-800 text-center focus:outline-none rounded-md border-slate-500 border-2 transition-all duration-200 ease-in-out text-white pl-10 w-full;
+  }
+
+  .forms {
+    @apply p-2 text-xl bg-slate-700  items-center focus:bg-slate-800 text-center focus:outline-none rounded-md border-slate-500 border-2 transition-all duration-200 ease-in-out text-white;
+  }
+
+  .btn {
+    @apply px-6 py-3 bg-slate-800 text-white font-extrabold rounded-xl hover:bg-slate-900 transition-all duration-200 ease-in-out;
+  }
+  .t200e {
+    @apply transition-all duration-200 ease-in-out;
+  }
+
+  .t500e {
+    @apply transition-all duration-500 ease-in-out;
+  }
+
+  .t1000e {
+    @apply transition-all duration-1000 ease-in-out;
+  }
+
+  .btn-red {
+    @apply px-6 py-3 bg-red-600 text-white font-bold rounded-xl hover:bg-red-700 transition-all duration-200 ease-in-out;
+  }
+
+  .btn-green {
+    @apply px-6 py-3 bg-green-600 text-white font-bold rounded-xl hover:bg-green-700 transition-all duration-200 ease-in-out;
+  }
+
+  .btn-grey {
+    @apply px-6 py-3 bg-gray-500 text-white font-bold rounded-full hover:bg-gray-700 transition-all duration-200 ease-in-out;
+  }
+  .btn-blue {
+    @apply px-6 py-3 bg-blue-600 text-white font-bold rounded-full hover:bg-blue-700 transition-all duration-200 ease-in-out;
+  }
+  .btn-white {
+    @apply px-6 py-3 bg-white text-black font-bold rounded-full hover:bg-gray-300 transition-all duration-200 ease-in-out;
+  }
+  .zoomin {
+    @apply hover:scale-125;
+  }
+  .zoomin-sm {
+    @apply hover:scale-110;
+  }
+
+  .task {
+    @apply p-2 border border-gray-700 rounded w-full mb-4 bg-black text-white placeholder-gray-500 focus:outline-none focus:border-blue-500;
+  }
+  .task-bg {
+    @apply bg-slate-800 p-6 rounded-lg shadow-lg;
+  }
+
+  .pill-grey {
+    @apply bg-slate-500 text-white px-4 py-2 rounded-full hover:bg-slate-600 transition-all duration-200 ease-in-out;
+  }
+  .pill-green {
+    @apply bg-green-600 text-white px-4 py-2 rounded-full hover:bg-green-700 transition-all duration-200 ease-in-out;
+  }
+  .pill-yellow {
+    @apply bg-yellow-600 text-white px-4 py-2 rounded-full hover:bg-yellow-700 transition-all duration-200 ease-in-out;
+  }
+
+  .pill-red {
+    @apply bg-red-600 text-white px-4 py-2 rounded-full hover:bg-red-700 transition-all duration-200 ease-in-out;
+  }
+  .pill-blue {
+    @apply bg-blue-600 text-white px-4 py-2 rounded-full hover:bg-blue-700 transition-all duration-200 ease-in-out;
+  }
+
+  .pill {
+    @apply px-4 py-2 rounded-full transition-all duration-200 ease-in-out;
+  }
+
+  .navbar-links {
+    @apply text-white hover:bg-blue-700 px-3 py-2 rounded-md transition-all duration-200 ease-in-out;
+  }
+}
+
+@theme {
+  --color-lb-100: oklch(90.14% 0.0579 232.56);
+  --color-lb-200: oklch(85.14% 0.0579 232.56);
+  --color-lb-300: oklch(80.14% 0.0579 232.56);
+  --color-lb-400: oklch(75.14% 0.0579 232.56);
+  --color-lb-500: oklch(70.14% 0.0579 232.56);
+  --color-lb-600: oklch(65.14% 0.0579 232.56);
+  --color-lb-700: oklch(60.14% 0.0579 232.56);
+  --color-lb-800: oklch(55.14% 0.0579 232.56);
+  --color-lb-900: oklch(50.14% 0.0579 232.56);
+  --color-dsg: oklch(32.51% 0.0291 141.08);
+  --drop-shadow-box: 1px 6px 6px rgba(0, 0, 0, 0.25);
+  --drop-shadow-3xl: 0 35px 35px rgba(0, 0, 0, 0.35);
+  --drop-shadow-4xl: 0 45px 65px rgba(0, 0, 0, 0.45);
+
+  --animate-fade-in: fadeIn 0.5s ease-in-out forwards;
+
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+}

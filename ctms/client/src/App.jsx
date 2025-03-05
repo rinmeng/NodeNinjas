@@ -7,7 +7,6 @@ import Login from "./pages/Login";
 import TestUser from "./pages/testing/TestUser";
 import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
-import "./css/output.css";
 import Dashboard from "./pages/Dashboard";
 
 import ChatWidget from "./components/ChatWidget";

@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import "../../css/output.css";
 import DBTable from "./subcomp/DBTable";
 
 const proxy = "http://localhost:15000/";
