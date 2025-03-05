@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 
 import proxy from "../utils/proxy";
+import { Separator } from "@/components/ui/separator";
 
 const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
   const today = new Date().toISOString().split("T")[0];
@@ -149,7 +150,7 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-4">
+          <div className="flex flex-row space-x-4">
             <div className="grid gap-2">
               <Label htmlFor="date">Due Date</Label>
               <Input
@@ -200,6 +201,8 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
             </div>
           </div>
         </form>
+
+        <Separator className="bg-slate-600" />
 
         <DialogFooter>
           <Button

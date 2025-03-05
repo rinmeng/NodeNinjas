@@ -11,11 +11,11 @@ import proxy from "../utils/proxy";
 
 // Import Shadcn UI components
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
   DialogHeader,
+  DialogClose,
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -28,8 +28,6 @@ import getDateWithRelativeTime from "../utils/getDateWithRelativeTime";
 
 const AssignTaskPanel = ({
   task,
-  isOpen,
-  onClose,
   setNeedsRefetch,
   setFeedbackMessage,
   setNotificationToAdd,
@@ -37,8 +35,8 @@ const AssignTaskPanel = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [preAssignedUsers, setPreAssignedUsers] = useState([]); // Track already assigned users
-  const [usersToUnassign, setUsersToUnassign] = useState([]); // Track users to be unassigned
+  const [preAssignedUsers, setPreAssignedUsers] = useState([]);
+  const [usersToUnassign, setUsersToUnassign] = useState([]);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -146,8 +144,6 @@ const AssignTaskPanel = ({
         // No actual changes were made
         setFeedbackMessage("No changes were made to task assignments.");
       }
-
-      onClose();
     } catch (error) {
       setFeedbackMessage("Failed to update task assignments: " + error.message);
     }
@@ -296,9 +292,8 @@ const AssignTaskPanel = ({
     }
   }, [task, setFeedbackMessage]);
 
-  // Initialize data when panel opens
   useEffect(() => {
-    if (isOpen && task) {
+    if (task) {
       if (sessionUser.role === "admin") {
         const initializeData = async () => {
           // First fetch all available users
@@ -313,20 +308,17 @@ const AssignTaskPanel = ({
         fetchAssignedUsersNotAdmin();
       }
     } else {
-      // Reset states when panel closes
-      setSearchQuery("");
-      setSelectedUsers([]);
-      setPreAssignedUsers([]);
-      setUsersToUnassign([]);
+      // Reset states when component unmounts or task changes
+      resetStates();
     }
-  }, [
-    isOpen,
-    task,
-    findAvailableUsers,
-    fetchAssignedUsers,
-    sessionUser.role,
-    fetchAssignedUsersNotAdmin,
-  ]);
+  }, [task, sessionUser.role]);
+
+  const resetStates = () => {
+    setSearchQuery("");
+    setSelectedUsers([]);
+    setPreAssignedUsers([]);
+    setUsersToUnassign([]);
+  };
 
   // Filter available users based on search query (for admins)
   const filteredUsers = availableUsers.filter((user) => {
@@ -387,180 +379,173 @@ const AssignTaskPanel = ({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[900px]  max-h-[100vh] bg-slate-900 text-white border-slate-600 overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="text-xl font-semibold flex justify-between items-center">
-            Task Assignment
-          </DialogTitle>
-          <DialogDescription className="text-slate-400">
-            Manage user assignments for this task
-          </DialogDescription>
-        </DialogHeader>
+    <DialogContent className="sm:max-w-[900px]  max-h-[100vh] bg-slate-900 text-white border-slate-600 overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="text-xl font-semibold flex justify-between items-center">
+          Task Assignment
+        </DialogTitle>
+        <DialogDescription className="text-slate-400">
+          Manage user assignments for this task
+        </DialogDescription>
+      </DialogHeader>
 
-        {/* Task Information */}
-        <div className="bg-slate-800 p-4 rounded-lg">
-          <h2 className="text-lg font-semibold text-white">
-            Task: {task.name}
-          </h2>
-          <p className="text-slate-300 text-sm truncate">{task.description}</p>
-          <p className="text-slate-400 text-sm mt-2">
-            Created by:{" "}
-            <span className="text-white">
-              @{task.owner_username} ({task.owner_display_name})
-            </span>
-          </p>
-          <p className="text-slate-400 text-sm">
-            Created on:{" "}
-            <span className="text-white">
-              {getDateWithRelativeTime(task.created_at)}
-            </span>
-          </p>
+      {/* Task Information */}
+      <div className="bg-slate-800 p-4 rounded-lg">
+        <h2 className="text-lg font-semibold text-white">Task: {task.name}</h2>
+        <p className="text-slate-300 text-sm truncate">{task.description}</p>
+        <p className="text-slate-400 text-sm mt-2">
+          Created by:{" "}
+          <span className="text-white">
+            @{task.owner_username} ({task.owner_display_name})
+          </span>
+        </p>
+        <p className="text-slate-400 text-sm">
+          Created on:{" "}
+          <span className="text-white">
+            {getDateWithRelativeTime(task.created_at)}
+          </span>
+        </p>
+      </div>
+
+      {/* Search Users - For both admin and non-admin */}
+      <div>
+        <h3 className="text-md mb-2">Search Users</h3>
+        <div className="relative">
+          <UserSearch className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search by name, username, or email..."
+            className="pl-8 bg-slate-800 border-slate-700 text-white"
+            value={searchQuery}
+            onChange={handleSearch}
+          />
         </div>
+      </div>
 
-        {/* Search Users - For both admin and non-admin */}
-        <div>
-          <h3 className="text-md mb-2">Search Users</h3>
-          <div className="relative">
-            <UserSearch className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
-            <Input
-              placeholder="Search by name, username, or email..."
-              className="pl-8 bg-slate-800 border-slate-700 text-white"
-              value={searchQuery}
-              onChange={handleSearch}
-            />
+      {/* Selected Users - For non-admin users */}
+      {sessionUser.role !== "admin" && (
+        <div className="mt-4">
+          <h3 className="text-md mb-2">
+            Assigned Users ({filteredSelectedUsers.length}/
+            {selectedUsers.length})
+          </h3>
+          <div className="bg-slate-800 rounded-lg p-2">
+            <ScrollArea className="h-32 w-full">
+              {isLoading ? (
+                <div className="text-slate-400 text-center py-4">
+                  Loading assigned users...
+                </div>
+              ) : filteredSelectedUsers.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {filteredSelectedUsers.map((user) => (
+                    <Badge
+                      key={user.id}
+                      variant="success"
+                      className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white"
+                    >
+                      @{user.username} ({user.display_name})
+                      <UserRoundCheck size={16} />
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-slate-400 text-center py-4">
+                  {searchQuery
+                    ? "No users match your search"
+                    : "This task has no assigned users"}
+                </div>
+              )}
+            </ScrollArea>
           </div>
         </div>
+      )}
 
-        {/* Selected Users - For non-admin users */}
-        {sessionUser.role !== "admin" && (
-          <div className="mt-4">
+      {/* Search Results - For admin only */}
+      {sessionUser.role === "admin" && (
+        <div className="space-y-4">
+          <div>
             <h3 className="text-md mb-2">
-              Assigned Users ({filteredSelectedUsers.length}/
-              {selectedUsers.length})
+              Manage Users ({selectedUsers.length}/{availableUsers.length})
             </h3>
             <div className="bg-slate-800 rounded-lg p-2">
               <ScrollArea className="h-32 w-full">
                 {isLoading ? (
-                  <div className="text-slate-400 text-center py-4">
-                    Loading assigned users...
+                  <div className="text-slate-400 text-center py-4 ">
+                    Loading available users...
                   </div>
-                ) : filteredSelectedUsers.length > 0 ? (
-                  <div className="flex flex-wrap gap-2">
-                    {filteredSelectedUsers.map((user) => (
+                ) : filteredUsers.length > 0 ? (
+                  <div className="flex flex-wrap gap-2 p-2">
+                    {filteredUsers.map((user) => (
+                      // ...existing code...
                       <Badge
                         key={user.id}
-                        variant="success"
-                        className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white"
+                        variant={getUserBadgeVariant(user)}
+                        className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white${
+                          isTaskOwner(user.id)
+                            ? "opacity-50 cursor-not-allowed text-black"
+                            : "cursor-pointer hover:scale-105 transition-transform"
+                        }`}
+                        onClick={() =>
+                          !isTaskOwner(user.id) && toggleUserSelection(user)
+                        }
                       >
                         @{user.username} ({user.display_name})
-                        <UserRoundCheck size={16} />
+                        {isUserPreAssigned(user.id) &&
+                          isUserToUnassign(user.id) &&
+                          !isTaskOwner(user.id) && <UserRoundMinus size={16} />}
+                        {isUserPreAssigned(user.id) &&
+                          !isUserToUnassign(user.id) &&
+                          !isTaskOwner(user.id) && <UserRoundCheck size={16} />}
+                        {!isUserPreAssigned(user.id) &&
+                          isUserSelected(user.id) &&
+                          !isTaskOwner(user.id) && <UserPlus size={16} />}
                       </Badge>
+                      // ...existing code...
                     ))}
                   </div>
                 ) : (
                   <div className="text-slate-400 text-center py-4">
+                    <UserX size={24} className="mx-auto mb-2" />
                     {searchQuery
                       ? "No users match your search"
-                      : "This task has no assigned users"}
+                      : "No available users found"}
                   </div>
                 )}
               </ScrollArea>
             </div>
-          </div>
-        )}
 
-        {/* Search Results - For admin only */}
-        {sessionUser.role === "admin" && (
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-md mb-2">
-                Manage Users ({selectedUsers.length}/{availableUsers.length})
-              </h3>
-              <div className="bg-slate-800 rounded-lg p-2">
-                <ScrollArea className="h-32 w-full">
-                  {isLoading ? (
-                    <div className="text-slate-400 text-center py-4 ">
-                      Loading available users...
-                    </div>
-                  ) : filteredUsers.length > 0 ? (
-                    <div className="flex flex-wrap gap-2 p-2">
-                      {filteredUsers.map((user) => (
-                        // ...existing code...
-                        <Badge
-                          key={user.id}
-                          variant={getUserBadgeVariant(user)}
-                          className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white${
-                            isTaskOwner(user.id)
-                              ? "opacity-50 cursor-not-allowed text-black"
-                              : "cursor-pointer hover:scale-105 transition-transform"
-                          }`}
-                          onClick={() =>
-                            !isTaskOwner(user.id) && toggleUserSelection(user)
-                          }
-                        >
-                          @{user.username} ({user.display_name})
-                          {isUserPreAssigned(user.id) &&
-                            isUserToUnassign(user.id) &&
-                            !isTaskOwner(user.id) && (
-                              <UserRoundMinus size={16} />
-                            )}
-                          {isUserPreAssigned(user.id) &&
-                            !isUserToUnassign(user.id) &&
-                            !isTaskOwner(user.id) && (
-                              <UserRoundCheck size={16} />
-                            )}
-                          {!isUserPreAssigned(user.id) &&
-                            isUserSelected(user.id) &&
-                            !isTaskOwner(user.id) && <UserPlus size={16} />}
-                        </Badge>
-                        // ...existing code...
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="text-slate-400 text-center py-4">
-                      <UserX size={24} className="mx-auto mb-2" />
-                      {searchQuery
-                        ? "No users match your search"
-                        : "No available users found"}
-                    </div>
-                  )}
-                </ScrollArea>
-              </div>
-
-              <div className="text-xs text-slate-400 mt-1">
-                <p>
-                  Slate: Already assigned or to be assigned | Red: To be
-                  unassigned
-                </p>
-              </div>
+            <div className="text-xs text-slate-400 mt-1">
+              <p>
+                Slate: Already assigned or to be assigned | Red: To be
+                unassigned
+              </p>
             </div>
-
-            <Separator className="bg-slate-600" />
-
-            <DialogFooter>
-              <Button
-                variant="outline"
-                className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
-                onClick={onClose}
-              >
-                Cancel
-              </Button>
-              <Button
-                className="bg-blue-600 hover:bg-blue-700 text-white"
-                onClick={handleManageUsers}
-              >
-                Update Assignments
-                <UserRoundCheck className="h-4 w-4 ml-1" />
-              </Button>
-            </DialogFooter>
           </div>
-        )}
-      </DialogContent>
-    </Dialog>
+        </div>
+      )}
+
+      <Separator className="bg-slate-600" />
+
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button
+            variant="outline"
+            className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
+          >
+            Cancel
+          </Button>
+        </DialogClose>
+        <DialogClose asChild>
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleManageUsers}
+          >
+            Update Assignments
+            <UserRoundCheck className="h-4 w-4 ml-1" />
+          </Button>
+        </DialogClose>
+      </DialogFooter>
+    </DialogContent>
   );
 };
 

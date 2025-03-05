@@ -23,6 +23,7 @@ import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
 import IconButton from "./IconButton";
 import AssignTaskPanel from "../AssignTaskPanel";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 const TaskCard = ({
   task,
@@ -321,33 +322,59 @@ const TaskCard = ({
 
           {/* Action buttons */}
           <div className="flex items-center">
-            <IconButton
-              onClick={handleEditTask}
-              icon={<SquarePen size={20} />}
-              tooltip="Edit this task"
-              isDisabled={isTaskLocked}
-              disabled={isTaskLocked}
-              color={"hover:bg-blue-500 hover:text-white"}
-            />
+            <Dialog>
+              <DialogTrigger asChild>
+                <IconButton
+                  icon={<SquarePen size={20} />}
+                  tooltip="Edit this task"
+                  isDisabled={isTaskLocked}
+                  disabled={isTaskLocked}
+                  color={"hover:bg-blue-500 hover:text-white"}
+                />
+              </DialogTrigger>
+
+              {!isTaskLocked && (
+                <EditTaskPanel
+                  sessionUser={sessionUser}
+                  taskToEdit={task}
+                  setNeedsRefetch={setNeedsRefetch}
+                  setNotificationToAdd={setNotificationToAdd}
+                  setFeedbackMessage={setFeedbackMessage}
+                />
+              )}
+            </Dialog>
 
             <div>
-              <IconButton
-                onClick={handleAssignTask}
-                icon={
-                  sessionUser.role === "admin" ? (
-                    <UserRoundCog size={20} />
-                  ) : (
-                    <Users size={20} />
-                  )
-                }
-                tooltip={
-                  sessionUser.role === "admin"
-                    ? "Manage assigned users"
-                    : "View assigned users"
-                }
-                isDisabled={isTaskLocked}
-                color={"hover:bg-blue-500 hover:text-white"}
-              />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <IconButton
+                    icon={
+                      sessionUser.role === "admin" ? (
+                        <UserRoundCog size={20} />
+                      ) : (
+                        <Users size={20} />
+                      )
+                    }
+                    tooltip={
+                      sessionUser.role === "admin"
+                        ? "Manage assigned users"
+                        : "View assigned users"
+                    }
+                    isDisabled={isTaskLocked}
+                    color={"hover:bg-blue-500 hover:text-white"}
+                  />
+                </DialogTrigger>
+
+                {!isTaskLocked && (
+                  <AssignTaskPanel
+                    task={task}
+                    setNeedsRefetch={setNeedsRefetch}
+                    setFeedbackMessage={setFeedbackMessage}
+                    setNotificationToAdd={setNotificationToAdd}
+                    sessionUser={sessionUser}
+                  />
+                )}
+              </Dialog>
 
               {sessionUser.role === "admin" && (
                 <IconButton
@@ -448,30 +475,6 @@ const TaskCard = ({
           </div>
         )}
       </div>
-
-      {/* Only show edit panel if not locked */}
-      {!isTaskLocked && (
-        <EditTaskPanel
-          sessionUser={sessionUser}
-          taskToEdit={task}
-          isOpen={showUpdateTaskPanel}
-          onClose={handleEditTask}
-          setNeedsRefetch={setNeedsRefetch}
-          setNotificationToAdd={setNotificationToAdd}
-          setFeedbackMessage={setFeedbackMessage}
-        />
-      )}
-
-      {/* Only show assign panel if not locked */}
-      <AssignTaskPanel
-        task={task}
-        isOpen={showAssignTaskPanel}
-        onClose={() => setShowAssignTaskPanel(false)}
-        setNeedsRefetch={setNeedsRefetch}
-        setFeedbackMessage={setFeedbackMessage}
-        sessionUser={sessionUser}
-        setNotificationToAdd={setNotificationToAdd}
-      />
     </div>
   );
 };
