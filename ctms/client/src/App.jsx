@@ -4,8 +4,6 @@ import Navbar from "./components/Navbar";
 import About from "./pages/About";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
-import TestUser from "./pages/testing/TestUser";
-import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
 import Dashboard from "./pages/Dashboard";
 
@@ -201,12 +199,6 @@ function App() {
               />
             }
           />
-          <Route
-            path="/test"
-            element={<Test sessionUser={sessionUser} devMode={devMode} />}
-          />
-          {/* <Route path="/message" element={<Chat />} /> */}
-          <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <ChatWidget />
