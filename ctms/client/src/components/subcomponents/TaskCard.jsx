@@ -255,7 +255,7 @@ const TaskCard = ({
   return (
     <div
       key={task.id}
-      className={`border-2 ${
+      className={`border-2 mb-10 ${
         isTaskLocked ? "border-red-500" : "border-gray-600"
       } m-auto w-full md:w-3/5 flex flex-col
       bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-4 md:p-6 

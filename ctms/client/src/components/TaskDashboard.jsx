@@ -81,7 +81,7 @@ const TaskDashboard = ({
           <h1 className="text-center text-slate-400 mb-4">
             {taskList.length} tasks found
           </h1>
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col">
             {taskList.map((task) => (
               <TaskCard
                 key={task.id}

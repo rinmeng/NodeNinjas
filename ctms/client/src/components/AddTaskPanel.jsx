@@ -1,6 +1,6 @@
 import { ListPlus, X } from "lucide-react";
 import React, { useState } from "react";
-import IconizedButton from "./subcomponents/IconizedButton";
+import IconizedButton from "@/src/components/subcomponents/IconizedButton";
 
 import proxy from "../utils/proxy";
 import IconButton from "./subcomponents/IconButton";
@@ -11,9 +11,6 @@ const AddTaskPanel = ({
   setFeedbackMessage,
   sessionUser,
   setNeedsRefetch,
-  notifications,
-  setNotifications,
-  setNotificationToAdd,
 }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
@@ -96,7 +93,7 @@ const AddTaskPanel = ({
     <div
       className={`${
         showAddTaskPanel ? "block" : "hidden"
-      } fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50`}
+      } fixed top-0 left-0 w-full h-full bg-black/50 z-50`}
     >
       <div
         className="fixed top-1/2 left-1/2 transform -translate-x-1/2 

@@ -14,7 +14,7 @@ const IconButton = ({
   const displayIcon = isHovering && hoverIcon ? hoverIcon : icon;
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block ">
       <button
         onClick={onClick}
         onMouseEnter={() => setIsHovering(true)}
@@ -22,7 +22,7 @@ const IconButton = ({
         className={`p-2 items-center rounded-full transition-all duration-200 text-slate-500  ${
           isDisabled ? "" : color
         }
-        ${isDisabled ? "opacity-50 cursor-not-allowed " : ""}`}
+        ${isDisabled ? "opacity-50 cursor-not-allowed " : "cursor-pointer"}`}
         disabled={isDisabled}
       >
         {displayIcon}
