@@ -88,18 +88,9 @@ const NotificationPanel = ({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        className="w-[360px] sm:w-[400px] p-0 pt-6 flex flex-col"
+        className="w-[360px] sm:w-[400px] p-0 flex flex-col gap-0 "
         side="right"
       >
-        <div className="absolute left-4 top-4">
-          <SheetClose asChild>
-            <IconButton
-              icon={<X size={18} />}
-              color="hover:bg-slate-200 text-slate-500"
-            />
-          </SheetClose>
-        </div>
-
         <SheetHeader className="px-4 border-b border-slate-200 pb-3">
           <SheetTitle className="font-semibold text-slate-800 text-right">
             Notifications
