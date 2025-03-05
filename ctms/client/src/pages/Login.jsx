@@ -256,7 +256,7 @@ const Login = ({
               <h1 className="title text-white">Login to myCMTS</h1>
               <hr className="w-1/4 m-auto my-4" />
 
-              <form className="flex flex-col space-y-4 w-1/2 m-auto">
+              <form className="flex flex-col space-y-4 w-1/2 m-auto ">
                 <IconizedTextField
                   icon={<User strokeWidth={2} className="text-field-icon" />}
                   inputDisplay="Username"

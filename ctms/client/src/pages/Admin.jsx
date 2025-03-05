@@ -7,16 +7,7 @@ import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 const proxy = "http://localhost:15000/";
 
 const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
- 
-
   const [usersList, setUsersList] = useState([]);
-
-
-  //This is my UseState for filtering my data in the table
-  const [filterData, setFilterData] = useState("");
-
-  // UseState for the list of tasks you can view
-  const [taskList, setTaskList] = useState([]);
 
   const [chosenUserIds, setChosenUserIds] = useState([]); // This is my useState for when a checkbox is ticked for the list of users
   const validDeletions = []; //I made an array to store users who can be successfully deleted from the Admin table
@@ -24,8 +15,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   useEffect(() => {
     fetchUsers();
   }, []);
-  
-  
+
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -47,7 +37,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
     { header: "Email Address", key: "email" },
     { header: "Role", key: "role" },
     { header: "Select User", key: "selectUser" },
-    {header:"Change Role",key:"changeRole"},
+    { header: "Change Role", key: "changeRole" },
   ];
 
   //We are obtaining the users from our database
@@ -70,8 +60,6 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         setUsersList(null);
       });
   };
-  
-
 
   const changeTable = (userId) => {
     setChosenUserIds((prev) => {
@@ -88,7 +76,10 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const deleteUsers = () => {
     //There will be an alert when no users are selected after pressing the "Delete Selected Users" button
     if (chosenUserIds.length === 0) {
-      setFeedbackMessage("No users are selected!");
+      setFeedbackMessage({
+        title: "Error",
+        description: "No users are selected!",
+      });
       return;
     }
 
@@ -106,7 +97,10 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         .then(async (res) => {
           if (!res.ok) {
             const error = await res.json();
-            setFeedbackMessage(error);
+            setFeedbackMessage({
+              title: "Error",
+              description: "Failed to delete user ID: " + userId,
+            });
           }
           return res.json();
         })
@@ -116,29 +110,38 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
           console.log(validDeletions);
         })
         .catch((error) => {
-          setFeedbackMessage(
-            "At least one of the users can't be deleted as they are an admin"
-          );
+          setFeedbackMessage({
+            title: "Error",
+            description:
+              "At least one of the users can't be deleted as they are an admin",
+          });
           fetchUsers();
         })
         .finally(() => {
           if (!validDeletions.length > 0) {
-            setFeedbackMessage("No users were deleted");
+            setFeedbackMessage({
+              title: "Error",
+              description: "No users were deleted",
+            });
           } else {
             setChosenUserIds((prev) =>
               prev.filter((id) => !validDeletions.includes(id))
             );
-            setFeedbackMessage(
-              "Successful user deletion for user(s) with ID of " +
-                `${validDeletions}`
-            );
+            setFeedbackMessage({
+              title: "Success",
+              description: "User(s) deleted successfully",
+            });
           }
         });
     });
 
     const confirm = window.confirm("Would you like to delete these users?");
     if (!confirm) {
-      setFeedbackMessage("You didn't delete any users");
+      setFeedbackMessage({
+        title: "Error",
+        description: "No users were deleted",
+      });
+
       return;
     }
 
@@ -167,29 +170,33 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       .then(async (res) => {
         if (!res.ok) {
           const error = await res.json();
-          setFeedbackMessage(error.message || "Failed to update role");
+          setFeedbackMessage({
+            title: "Error",
+            description: "Failed to update role",
+          });
           throw new Error(error.message || "Failed to update role");
         }
         return res.json();
       })
       .then((data) => {
-        setFeedbackMessage("Role updated successfully");
-       
+        setFeedbackMessage({
+          title: "Success",
+          description: "Role updated successfully",
+        });
+
         //update userlist state immediately
         setUsersList((prev) =>
-          prev.map((user) => 
+          prev.map((user) =>
             user.id === userId ? { ...user, role: newRole } : user
-      )
+          )
         );
         fetchUsers(); // Fetch update from backend
       })
-          
 
       .catch((error) => {
         console.error("Error updating role:", error);
       });
   };
-
 
   return (
     <div className="mp5 my-16 animate-fadein">

@@ -40,27 +40,30 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
 
   const handleAddTask = async (e) => {
     e.preventDefault();
+
+    // First check the basic validation before sending network request
+    if (!task.title || !task.date || !task.priority || !task.status) {
+      setFeedbackMessage("Please fill in all required fields.");
+      return; // Don't close dialog or proceed with API call
+    }
     try {
       await addTaskToDatabase();
-      // Close dialog on successful task addition
       setOpen(false);
     } catch (error) {
-      console.error("Failed to add task:", error);
-      setFeedbackMessage(error.message || "Failed to add task.");
+      console.error("Error adding task:", error);
+      setFeedbackMessage(error.message); // Use error.message, not the error object itself
     }
   };
 
   const addTaskToDatabase = async () => {
-    if (!task.title || !task.date || !task.priority || !task.status) {
-      throw new Error("Please fill in all required fields.");
-    }
     const assignedUserIDs = [];
     // check if user is signed in
     if (sessionUser) {
       assignedUserIDs.push(sessionUser.id);
     }
+
     // make post request to add task to database
-    return fetch(`${proxy}/task/add`, {
+    const response = await fetch(`${proxy}/task/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -75,37 +78,36 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
         owner_id: sessionUser ? sessionUser.id : null,
       }),
       credentials: "include",
-    })
-      .then((addResponse) => {
-        if (!addResponse.ok) {
-          return addResponse.json().then((err) => {
-            throw new Error(err.message || "Failed to add task.");
-          });
-        }
-        return addResponse.json();
-      })
-      .then(() => {
-        setTask({
-          title: "",
-          description: "",
-          date: today,
-          priority: "low",
-          status: "pending",
-        });
-        if (!sessionUser) {
-          setFeedbackMessage(
-            "Task will be added with no asignees, please sign in to assign users to the task."
-          );
-        } else {
-          setFeedbackMessage("Task added successfully!");
-        }
+    });
 
-        setNeedsRefetch(true);
-      })
-      .catch((err) => {
-        setFeedbackMessage(err.message);
-        throw err; // Re-throw to be caught by handleAddTask
-      });
+    // Parse the response body
+    const data = await response.json();
+
+    // If response is not ok, throw the error and STOP EXECUTION
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to add task");
+    }
+
+    // Only reach here if successful
+    // Update task state and provide feedback
+    setTask({
+      title: "",
+      description: "",
+      date: today,
+      priority: "low",
+      status: "pending",
+    });
+
+    if (!sessionUser) {
+      setFeedbackMessage(
+        "Task will be added with no asignees, please sign in to assign users to the task."
+      );
+    } else {
+      setFeedbackMessage("Task added successfully!");
+    }
+
+    setNeedsRefetch(true);
+    return data;
   };
 
   return (

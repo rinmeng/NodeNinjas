@@ -41,7 +41,7 @@
   }
 
   .text-field {
-    @apply p-2 text-xl bg-slate-700  items-center focus:bg-slate-800 text-center focus:outline-none rounded-md border-slate-500 border-2 transition-all duration-200 ease-in-out text-white pl-10 w-full;
+    @apply p-2 text-xl bg-slate-700 items-center focus:bg-slate-800 text-left focus:outline-none rounded-md border-slate-500 border-2 transition-all duration-200 ease-in-out text-white pl-10 w-full;
   }
 
   .forms {

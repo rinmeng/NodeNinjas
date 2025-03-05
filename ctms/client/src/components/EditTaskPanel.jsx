@@ -66,10 +66,30 @@ const EditTaskPanel = ({
   };
 
   const handleUpdateTask = async () => {
-    if ((taskAfterEdit.name == "") | (taskAfterEdit.date == "")) {
-      setFeedbackMessage("Please fill in all required fields.");
+    if (taskAfterEdit.name == "" || taskAfterEdit.date == "") {
+      setFeedbackMessage({
+        title: "Missing Requirements",
+        description: "Please fill in all required fields.",
+      });
       return;
     }
+
+    // Check if there are any changes
+    const hasChanges =
+      taskAfterEdit.name !== taskToEdit.name ||
+      taskAfterEdit.description !== taskToEdit.description ||
+      taskAfterEdit.date !== taskToEdit.date ||
+      taskAfterEdit.priority !== taskToEdit.priority ||
+      taskAfterEdit.status !== taskToEdit.status;
+
+    if (!hasChanges) {
+      setFeedbackMessage({
+        title: "No Recorded Changes",
+        description: "No changes were made to the task.",
+      });
+      return;
+    }
+
     try {
       const response = await fetch(`${proxy}/task/update/:id`, {
         method: "PUT",
@@ -95,7 +115,10 @@ const EditTaskPanel = ({
       const data = await response.json();
       console.log("Updated task:", data);
       setNeedsRefetch(true);
-      setFeedbackMessage("Task updated successfully!");
+      setFeedbackMessage({
+        title: "Success",
+        description: "Task updated successfully!",
+      });
 
       // Add notification if status was changed to completed
       if (
@@ -110,7 +133,10 @@ const EditTaskPanel = ({
       }
     } catch (error) {
       console.error("Failed to update task:", error);
-      setFeedbackMessage(error.message || "Failed to update task.");
+      setFeedbackMessage({
+        title: "Error",
+        description: error.message || "Failed to update task.",
+      });
     }
   };
 

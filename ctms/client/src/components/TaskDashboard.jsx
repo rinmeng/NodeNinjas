@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ClipboardList, RefreshCw } from "lucide-react";
 import TaskCard from "./subcomponents/TaskCard";
-import IconizedButton from "./subcomponents/IconizedButton";
 import AddTaskPanel from "./AddTaskPanel";
 import { Button } from "@/components/ui/button";
 
@@ -30,6 +29,9 @@ const TaskDashboard = ({
       // set time out for 1 second to simulate refetching
       setTimeout(() => {
         setIsRefetching(false);
+        if (isRefetching) {
+          setFeedbackMessage("Tasks have been successfully synced");
+        }
       }, 1000);
     }
   }, [needsRefetch, setNeedsRefetch, setFeedbackMessage]);

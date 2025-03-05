@@ -47,9 +47,10 @@ const AssignTaskPanel = ({
   const handleManageUsers = async () => {
     // Handle case when there's nothing to do
     if (selectedUsers.length === 0 && usersToUnassign.length === 0) {
-      setFeedbackMessage(
-        "Please select users to assign or unassign from the task."
-      );
+      setFeedbackMessage({
+        title: "Missing Requirements",
+        description: "Please select users to assign or unassign from the task.",
+      });
       return;
     }
 
@@ -138,14 +139,22 @@ const AssignTaskPanel = ({
 
       // Only show feedback message if changes were made
       if (changesOccurred) {
-        setFeedbackMessage("Task assignments updated successfully!");
+        setFeedbackMessage({
+          title: "Success",
+          description: "Task assignment updated successfully!",
+        });
         setNeedsRefetch(true);
       } else {
-        // No actual changes were made
-        setFeedbackMessage("No changes were made to task assignments.");
+        setFeedbackMessage({
+          title: "No Changes Made",
+          description: "No changes were made to task assignments.",
+        });
       }
     } catch (error) {
-      setFeedbackMessage("Failed to update task assignments: " + error.message);
+      setFeedbackMessage({
+        title: "Error",
+        description: "Failed to update task assignments: " + error.message,
+      });
     }
   };
 
@@ -202,7 +211,10 @@ const AssignTaskPanel = ({
       return data; // Return the users data for potential use
     } catch (error) {
       console.error("Error fetching available users:", error);
-      setFeedbackMessage(error.message || "Failed to fetch available users");
+      setFeedbackMessage({
+        title: "Error",
+        description: "Failed to fetch available users: " + error.message,
+      });
       return []; // Return empty array in case of error
     } finally {
       setIsLoading(false);
@@ -253,9 +265,11 @@ const AssignTaskPanel = ({
         setPreAssignedUsers(assignedUsers);
       } catch (error) {
         console.error("Error fetching assigned users:", error);
-        setFeedbackMessage(
-          "Failed to fetch currently assigned users: " + error.message
-        );
+        setFeedbackMessage({
+          title: "Error",
+          description:
+            "Failed to fetch currently assigned users: " + error.message,
+        });
       }
     },
     [task, setFeedbackMessage]
@@ -284,9 +298,11 @@ const AssignTaskPanel = ({
       setSelectedUsers(data.assigned_users || []);
     } catch (error) {
       console.error("Error fetching assigned users:", error);
-      setFeedbackMessage(
-        error.message || "Failed to fetch currently assigned users"
-      );
+      setFeedbackMessage({
+        title: "Error",
+        description:
+          "Failed to fetch currently assigned users: " + error.message,
+      });
     } finally {
       setIsLoading(false);
     }
