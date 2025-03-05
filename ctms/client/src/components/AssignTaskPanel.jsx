@@ -7,14 +7,27 @@ import {
   UserPlus,
   UserRoundMinus,
 } from "lucide-react";
-import IconButton from "./subcomponents/IconButton";
-import IconizedButton from "./subcomponents/IconizedButton";
 import proxy from "../utils/proxy";
+
+// Import Shadcn UI components
+import {
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogClose,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+
+import getDateWithRelativeTime from "../utils/getDateWithRelativeTime";
 
 const AssignTaskPanel = ({
   task,
-  isOpen,
-  onClose,
   setNeedsRefetch,
   setFeedbackMessage,
   setNotificationToAdd,
@@ -22,8 +35,8 @@ const AssignTaskPanel = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
-  const [preAssignedUsers, setPreAssignedUsers] = useState([]); // Track already assigned users
-  const [usersToUnassign, setUsersToUnassign] = useState([]); // Track users to be unassigned
+  const [preAssignedUsers, setPreAssignedUsers] = useState([]);
+  const [usersToUnassign, setUsersToUnassign] = useState([]);
   const [availableUsers, setAvailableUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -31,45 +44,17 @@ const AssignTaskPanel = ({
     setSearchQuery(e.target.value);
   };
 
-  const getDateWithRelativeTime = (dateString) => {
-    if (!dateString) return "Invalid Date"; // Handle empty values safely
-
-    // Ensure date is parsed correctly
-    const taskDate = new Date(dateString);
-    if (isNaN(taskDate.getTime())) return "Invalid Date"; // Handle parsing errors
-
-    const now = new Date();
-    const diffInMs = taskDate.getTime() - now.getTime();
-    const diffInDays = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
-
-    // Format the date properly
-    const formattedDate = taskDate.toLocaleDateString("en-CA", {
-      weekday: "short",
-      month: "numeric",
-      day: "numeric",
-      year: "numeric",
-    });
-
-    if (diffInDays === 0) return `${formattedDate} (Today)`;
-    if (diffInDays === 1) return `${formattedDate} (Tomorrow)`;
-    if (diffInDays > 1) return `${formattedDate} (In ${diffInDays} days)`;
-    if (diffInDays < 0)
-      return `${formattedDate} (${Math.abs(diffInDays)} days ago)`;
-
-    return formattedDate;
-  };
-
   const handleManageUsers = async () => {
     // Handle case when there's nothing to do
     if (selectedUsers.length === 0 && usersToUnassign.length === 0) {
-      setFeedbackMessage(
-        "Please select users to assign or unassign from the task."
-      );
+      setFeedbackMessage({
+        title: "Missing Requirements",
+        description: "Please select users to assign or unassign from the task.",
+      });
       return;
     }
 
     try {
-      const userIds = selectedUsers.map((user) => user.id);
       let changesOccurred = false;
 
       // First, handle new assignments if there are any
@@ -154,16 +139,22 @@ const AssignTaskPanel = ({
 
       // Only show feedback message if changes were made
       if (changesOccurred) {
-        setFeedbackMessage("Task assignments updated successfully!");
+        setFeedbackMessage({
+          title: "Success",
+          description: "Task assignment updated successfully!",
+        });
         setNeedsRefetch(true);
       } else {
-        // No actual changes were made
-        setFeedbackMessage("No changes were made to task assignments.");
+        setFeedbackMessage({
+          title: "No Changes Made",
+          description: "No changes were made to task assignments.",
+        });
       }
-
-      onClose();
     } catch (error) {
-      setFeedbackMessage("Failed to update task assignments: " + error.message);
+      setFeedbackMessage({
+        title: "Error",
+        description: "Failed to update task assignments: " + error.message,
+      });
     }
   };
 
@@ -220,7 +211,10 @@ const AssignTaskPanel = ({
       return data; // Return the users data for potential use
     } catch (error) {
       console.error("Error fetching available users:", error);
-      setFeedbackMessage(error.message || "Failed to fetch available users");
+      setFeedbackMessage({
+        title: "Error",
+        description: "Failed to fetch available users: " + error.message,
+      });
       return []; // Return empty array in case of error
     } finally {
       setIsLoading(false);
@@ -271,9 +265,11 @@ const AssignTaskPanel = ({
         setPreAssignedUsers(assignedUsers);
       } catch (error) {
         console.error("Error fetching assigned users:", error);
-        setFeedbackMessage(
-          "Failed to fetch currently assigned users: " + error.message
-        );
+        setFeedbackMessage({
+          title: "Error",
+          description:
+            "Failed to fetch currently assigned users: " + error.message,
+        });
       }
     },
     [task, setFeedbackMessage]
@@ -302,17 +298,18 @@ const AssignTaskPanel = ({
       setSelectedUsers(data.assigned_users || []);
     } catch (error) {
       console.error("Error fetching assigned users:", error);
-      setFeedbackMessage(
-        error.message || "Failed to fetch currently assigned users"
-      );
+      setFeedbackMessage({
+        title: "Error",
+        description:
+          "Failed to fetch currently assigned users: " + error.message,
+      });
     } finally {
       setIsLoading(false);
     }
   }, [task, setFeedbackMessage]);
 
-  // Initialize data when panel opens
   useEffect(() => {
-    if (isOpen && task) {
+    if (task) {
       if (sessionUser.role === "admin") {
         const initializeData = async () => {
           // First fetch all available users
@@ -327,20 +324,17 @@ const AssignTaskPanel = ({
         fetchAssignedUsersNotAdmin();
       }
     } else {
-      // Reset states when panel closes
-      setSearchQuery("");
-      setSelectedUsers([]);
-      setPreAssignedUsers([]);
-      setUsersToUnassign([]);
+      // Reset states when component unmounts or task changes
+      resetStates();
     }
-  }, [
-    isOpen,
-    task,
-    findAvailableUsers,
-    fetchAssignedUsers,
-    sessionUser.role,
-    fetchAssignedUsersNotAdmin,
-  ]);
+  }, [task, sessionUser.role]);
+
+  const resetStates = () => {
+    setSearchQuery("");
+    setSelectedUsers([]);
+    setPreAssignedUsers([]);
+    setUsersToUnassign([]);
+  };
 
   // Filter available users based on search query (for admins)
   const filteredUsers = availableUsers.filter((user) => {
@@ -386,195 +380,188 @@ const AssignTaskPanel = ({
     return task && userId === task.owner_id;
   };
 
-  if (!isOpen) return null;
+  // Get badge variant for user
+  const getUserBadgeVariant = (user) => {
+    if (isTaskOwner(user.id)) {
+      return "secondary";
+    } else if (isUserPreAssigned(user.id) && isUserToUnassign(user.id)) {
+      return "destructive";
+    } else if (isUserPreAssigned(user.id)) {
+      return "default";
+    } else if (isUserSelected(user.id)) {
+      return "default";
+    } else {
+      return "outline";
+    }
+  };
 
   return (
-    <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50">
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4 border-2 border-slate-600">
-        <div className="flex flex-row justify-between items-center">
-          <div className="title-sm">Task Assignment</div>
-          <IconButton
-            icon={<X size={30} />}
-            onClick={onClose}
-            color="hover:bg-white hover:text-slate-950"
+    <DialogContent className="sm:max-w-[900px]  max-h-[100vh] bg-slate-900 text-white border-slate-600 overflow-y-auto">
+      <DialogHeader>
+        <DialogTitle className="text-xl font-semibold flex justify-between items-center">
+          Task Assignment
+        </DialogTitle>
+        <DialogDescription className="text-slate-400">
+          Manage user assignments for this task
+        </DialogDescription>
+      </DialogHeader>
+
+      {/* Task Information */}
+      <div className="bg-slate-800 p-4 rounded-lg">
+        <h2 className="text-lg font-semibold text-white">Task: {task.name}</h2>
+        <p className="text-slate-300 text-sm truncate">{task.description}</p>
+        <p className="text-slate-400 text-sm mt-2">
+          Created by:{" "}
+          <span className="text-white">
+            @{task.owner_username} ({task.owner_display_name})
+          </span>
+        </p>
+        <p className="text-slate-400 text-sm">
+          Created on:{" "}
+          <span className="text-white">
+            {getDateWithRelativeTime(task.created_at)}
+          </span>
+        </p>
+      </div>
+
+      {/* Search Users - For both admin and non-admin */}
+      <div>
+        <h3 className="text-md mb-2">Search Users</h3>
+        <div className="relative">
+          <UserSearch className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+          <Input
+            placeholder="Search by name, username, or email..."
+            className="pl-8 bg-slate-800 border-slate-700 text-white"
+            value={searchQuery}
+            onChange={handleSearch}
           />
         </div>
+      </div>
 
-        <div className="border-b border-slate-600 my-4"></div>
-
-        {/* Task Information */}
-        <div className="bg-slate-800 p-4 rounded-lg">
-          <h2 className="text-lg font-semibold text-white ">
-            Task: {task.name}
-          </h2>
-          <p className="text-slate-300 text-sm truncate">{task.description}</p>
-          <p className="text-slate-400 text-sm mt-2">
-            Created by:{" "}
-            <span className="text-white">
-              @{task.owner_username} ({task.owner_display_name})
-            </span>
-          </p>
-          <p className="text-slate-400 text-sm">
-            Created on:{" "}
-            <span className="text-white">
-              {getDateWithRelativeTime(task.created_at)}
-            </span>
-          </p>
-        </div>
-
-        {/* Search Users - For both admin and non-admin */}
-        <div>
-          <h1 className="text-md mb-2 ">Search Users</h1>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <UserSearch size={20} className="text-slate-400" />
-            </div>
-            <input
-              type="text"
-              placeholder="Search by name, username, or email..."
-              className="forms text-left pl-10 w-full"
-              value={searchQuery}
-              onChange={handleSearch}
-            />
-          </div>
-        </div>
-
-        {/* Selected Users - For non-admin users */}
-        {sessionUser.role !== "admin" && (
-          <div className="mt-4">
-            <h1 className="text-md mb-2">
-              Assigned Users ({filteredSelectedUsers.length}/
-              {selectedUsers.length})
-            </h1>
-            <div
-              className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
-              ${
-                filteredSelectedUsers.length === 0
-                  ? "justify-center"
-                  : "justify-start"
-              }
-            `}
-            >
+      {/* Selected Users - For non-admin users */}
+      {sessionUser.role !== "admin" && (
+        <div className="mt-4">
+          <h3 className="text-md mb-2">
+            Assigned Users ({filteredSelectedUsers.length}/
+            {selectedUsers.length})
+          </h3>
+          <div className="bg-slate-800 rounded-lg p-2">
+            <ScrollArea className="h-32 w-full">
               {isLoading ? (
                 <div className="text-slate-400 text-center py-4">
                   Loading assigned users...
                 </div>
               ) : filteredSelectedUsers.length > 0 ? (
-                filteredSelectedUsers.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center m-2 w-fit pill-green"
-                  >
-                    <span>
+                <div className="flex flex-wrap gap-2">
+                  {filteredSelectedUsers.map((user) => (
+                    <Badge
+                      key={user.id}
+                      variant="success"
+                      className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white"
+                    >
                       @{user.username} ({user.display_name})
-                    </span>
-                    <UserRoundCheck size={16} className="ml-2 text-white" />
-                  </div>
-                ))
+                      <UserRoundCheck size={16} />
+                    </Badge>
+                  ))}
+                </div>
               ) : (
-                <div className="text-slate-400 text-center py-2">
+                <div className="text-slate-400 text-center py-4">
                   {searchQuery
                     ? "No users match your search"
                     : "This task has no assigned users"}
                 </div>
               )}
-            </div>
+            </ScrollArea>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Search Results - For admin only */}
-        {sessionUser.role === "admin" && (
-          <div className="space-y-4">
-            <div>
-              <h1 className="text-md mb-2">
-                Manage Users ({selectedUsers.length}/{availableUsers.length})
-              </h1>
-              <div
-                className={`flex flex-wrap max-h-32 overflow-y-auto bg-slate-800 rounded-lg p-2 
-              ${
-                filteredUsers.length !== 0 ? "justify-start" : "justify-center"
-              }`}
-              >
+      {/* Search Results - For admin only */}
+      {sessionUser.role === "admin" && (
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-md mb-2">
+              Manage Users ({selectedUsers.length}/{availableUsers.length})
+            </h3>
+            <div className="bg-slate-800 rounded-lg p-2">
+              <ScrollArea className="h-32 w-full">
                 {isLoading ? (
-                  <div className="text-slate-400 text-center py-4">
+                  <div className="text-slate-400 text-center py-4 ">
                     Loading available users...
                   </div>
                 ) : filteredUsers.length > 0 ? (
-                  filteredUsers.map((user) => (
-                    <div
-                      key={user.id}
-                      className={`flex items-center m-2 ${
-                        isTaskOwner(user.id)
-                          ? "bg-gray-600 opacity-50 cursor-not-allowed"
-                          : isUserPreAssigned(user.id) &&
-                            isUserToUnassign(user.id)
-                          ? "bg-red-600 hover:bg-red-700 cursor-pointer"
-                          : isUserPreAssigned(user.id)
-                          ? "bg-green-600 hover:bg-red-600 cursor-pointer"
-                          : isUserSelected(user.id)
-                          ? "bg-blue-600 hover:bg-red-600 cursor-pointer"
-                          : "bg-slate-700 hover:bg-blue-600 cursor-pointer"
-                      } w-fit pill`}
-                      onClick={() => toggleUserSelection(user)}
-                    >
-                      <span>
+                  <div className="flex flex-wrap gap-2 p-2">
+                    {filteredUsers.map((user) => (
+                      // ...existing code...
+                      <Badge
+                        key={user.id}
+                        variant={getUserBadgeVariant(user)}
+                        className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white${
+                          isTaskOwner(user.id)
+                            ? "opacity-50 cursor-not-allowed text-black"
+                            : "cursor-pointer hover:scale-105 transition-transform"
+                        }`}
+                        onClick={() =>
+                          !isTaskOwner(user.id) && toggleUserSelection(user)
+                        }
+                      >
                         @{user.username} ({user.display_name})
-                      </span>
-                      {isUserPreAssigned(user.id) &&
-                        isUserToUnassign(user.id) &&
-                        !isTaskOwner(user.id) && (
-                          <UserRoundMinus
-                            size={16}
-                            className="ml-2 text-white"
-                          />
-                        )}
-
-                      {isUserPreAssigned(user.id) &&
-                        !isUserToUnassign(user.id) &&
-                        !isTaskOwner(user.id) && (
-                          <UserRoundCheck
-                            size={16}
-                            className="ml-2 text-white"
-                          />
-                        )}
-
-                      {/* if they are to be assigned, make an icon of UserRoundPlus */}
-                      {!isUserPreAssigned(user.id) &&
-                        isUserSelected(user.id) &&
-                        !isTaskOwner(user.id) && (
-                          <UserPlus size={16} className="ml-2 text-white" />
-                        )}
-                    </div>
-                  ))
+                        {isUserPreAssigned(user.id) &&
+                          isUserToUnassign(user.id) &&
+                          !isTaskOwner(user.id) && <UserRoundMinus size={16} />}
+                        {isUserPreAssigned(user.id) &&
+                          !isUserToUnassign(user.id) &&
+                          !isTaskOwner(user.id) && <UserRoundCheck size={16} />}
+                        {!isUserPreAssigned(user.id) &&
+                          isUserSelected(user.id) &&
+                          !isTaskOwner(user.id) && <UserPlus size={16} />}
+                      </Badge>
+                      // ...existing code...
+                    ))}
+                  </div>
                 ) : (
-                  <div className="text-slate-400 text-center py-4 items-center justify-center ">
+                  <div className="text-slate-400 text-center py-4">
                     <UserX size={24} className="mx-auto mb-2" />
                     {searchQuery
                       ? "No users match your search"
                       : "No available users found"}
                   </div>
                 )}
-              </div>
-
-              <div className="text-xs text-slate-400 mt-1">
-                <p>Already assigned users are highlighted in green.</p>
-                <p>Blue: Users to be assigned | Red: Users to be unassigned</p>
-              </div>
+              </ScrollArea>
             </div>
 
-            <div className="border-b border-slate-600"></div>
-            <div className="flex justify-center items-center ">
-              <IconizedButton
-                icon={<UserRoundCheck size={24} className="ml-2" />}
-                text="Update Assignments"
-                onClick={handleManageUsers}
-                btnStyle="btn-blue"
-              />
+            <div className="text-xs text-slate-400 mt-1">
+              <p>
+                Slate: Already assigned or to be assigned | Red: To be
+                unassigned
+              </p>
             </div>
           </div>
-        )}
-      </div>
-    </div>
+        </div>
+      )}
+
+      <Separator className="bg-slate-600" />
+
+      <DialogFooter>
+        <DialogClose asChild>
+          <Button
+            variant="outline"
+            className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
+          >
+            Cancel
+          </Button>
+        </DialogClose>
+        <DialogClose asChild>
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleManageUsers}
+          >
+            Update Assignments
+            <UserRoundCheck className="h-4 w-4 ml-1" />
+          </Button>
+        </DialogClose>
+      </DialogFooter>
+    </DialogContent>
   );
 };
 

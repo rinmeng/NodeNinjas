@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import IconButton from "./subcomponents/IconButton";
 import NotificationPanel from "./NotificationPanel";
 import { Bell } from "lucide-react";
+import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 
 const Navbar = ({
   showNavbar,
@@ -11,16 +12,10 @@ const Navbar = ({
   notifications = [],
   setNotificationsNeedRefetch,
 }) => {
-  const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
+  const [notificationOpen, setNotificationOpen] = useState(false);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
   const location = useLocation();
-
-  const handleBellClick = (e) => {
-    e.stopPropagation();
-    setIsNotificationsVisible(!isNotificationsVisible);
-    // Removed the automatic marking as read when opening panel
-  };
 
   // Check if the current path matches the link path
   const isActive = (path) => {
@@ -70,30 +65,29 @@ const Navbar = ({
             </Link>
           )}
 
-          {/* Notification Bell */}
+          {/* Notification Bell with Sheet */}
           {(sessionUser || devMode) && (
-            <IconButton
-              icon={
-                <div>
-                  <Bell size={24} />
+            <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
+              <SheetTrigger asChild>
+                <div className="relative cursor-pointer">
+                  <IconButton
+                    icon={<Bell size={24} />}
+                    color="hover:bg-blue-600 text-white"
+                  />
                   {unreadCount > 0 && (
                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
                       {unreadCount}
                     </span>
                   )}
                 </div>
-              }
-              color="hover:bg-blue-600 text-white"
-              onClick={handleBellClick}
-            />
-          )}
-
-          {isNotificationsVisible && (
-            <NotificationPanel
-              notifications={notifications}
-              onClose={() => setIsNotificationsVisible(false)}
-              setNotificationsNeedRefetch={setNotificationsNeedRefetch}
-            />
+              </SheetTrigger>
+              <NotificationPanel
+                notifications={notifications}
+                open={notificationOpen}
+                onOpenChange={setNotificationOpen}
+                setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+              />
+            </Sheet>
           )}
         </div>
       </div>

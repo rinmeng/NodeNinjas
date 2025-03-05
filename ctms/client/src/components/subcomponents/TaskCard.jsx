@@ -23,6 +23,7 @@ import EditTaskPanel from "../EditTaskPanel";
 import proxy from "../../utils/proxy";
 import IconButton from "./IconButton";
 import AssignTaskPanel from "../AssignTaskPanel";
+import { Dialog, DialogTrigger } from "@/components/ui/dialog";
 
 const TaskCard = ({
   task,
@@ -47,11 +48,15 @@ const TaskCard = ({
   const handleEditTask = () => {
     if (isTaskLocked) {
       if (sessionUser.role === "admin") {
-        setFeedbackMessage("Task is locked. Unlock it first to edit.");
+        setFeedbackMessage({
+          title: "Task Locked",
+          description: "This task is locked. Unlock it first to edit.",
+        });
       } else {
-        setFeedbackMessage(
-          "Task is locked. Contact your admin to make changes."
-        );
+        setFeedbackMessage({
+          title: "Task Locked",
+          description: "Contact your admin to make changes.",
+        });
       }
       return;
     }
@@ -192,11 +197,15 @@ const TaskCard = ({
   const handleDeleteTask = () => {
     if (isTaskLocked) {
       if (sessionUser.role === "admin") {
-        setFeedbackMessage("Task is locked. Unlock it first to delete.");
+        setFeedbackMessage({
+          title: "Task Locked",
+          description: "This task is locked. Unlock it first to delete.",
+        });
       } else {
-        setFeedbackMessage(
-          "Task is locked. Contact your admin to make changes."
-        );
+        setFeedbackMessage({
+          title: "Task Locked",
+          description: "Contact your admin to make changes.",
+        });
       }
       return;
     }
@@ -212,11 +221,17 @@ const TaskCard = ({
       .then((data) => {
         console.log("Task deleted successfully:", data);
         setNeedsRefetch(true);
-        setFeedbackMessage("Task deleted successfully!");
+        setFeedbackMessage({
+          title: "Success",
+          description: "Task deleted successfully!",
+        });
       })
       .catch((err) => {
         console.log(err);
-        setFeedbackMessage(err.message || "Failed to delete task.");
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to delete task.",
+        });
       });
   };
 
@@ -238,13 +253,19 @@ const TaskCard = ({
         );
         setIsTaskLocked(!isTaskLocked);
         setNeedsRefetch(true);
-        setFeedbackMessage(
-          `Task ${isTaskLocked ? "unlocked" : "locked"} successfully!`
-        );
+        setFeedbackMessage({
+          title: "Success",
+          description: `Task ${
+            isTaskLocked ? "unlocked" : "locked"
+          } successfully!`,
+        });
       })
       .catch((err) => {
         console.log(err);
-        setFeedbackMessage(err.message || "Failed to lock/unlock task.");
+        setFeedbackMessage({
+          title: "Error",
+          description: `Failed to ${isTaskLocked ? "unlock" : "lock"} task.`,
+        });
       });
   };
 
@@ -255,7 +276,7 @@ const TaskCard = ({
   return (
     <div
       key={task.id}
-      className={`border-2 ${
+      className={`border-2 mb-10 ${
         isTaskLocked ? "border-red-500" : "border-gray-600"
       } m-auto w-full md:w-3/5 flex flex-col
       bg-gradient-to-r from-slate-700 via-slate-800 to-slate-900 p-4 md:p-6 
@@ -271,7 +292,11 @@ const TaskCard = ({
             <div className="flex items-center">
               <IconButton
                 icon={<Lock size={20} className="text-red-500" />}
-                tooltip="This task is locked. Contact your admin to make changes."
+                tooltip={
+                  isTaskOwner
+                    ? "This task is locked. Unlock it to make changes."
+                    : "This task is locked. Contact your admin to make changes."
+                }
               />
               {!isTaskOwner && (
                 <div className="border-r-2 border-slate-500 h-6"></div>
@@ -294,7 +319,7 @@ const TaskCard = ({
               <h1
                 className={`text-2xl font-semibold flex-grow ${
                   isTaskLocked ? "text-slate-300" : "text-white"
-                } break-all overflow-hidden text-left`}
+                } break-all overflow-hidden text-left items-center`}
               >
                 {task.name}
               </h1>
@@ -321,33 +346,59 @@ const TaskCard = ({
 
           {/* Action buttons */}
           <div className="flex items-center">
-            <IconButton
-              onClick={handleEditTask}
-              icon={<SquarePen size={20} />}
-              tooltip="Edit this task"
-              isDisabled={isTaskLocked}
-              disabled={isTaskLocked}
-              color={"hover:bg-blue-500 hover:text-white"}
-            />
+            <Dialog>
+              <DialogTrigger asChild>
+                <IconButton
+                  icon={<SquarePen size={20} />}
+                  tooltip="Edit this task"
+                  isDisabled={isTaskLocked}
+                  disabled={isTaskLocked}
+                  color={"hover:bg-blue-500 hover:text-white"}
+                />
+              </DialogTrigger>
+
+              {!isTaskLocked && (
+                <EditTaskPanel
+                  sessionUser={sessionUser}
+                  taskToEdit={task}
+                  setNeedsRefetch={setNeedsRefetch}
+                  setNotificationToAdd={setNotificationToAdd}
+                  setFeedbackMessage={setFeedbackMessage}
+                />
+              )}
+            </Dialog>
 
             <div>
-              <IconButton
-                onClick={handleAssignTask}
-                icon={
-                  sessionUser.role === "admin" ? (
-                    <UserRoundCog size={20} />
-                  ) : (
-                    <Users size={20} />
-                  )
-                }
-                tooltip={
-                  sessionUser.role === "admin"
-                    ? "Manage assigned users"
-                    : "View assigned users"
-                }
-                isDisabled={isTaskLocked}
-                color={"hover:bg-blue-500 hover:text-white"}
-              />
+              <Dialog>
+                <DialogTrigger asChild>
+                  <IconButton
+                    icon={
+                      sessionUser.role === "admin" ? (
+                        <UserRoundCog size={20} />
+                      ) : (
+                        <Users size={20} />
+                      )
+                    }
+                    tooltip={
+                      sessionUser.role === "admin"
+                        ? "Manage assigned users"
+                        : "View assigned users"
+                    }
+                    isDisabled={isTaskLocked}
+                    color={"hover:bg-blue-500 hover:text-white"}
+                  />
+                </DialogTrigger>
+
+                {!isTaskLocked && (
+                  <AssignTaskPanel
+                    task={task}
+                    setNeedsRefetch={setNeedsRefetch}
+                    setFeedbackMessage={setFeedbackMessage}
+                    setNotificationToAdd={setNotificationToAdd}
+                    sessionUser={sessionUser}
+                  />
+                )}
+              </Dialog>
 
               {sessionUser.role === "admin" && (
                 <IconButton
@@ -448,30 +499,6 @@ const TaskCard = ({
           </div>
         )}
       </div>
-
-      {/* Only show edit panel if not locked */}
-      {!isTaskLocked && (
-        <EditTaskPanel
-          sessionUser={sessionUser}
-          taskToEdit={task}
-          isOpen={showUpdateTaskPanel}
-          onClose={handleEditTask}
-          setNeedsRefetch={setNeedsRefetch}
-          setNotificationToAdd={setNotificationToAdd}
-          setFeedbackMessage={setFeedbackMessage}
-        />
-      )}
-
-      {/* Only show assign panel if not locked */}
-      <AssignTaskPanel
-        task={task}
-        isOpen={showAssignTaskPanel}
-        onClose={() => setShowAssignTaskPanel(false)}
-        setNeedsRefetch={setNeedsRefetch}
-        setFeedbackMessage={setFeedbackMessage}
-        sessionUser={sessionUser}
-        setNotificationToAdd={setNotificationToAdd}
-      />
     </div>
   );
 };

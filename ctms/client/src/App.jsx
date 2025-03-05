@@ -4,19 +4,20 @@ import Navbar from "./components/Navbar";
 import About from "./pages/About";
 import Admin from "./pages/Admin";
 import Login from "./pages/Login";
-import TestUser from "./pages/testing/TestUser";
-import Test from "./pages/Test";
 import NotFound from "./pages/NotFound";
-import "./css/output.css";
 import Dashboard from "./pages/Dashboard";
 
 import ChatWidget from "./components/ChatWidget";
 
 import Chat from "./pages/Chat";
-import Feedback2 from "./components/subcomponents/Feedback2";
+import Feedback2 from "@/src/components/subcomponents/Feedback2";
 import { CircleAlert, CircleCheck } from "lucide-react";
 
-const proxy = "http://localhost:15000";
+import proxy from "@/src/utils/proxy";
+
+import { Toaster } from "sonner";
+import { toast } from "sonner";
+import { Button } from "@/components/ui/button";
 
 function App() {
   const [devMode, setDevMode] = useState(false);
@@ -27,11 +28,14 @@ function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [notifications, setNotifications] = useState([]);
   const [notificationToAdd, setNotificationToAdd] = useState("");
-  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackMessage, setFeedbackMessage] = useState({
+    title: "",
+    description: "",
+  });
   const [notificationsNeedRefetch, setNotificationsNeedRefetch] =
     useState(false);
 
-  const timer = 2000;
+  const timer = 3000;
 
   useEffect(() => {
     fetch(`${proxy}/user/session`, {
@@ -142,10 +146,26 @@ function App() {
   }, [notificationsNeedRefetch, fetchNotifications]);
 
   useEffect(() => {
-    if (feedbackMessage !== "") {
-      setTimeout(() => {
-        setFeedbackMessage("");
-      }, timer);
+    if (feedbackMessage) {
+      // Only show toast if there's actually a message
+      const isFeedbackSuccess = feedbackMessage.title
+        .toLowerCase()
+        .includes("success");
+      toast(feedbackMessage.title, {
+        description: feedbackMessage.description,
+        duration: timer,
+        icon: isFeedbackSuccess ? (
+          <CircleCheck className="text-green-500" />
+        ) : (
+          <CircleAlert className="text-black" />
+        ),
+        position: "bottom-right",
+        classNames: {
+          title: "ml-2 text-base font-bold",
+          description: "ml-2",
+        },
+      });
+      setFeedbackMessage(""); // Clear the message after showing the toast
     }
   }, [feedbackMessage]);
 
@@ -202,32 +222,11 @@ function App() {
               />
             }
           />
-          <Route
-            path="/test"
-            element={<Test sessionUser={sessionUser} devMode={devMode} />}
-          />
-          {/* <Route path="/message" element={<Chat />} /> */}
-          <Route path="/test/user" element={<TestUser />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <ChatWidget />
       </div>
-
-      <div>
-        {feedbackMessage && (
-          <Feedback2
-            icon={
-              feedbackMessage.toLowerCase().includes("success") ? (
-                <CircleCheck size={24} />
-              ) : (
-                <CircleAlert size={24} />
-              )
-            }
-            message={feedbackMessage}
-            isSuccess={feedbackMessage.toLowerCase().includes("success")}
-          />
-        )}
-      </div>
+      <Toaster />
     </Router>
   );
 }

@@ -182,14 +182,6 @@ const Dashboard = ({
         setFeedbackMessage={setFeedbackMessage}
         devMode={devMode}
       />
-      <AddTaskPanel
-        showAddTaskPanel={showAddTaskPanel}
-        setShowAddTaskPanel={setShowAddTaskPanel}
-        setFeedbackMessage={setFeedbackMessage}
-        sessionUser={sessionUser}
-        setNeedsRefetch={setNeedsRefetch}
-        setNotificationToAdd={setNotificationToAdd}
-      />
     </div>
   );
 };

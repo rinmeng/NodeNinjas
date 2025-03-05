@@ -1,11 +1,10 @@
-import React, { use, useState, useEffect } from "react";
-import { ListPlus, ClipboardList, RefreshCw } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { ClipboardList, RefreshCw } from "lucide-react";
 import TaskCard from "./subcomponents/TaskCard";
-import IconizedButton from "./subcomponents/IconizedButton";
+import AddTaskPanel from "./AddTaskPanel";
+import { Button } from "@/components/ui/button";
 
 const TaskDashboard = ({
-  showAddTaskPanel,
-  setShowAddTaskPanel,
   tasks,
   sessionUser,
   setNeedsRefetch,
@@ -22,7 +21,6 @@ const TaskDashboard = ({
 
   const refetchTaskClicked = () => {
     setIsRefetching(true);
-
     setNeedsRefetch(true);
   };
 
@@ -31,32 +29,36 @@ const TaskDashboard = ({
       // set time out for 1 second to simulate refetching
       setTimeout(() => {
         setIsRefetching(false);
+        if (isRefetching) {
+          setFeedbackMessage({
+            title: "Success",
+            description: "Tasks have been successfully synced",
+          });
+        }
       }, 1000);
     }
   }, [needsRefetch, setNeedsRefetch, setFeedbackMessage]);
 
   return (
     <div className="bg-slate-950 w-full h-full rounded-xl p-5 mt-28">
-      <div className="flex justify-center items-center space-x-4 ">
-        <IconizedButton
-          text="Create Task"
-          icon={<ListPlus size={24} className="ml-2" />}
-          onClick={() => setShowAddTaskPanel(!showAddTaskPanel)}
-          btnStyle="btn-blue"
+      <div className="flex justify-center items-center space-x-4">
+        <AddTaskPanel
+          setFeedbackMessage={setFeedbackMessage}
+          sessionUser={sessionUser}
+          setNeedsRefetch={setNeedsRefetch}
         />
 
         <div className="group">
-          <IconizedButton
-            icon={
-              <RefreshCw
-                size={24}
-                className={`ml-2 t500e ${isRefetching ? "animate-spin" : ""}`}
-              />
-            }
-            text="Sync Tasks"
+          <Button
+            variant="secondary"
             onClick={refetchTaskClicked}
-            btnStyle={`btn-grey ${isRefetching ? "disabled opacity-50" : ""}`}
-          />
+            className={`cursor-pointer  ${
+              isRefetching ? "cursor-not-allowed disabled opacity-50" : ""
+            }`}
+          >
+            Sync Tasks
+            <RefreshCw className={`${isRefetching ? "animate-spin" : ""}`} />
+          </Button>
         </div>
       </div>
 
@@ -81,7 +83,7 @@ const TaskDashboard = ({
           <h1 className="text-center text-slate-400 mb-4">
             {taskList.length} tasks found
           </h1>
-          <div className="flex flex-col space-y-4">
+          <div className="flex flex-col">
             {taskList.map((task) => (
               <TaskCard
                 key={task.id}
