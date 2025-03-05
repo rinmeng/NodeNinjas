@@ -182,6 +182,8 @@ const Dashboard = ({
         setFeedbackMessage={setFeedbackMessage}
         devMode={devMode}
       />
+
+      {/* AddTaskPanel component with shadcn Dialog */}
       <AddTaskPanel
         showAddTaskPanel={showAddTaskPanel}
         setShowAddTaskPanel={setShowAddTaskPanel}

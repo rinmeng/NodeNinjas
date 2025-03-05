@@ -1,17 +1,32 @@
-import { ListPlus, X } from "lucide-react";
+import { ListPlus } from "lucide-react";
 import React, { useState } from "react";
-import IconizedButton from "@/src/components/subcomponents/IconizedButton";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 import proxy from "../utils/proxy";
-import IconButton from "./subcomponents/IconButton";
 
-const AddTaskPanel = ({
-  showAddTaskPanel,
-  setShowAddTaskPanel,
-  setFeedbackMessage,
-  sessionUser,
-  setNeedsRefetch,
-}) => {
+const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
     title: "",
@@ -82,103 +97,125 @@ const AddTaskPanel = ({
         }
 
         setNeedsRefetch(true);
-        setShowAddTaskPanel(false);
       })
       .catch((err) => {
         setFeedbackMessage(err.message);
-        // dont close the add task panel
       });
   };
+
   return (
-    <div
-      className={`${
-        showAddTaskPanel ? "block" : "hidden"
-      } fixed top-0 left-0 w-full h-full bg-black/50 z-50`}
-    >
-      <div
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 
-        -translate-y-1/2 bg-slate-900 
-      rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4 border-2 border-slate-600"
-      >
-        <div className="flex flex-row justify-between items-center">
-          <div className="title-sm">Add Task</div>
-          <IconButton
-            icon={<X size={30} />}
-            onClick={() => setShowAddTaskPanel(false)}
-            color="hover:bg-white hover:text-slate-950"
-          />
-        </div>
-        <div className="border-b border-slate-600 my-4"></div>
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+          Add Task
+          <ListPlus className="h-4 w-4" />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px] bg-slate-900 text-white border-slate-600">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">Add Task</DialogTitle>
+          <DialogDescription className="text-slate-400">
+            Create a new task to track your work.
+          </DialogDescription>
+        </DialogHeader>
 
-        <form className="flex flex-col space-y-4">
-          <h1 className="text-md">Title</h1>
-          <input
-            type="text"
-            placeholder="Task Title"
-            className="forms text-left"
-            value={task.title}
-            onChange={(e) => setTask({ ...task, title: e.target.value })}
-            maxLength="255"
-          />
+        <form className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="title">Title</Label>
+            <Input
+              id="title"
+              placeholder="Task Title"
+              className="bg-slate-800 border-slate-700 text-white"
+              value={task.title}
+              onChange={(e) => setTask({ ...task, title: e.target.value })}
+              maxLength="255"
+            />
+          </div>
 
-          <h1 className="text-md">Description</h1>
-          <textarea
-            placeholder="Task Description"
-            className="forms text-left"
-            value={task.description}
-            onChange={(e) => setTask({ ...task, description: e.target.value })}
-          />
+          <div className="grid gap-2">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              placeholder="Task Description"
+              className="bg-slate-800 border-slate-700 text-white resize-none min-h-[100px]"
+              value={task.description}
+              onChange={(e) =>
+                setTask({ ...task, description: e.target.value })
+              }
+            />
+          </div>
 
-          <div className="flex flex-row justify-between space-x-4">
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Due Date</h1>
-              <input
+          <div className="grid grid-cols-3 gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="date">Due Date</Label>
+              <Input
+                id="date"
                 type="date"
-                className="forms"
+                className="bg-slate-800 border-slate-700 text-white"
                 value={task.date}
                 onChange={(e) => setTask({ ...task, date: e.target.value })}
               />
             </div>
 
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Priority</h1>
-              <select
-                className="forms"
+            <div className="grid gap-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select
                 value={task.priority}
-                onChange={(e) => setTask({ ...task, priority: e.target.value })}
+                onValueChange={(value) => setTask({ ...task, priority: value })}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  <SelectGroup>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Status</h1>
-              <select
-                className="forms"
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
                 value={task.status}
-                onChange={(e) => setTask({ ...task, status: e.target.value })}
+                onValueChange={(value) => setTask({ ...task, status: value })}
               >
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  <SelectGroup>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectGroup>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-
-          <div className="border-b border-slate-600"></div>
-          <div className="flex justify-center items-center">
-            <IconizedButton
-              icon={<ListPlus size={24} className="ml-2" />}
-              text="Add Task"
-              onClick={handleAddTask}
-              btnStyle="btn-blue"
-            />
           </div>
         </form>
-      </div>
-    </div>
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button
+              variant="outline"
+              className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
+            >
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button
+            onClick={handleAddTask}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+          >
+            Add Task
+            <ListPlus className="h-4 w-4" />
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
