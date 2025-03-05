@@ -35,11 +35,14 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
     status: "pending",
     priority: "low",
   });
+  const [open, setOpen] = useState(false);
 
   const handleAddTask = async (e) => {
     e.preventDefault();
     try {
       await addTaskToDatabase();
+      // Close dialog on successful task addition
+      setOpen(false);
     } catch (error) {
       console.error("Failed to add task:", error);
       setFeedbackMessage(error.message || "Failed to add task.");
@@ -56,7 +59,7 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
       assignedUserIDs.push(sessionUser.id);
     }
     // make post request to add task to database
-    fetch(`${proxy}/task/add`, {
+    return fetch(`${proxy}/task/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -100,15 +103,16 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
       })
       .catch((err) => {
         setFeedbackMessage(err.message);
+        throw err; // Re-throw to be caught by handleAddTask
       });
   };
 
   return (
-    <Dialog>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className="bg-blue-600 hover:bg-blue-700 text-white">
           Add Task
-          <ListPlus className="h-4 w-4" />
+          <ListPlus className="h-4 w-4 ml-1" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] bg-slate-900 text-white border-slate-600">
@@ -198,20 +202,19 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
         </form>
 
         <DialogFooter>
-          <DialogClose asChild>
-            <Button
-              variant="outline"
-              className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
-            >
-              Cancel
-            </Button>
-          </DialogClose>
+          <Button
+            variant="outline"
+            className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
+            onClick={() => setOpen(false)}
+          >
+            Cancel
+          </Button>
           <Button
             onClick={handleAddTask}
             className="bg-blue-600 hover:bg-blue-700 text-white"
           >
             Add Task
-            <ListPlus className="h-4 w-4" />
+            <ListPlus className="h-4 w-4 ml-1" />
           </Button>
         </DialogFooter>
       </DialogContent>
