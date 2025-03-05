@@ -8,7 +8,9 @@ import {
   SheetHeader,
   SheetTitle,
   SheetDescription,
+  SheetClose,
 } from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const NotificationPanel = ({
   notifications,
@@ -85,24 +87,36 @@ const NotificationPanel = ({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-[360px] sm:w-[400px] p-0 pt-6" side="right">
+      <SheetContent
+        className="w-[360px] sm:w-[400px] p-0 pt-6 flex flex-col"
+        side="right"
+      >
+        <div className="absolute left-4 top-4">
+          <SheetClose asChild>
+            <IconButton
+              icon={<X size={18} />}
+              color="hover:bg-slate-200 text-slate-500"
+            />
+          </SheetClose>
+        </div>
+
         <SheetHeader className="px-4 border-b border-slate-200 pb-3">
-          <SheetTitle className="font-semibold text-slate-800">
+          <SheetTitle className="font-semibold text-slate-800 text-right">
             Notifications
           </SheetTitle>
-          <SheetDescription className="text-xs text-slate-500">
+          <SheetDescription className="text-xs text-slate-500 text-right">
             Mark as read/unread by clicking on them
           </SheetDescription>
         </SheetHeader>
 
-        <div className="max-h-[calc(100vh-120px)] overflow-y-auto">
+        <ScrollArea className="flex-1 h-full">
           {notifications.length === 0 ? (
             <div className="p-6 text-center text-slate-500">
               No new notifications
             </div>
           ) : (
-            notifications.map((notification) => {
-              return (
+            <div>
+              {notifications.map((notification) => (
                 <div
                   key={notification.id}
                   className={`p-4 hover:bg-slate-100 transition-colors duration-200 ease-in-out border-b border-slate-200
@@ -154,18 +168,10 @@ const NotificationPanel = ({
                     </div>
                   </div>
                 </div>
-              );
-            })
+              ))}
+            </div>
           )}
-        </div>
-        <div className="border-t border-slate-200 p-4 text-center">
-          <button
-            className="text-sm text-blue-600 hover:text-blue-800 font-medium"
-            onClick={() => onOpenChange(false)}
-          >
-            Close
-          </button>
-        </div>
+        </ScrollArea>
       </SheetContent>
     </Sheet>
   );
