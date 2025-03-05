@@ -48,11 +48,15 @@ const TaskCard = ({
   const handleEditTask = () => {
     if (isTaskLocked) {
       if (sessionUser.role === "admin") {
-        setFeedbackMessage("Task is locked. Unlock it first to edit.");
+        setFeedbackMessage({
+          title: "Task Locked",
+          description: "This task is locked. Unlock it first to edit.",
+        });
       } else {
-        setFeedbackMessage(
-          "Task is locked. Contact your admin to make changes."
-        );
+        setFeedbackMessage({
+          title: "Task Locked",
+          description: "Contact your admin to make changes.",
+        });
       }
       return;
     }
@@ -193,11 +197,15 @@ const TaskCard = ({
   const handleDeleteTask = () => {
     if (isTaskLocked) {
       if (sessionUser.role === "admin") {
-        setFeedbackMessage("Task is locked. Unlock it first to delete.");
+        setFeedbackMessage({
+          title: "Task Locked",
+          description: "This task is locked. Unlock it first to delete.",
+        });
       } else {
-        setFeedbackMessage(
-          "Task is locked. Contact your admin to make changes."
-        );
+        setFeedbackMessage({
+          title: "Task Locked",
+          description: "Contact your admin to make changes.",
+        });
       }
       return;
     }
@@ -213,11 +221,17 @@ const TaskCard = ({
       .then((data) => {
         console.log("Task deleted successfully:", data);
         setNeedsRefetch(true);
-        setFeedbackMessage("Task deleted successfully!");
+        setFeedbackMessage({
+          title: "Success",
+          description: "Task deleted successfully!",
+        });
       })
       .catch((err) => {
         console.log(err);
-        setFeedbackMessage(err.message || "Failed to delete task.");
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to delete task.",
+        });
       });
   };
 
@@ -239,13 +253,19 @@ const TaskCard = ({
         );
         setIsTaskLocked(!isTaskLocked);
         setNeedsRefetch(true);
-        setFeedbackMessage(
-          `Task ${isTaskLocked ? "unlocked" : "locked"} successfully!`
-        );
+        setFeedbackMessage({
+          title: "Success",
+          description: `Task ${
+            isTaskLocked ? "unlocked" : "locked"
+          } successfully!`,
+        });
       })
       .catch((err) => {
         console.log(err);
-        setFeedbackMessage(err.message || "Failed to lock/unlock task.");
+        setFeedbackMessage({
+          title: "Error",
+          description: `Failed to ${isTaskLocked ? "unlock" : "lock"} task.`,
+        });
       });
   };
 
@@ -272,7 +292,11 @@ const TaskCard = ({
             <div className="flex items-center">
               <IconButton
                 icon={<Lock size={20} className="text-red-500" />}
-                tooltip="This task is locked. Contact your admin to make changes."
+                tooltip={
+                  isTaskOwner
+                    ? "This task is locked. Unlock it to make changes."
+                    : "This task is locked. Contact your admin to make changes."
+                }
               />
               {!isTaskOwner && (
                 <div className="border-r-2 border-slate-500 h-6"></div>
@@ -295,7 +319,7 @@ const TaskCard = ({
               <h1
                 className={`text-2xl font-semibold flex-grow ${
                   isTaskLocked ? "text-slate-300" : "text-white"
-                } break-all overflow-hidden text-left`}
+                } break-all overflow-hidden text-left items-center`}
               >
                 {task.name}
               </h1>

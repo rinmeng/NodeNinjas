@@ -43,7 +43,10 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
 
     // First check the basic validation before sending network request
     if (!task.title || !task.date || !task.priority || !task.status) {
-      setFeedbackMessage("Please fill in all required fields.");
+      setFeedbackMessage({
+        title: "Missing Required Fields",
+        description: "Please fill in all required fields.",
+      });
       return; // Don't close dialog or proceed with API call
     }
     try {
@@ -51,7 +54,10 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
       setOpen(false);
     } catch (error) {
       console.error("Error adding task:", error);
-      setFeedbackMessage(error.message); // Use error.message, not the error object itself
+      setFeedbackMessage({
+        title: "Failed to Add Task",
+        description: error.message,
+      });
     }
   };
 
@@ -99,11 +105,16 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
     });
 
     if (!sessionUser) {
-      setFeedbackMessage(
-        "Task will be added with no asignees, please sign in to assign users to the task."
-      );
+      setFeedbackMessage({
+        title: "Task added successfully!",
+        description:
+          "Task will be added with no asignees, please sign in to assign users to the task.",
+      });
     } else {
-      setFeedbackMessage("Task added successfully!");
+      setFeedbackMessage({
+        title: "Task added successfully!",
+        description: "Task has been added to your list.",
+      });
     }
 
     setNeedsRefetch(true);
@@ -113,9 +124,9 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+        <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
           Add Task
-          <ListPlus className="h-4 w-4 ml-1" />
+          <ListPlus />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] bg-slate-900 text-white border-slate-600">

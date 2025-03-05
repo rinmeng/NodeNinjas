@@ -19,6 +19,8 @@ import IconButton from "../components/subcomponents/IconButton";
 
 const proxy = "http://localhost:15000/";
 
+// setFeedbackMessage should accept { title: string, description: string }
+
 const Login = ({
   setShowNavbar,
   sessionUser,
@@ -72,13 +74,25 @@ const Login = ({
 
     // In the addUser function
     if (!displayName || !email || !username || !password || !role) {
-      setFeedbackMessage("Please fill in all required fields.");
+      setFeedbackMessage({
+        title: "Missing Requirements",
+        description: "Please fill in all required fields.",
+      });
+
       return;
     } else if (password.length < 8) {
-      setFeedbackMessage("Password must be at least 8 characters long.");
+      setFeedbackMessage({
+        title: "Password Error",
+        description: "Password must be at least 8 characters long.",
+      });
+
       return;
     } else if (role === "team_member" && !manager_username) {
       setFeedbackMessage("Team members must provide their admin's username.");
+      setFeedbackMessage({
+        title: "Manager Username Required",
+        description: "Please provide your admin's username.",
+      });
       return;
     }
 
@@ -102,7 +116,10 @@ const Login = ({
         const managerData = await managerResponse.json();
 
         if (managerResponse.status !== 200) {
-          setFeedbackMessage(managerData.message || "Manager not found.");
+          setFeedbackMessage({
+            title: "Manager Not Found",
+            description: "The provided manager username does not exist.",
+          });
           return;
         }
 
@@ -129,7 +146,10 @@ const Login = ({
       const registerData = await registerResponse.json();
 
       if (registerResponse.status === 201) {
-        setFeedbackMessage("Registration successful!");
+        setFeedbackMessage({
+          title: "Registration Successful",
+          description: "You have successfully registered.",
+        });
 
         // Clear form fields except username and password
         setFormData((prev) => ({
@@ -142,12 +162,19 @@ const Login = ({
         }));
         setShowPopup(false);
       } else {
-        setFeedbackMessage(registerData.message || "Registration failed.");
+        setFeedbackMessage({
+          title: "Registration Failed",
+          description:
+            registerData.message || "An error occurred while registering.",
+        });
         setShowPopup(true);
       }
     } catch (error) {
       console.error(error);
-      setFeedbackMessage(error.message || "An error occurred.");
+      setFeedbackMessage({
+        title: "Registration Failed",
+        description: "An error occurred while trying to register.",
+      });
     }
   };
 
@@ -155,7 +182,10 @@ const Login = ({
   const loginUser = (e) => {
     e.preventDefault();
     if (!formData.username || !formData.password) {
-      setFeedbackMessage("Please fill in all required fields.");
+      setFeedbackMessage({
+        title: "Missing Requirements",
+        description: "Please fill in all required fields.",
+      });
       return;
     }
     fetch(proxy + "user/login", {
@@ -167,7 +197,7 @@ const Login = ({
       body: JSON.stringify({
         username: formData.username,
         password_hash: formData.password,
-        isRemembered: formData.isRemembered, // Add this line
+        isRemembered: formData.isRemembered,
       }),
     })
       .then((res) => {
@@ -179,17 +209,29 @@ const Login = ({
       })
       .then(({ statusCode, data }) => {
         if (statusCode === 200) {
-          setFeedbackMessage("Login successful!");
+          setFeedbackMessage({
+            title: "Login Successful",
+            description: "You have successfully logged in.",
+          });
           setSessionUser(data.session.user);
         } else if (statusCode === 401 || statusCode === 404) {
-          setFeedbackMessage("Invalid Credentials");
+          setFeedbackMessage({
+            title: "Invalid Credentials",
+            description: "Username or password is incorrect.",
+          });
         } else {
-          setFeedbackMessage(data.message || "Login failed.");
+          setFeedbackMessage({
+            title: "Login Failed",
+            description: "An error occurred while trying to log in.",
+          });
         }
       })
       .catch((error) => {
         console.error(error);
-        setFeedbackMessage("An error occurred while trying to log in.");
+        setFeedbackMessage({
+          title: "Login Failed",
+          description: "An error occurred while trying to log in.",
+        });
       });
   };
 
@@ -207,7 +249,11 @@ const Login = ({
       })
       .then(({ statusCode, data }) => {
         if (statusCode === 200) {
-          setFeedbackMessage("Logout successful!");
+          setFeedbackMessage({
+            title: "Logout Successful",
+            description: "You have successfully logged out.",
+          });
+
           setSessionUser(null);
           // reset the form data
           setFormData((prev) => ({
@@ -217,12 +263,18 @@ const Login = ({
             isRemembered: true,
           }));
         } else {
-          setFeedbackMessage(data.message || "Logout failed.");
+          setFeedbackMessage({
+            title: "Logout Failed",
+            description: "An error occurred while trying to log out.",
+          });
         }
       })
       .catch((error) => {
         console.error(error);
-        setFeedbackMessage("An error occurred while trying to log out.");
+        setFeedbackMessage({
+          title: "Logout Failed",
+          description: "An error occurred while trying to log out.",
+        });
       });
   };
 

@@ -30,7 +30,10 @@ const TaskDashboard = ({
       setTimeout(() => {
         setIsRefetching(false);
         if (isRefetching) {
-          setFeedbackMessage("Tasks have been successfully synced");
+          setFeedbackMessage({
+            title: "Success",
+            description: "Tasks have been successfully synced",
+          });
         }
       }, 1000);
     }
@@ -47,16 +50,14 @@ const TaskDashboard = ({
 
         <div className="group">
           <Button
+            variant="secondary"
             onClick={refetchTaskClicked}
-            className={`bg-slate-500 hover:bg-slate-600 ${
-              isRefetching ? "disabled opacity-50" : ""
+            className={`cursor-pointer  ${
+              isRefetching ? "cursor-not-allowed disabled opacity-50" : ""
             }`}
           >
             Sync Tasks
-            <RefreshCw
-              size={16}
-              className={isRefetching ? "animate-spin" : ""}
-            />
+            <RefreshCw className={`${isRefetching ? "animate-spin" : ""}`} />
           </Button>
         </div>
       </div>
