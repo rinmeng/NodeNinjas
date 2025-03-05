@@ -1,8 +1,29 @@
-import React, { use, useState } from "react";
-import { ClipboardX, Save, X } from "lucide-react";
-import IconizedButton from "./subcomponents/IconizedButton";
+import React, { useState } from "react";
+import { Save, X, ClipboardEdit } from "lucide-react";
 import proxy from "../utils/proxy";
-import IconButton from "./subcomponents/IconButton";
+import getDateWithRelativeTime from "../utils/getDateWithRelativeTime";
+
+// Import Shadcn UI components
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { Separator } from "@/components/ui/separator";
 
 const EditTaskPanel = ({
   taskToEdit,
@@ -11,10 +32,11 @@ const EditTaskPanel = ({
   setNeedsRefetch,
   setFeedbackMessage,
   setNotificationToAdd,
+  sessionUser,
 }) => {
-  const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit);
+  const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit || {});
 
-  const handleOnChange = (e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setTaskAfterEdit((prevState) => ({
       ...prevState,
@@ -22,38 +44,11 @@ const EditTaskPanel = ({
     }));
   };
 
-  const handleUpdateTask = () => {
-    updateTaskToDatabase();
-    onClose();
-  };
-
-  const updateTaskToDatabase = async () => {
-    // Make a PUT request to update the task in the database
-    // using the taskAfterEdit state.
-    fetch(`${proxy}/task/update/:id`, {
-      method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        id: taskToEdit.id,
-        name: taskAfterEdit.name,
-        description: taskAfterEdit.description,
-        date: taskAfterEdit.date,
-        priority: taskAfterEdit.priority,
-        status: taskAfterEdit.status,
-      }),
-    })
-      .then((response) => response.json())
-      .then((data) => {
-        console.log("Updated task:", data);
-        setNeedsRefetch(true);
-        setFeedbackMessage("Task updated successfully!");
-      })
-      .catch((error) => {
-        console.error("Failed to update task:", error);
-        setFeedbackMessage(error.message || "Failed to update task.");
-      });
+  const handleSelectChange = (name, value) => {
+    setTaskAfterEdit((prevState) => ({
+      ...prevState,
+      [name]: value,
+    }));
   };
 
   const getDateFromDateString = (dateString) => {
@@ -65,106 +60,192 @@ const EditTaskPanel = ({
 
     // Format the date as YYYY-MM-DD for input[type="date"]
     const year = taskDate.getFullYear();
-    const month = String(taskDate.getMonth() + 1).padStart(2, "0"); // Months are 0-based, so add 1
-    const day = String(taskDate.getDate()).padStart(2, "0"); // Pad day with leading zero if needed
+    const month = String(taskDate.getMonth() + 1).padStart(2, "0");
+    const day = String(taskDate.getDate()).padStart(2, "0");
 
     return `${year}-${month}-${day}`;
   };
 
+  const handleUpdateTask = async () => {
+    try {
+      const response = await fetch(`${proxy}/task/update/:id`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          id: taskToEdit.id,
+          name: taskAfterEdit.name,
+          description: taskAfterEdit.description,
+          date: taskAfterEdit.date,
+          priority: taskAfterEdit.priority,
+          status: taskAfterEdit.status,
+        }),
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Failed to update task");
+      }
+
+      const data = await response.json();
+      console.log("Updated task:", data);
+      setNeedsRefetch(true);
+      setFeedbackMessage("Task updated successfully!");
+
+      // Add notification if status was changed to completed
+      if (
+        taskAfterEdit.status === "completed" &&
+        taskToEdit.status !== "completed"
+      ) {
+        setNotificationToAdd({
+          user_ids: [taskToEdit.owner_id],
+          message: `Task "${taskAfterEdit.name}" was marked as completed`,
+          type: "task_completed",
+        });
+      }
+
+      onClose();
+    } catch (error) {
+      console.error("Failed to update task:", error);
+      setFeedbackMessage(error.message || "Failed to update task.");
+    }
+  };
+
   if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-slate-900 rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4 border-2 border-slate-600">
-        <div className="flex flex-row justify-between items-center">
-          <div className="title-sm">Edit Task</div>
-          <IconButton
-            icon={<X size={30} />}
-            onClick={onClose}
-            color="hover:bg-white hover:text-slate-950"
-          />
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-[900px] max-h-[100vh] bg-slate-900 text-white border-slate-600 overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold flex justify-between items-center">
+            Edit Task
+          </DialogTitle>
+          <DialogDescription className="text-slate-400">
+            Make changes to your task details below
+          </DialogDescription>
+        </DialogHeader>
+
+        {/* Task Information */}
+        <div className="bg-slate-800 p-4 rounded-lg">
+          <h2 className="text-lg font-semibold text-white">
+            Task: {taskToEdit.name}
+          </h2>
+          <p className="text-slate-300 text-sm truncate">
+            {taskToEdit.description}
+          </p>
+          <p className="text-slate-400 text-sm mt-2">
+            Created by:{" "}
+            <span className="text-white">
+              @{taskToEdit.owner_username} ({taskToEdit.owner_display_name})
+            </span>
+          </p>
+          <p className="text-slate-400 text-sm">
+            Created on:{" "}
+            <span className="text-white">
+              {getDateWithRelativeTime(taskToEdit.created_at)}
+            </span>
+          </p>
         </div>
-        <div className="border-b border-slate-600 my-4"></div>
 
-        <form className="flex flex-col space-y-4">
-          <h1 className="text-md">Title</h1>
-          <input
-            type="text"
-            placeholder="Task Title"
-            className="forms text-left"
-            name="name"
-            value={taskAfterEdit?.name || ""}
-            onChange={handleOnChange}
-            maxLength="255"
-          />
+        {/* Form Fields */}
+        <div className="space-y-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="name">Task Title</Label>
+            <Input
+              id="name"
+              name="name"
+              value={taskAfterEdit?.name || ""}
+              onChange={handleInputChange}
+              className="bg-slate-800 border-slate-700 text-white"
+              placeholder="Enter task title"
+              maxLength={255}
+            />
+          </div>
 
-          <h1 className="text-md">Description</h1>
-          <textarea
-            placeholder="Task Description"
-            className="forms text-left"
-            name="description"
-            value={taskAfterEdit?.description || ""}
-            onChange={handleOnChange}
-          />
+          <div className="space-y-2 w-full">
+            <Label htmlFor="description">Description</Label>
+            <Textarea
+              id="description"
+              name="description"
+              value={taskAfterEdit?.description || ""}
+              onChange={handleInputChange}
+              className="w-full bg-slate-800 resize-none border-slate-700 text-white min-h-[120px]"
+              placeholder="Provide a detailed description of the task "
+            />
+          </div>
 
-          <div className="flex flex-row justify-between space-x-4">
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Due Date</h1>
-              <input
-                type="date"
-                className="forms"
+          <div className="flex flex-row justify-start space-x-4">
+            <div className="space-y-2 ">
+              <Label htmlFor="date">Due Date</Label>
+              <Input
+                id="date"
                 name="date"
+                type="date"
                 value={getDateFromDateString(taskAfterEdit?.date)}
-                onChange={handleOnChange}
+                onChange={handleInputChange}
+                className="flex justify-center  bg-slate-800 border-slate-700 text-white"
               />
             </div>
 
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Priority</h1>
-              <select
-                className="forms"
-                name="priority"
+            <div className="space-y-2">
+              <Label htmlFor="priority">Priority</Label>
+              <Select
                 value={taskAfterEdit?.priority || "low"}
-                onChange={handleOnChange}
+                onValueChange={(value) => handleSelectChange("priority", value)}
               >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
+                <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Select priority" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Status</h1>
-              <select
-                className="forms"
-                name="status"
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
                 value={taskAfterEdit?.status || "pending"}
-                onChange={handleOnChange}
+                onValueChange={(value) => handleSelectChange("status", value)}
               >
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
+                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
+                  <SelectValue placeholder="Select status" />
+                </SelectTrigger>
+                <SelectContent className="bg-slate-800 border-slate-700 text-white">
+                  <SelectItem value="pending">Pending</SelectItem>
+                  <SelectItem value="in_progress">In Progress</SelectItem>
+                  <SelectItem value="completed">Completed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
+        </div>
 
-          <div className="border-b border-slate-600"></div>
-          <div className="flex justify-end space-x-4">
-            <IconizedButton
-              text="Cancel"
-              icon={<ClipboardX size={24} className="ml-2" />}
-              btnStyle="btn-white"
-              onClick={onClose}
-            />
-            <IconizedButton
-              text="Save Changes"
-              icon={<Save size={24} className="ml-2" />}
-              btnStyle="btn-blue"
-              onClick={handleUpdateTask}
-            />
-          </div>
-        </form>
-      </div>
-    </div>
+        <Separator className="bg-slate-600" />
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
+            onClick={onClose}
+          >
+            Cancel
+            <X className="h-4 w-4" />
+          </Button>
+          <Button
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            onClick={handleUpdateTask}
+          >
+            Save Changes
+            <Save className="h-4 w-4" />
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
