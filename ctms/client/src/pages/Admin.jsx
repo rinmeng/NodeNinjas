@@ -2,6 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import DBTable from "./testing/subcomp/DBTable";
 import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
+import DataTable from "../components/Datatable";
+import { Button } from "@/components/ui/button";
+import { ArrowUpDown } from "lucide-react";
+import { filterFns } from "@tanstack/react-table";
 
 const proxy = "http://localhost:15000/";
 
@@ -9,6 +13,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [nameOrder, setNameOrder] = useState(0);
 
   useEffect(() => {
     fetchUsers();
@@ -28,12 +33,58 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   }
 
   const usersColumns = [
-    { header: "User Id", key: "id" },
-    { header: "Username", key: "username" },
-    { header: "Email Address", key: "email" },
-    { header: "Role", key: "role" },
-    { header: "Select User", key: "selectUser" },
-    { header: "Change Role", key: "changeRole" },
+    {
+      header: "Select User",
+      accessorKey: "selectUser",
+      cell: ({ row }) => (
+        <TickCheckbox
+          userId={row.original.id}
+          checked={chosenUserIds.includes(row.original.id)}
+          onChange={() => changeTable(row.original.id)}
+        />
+      ),
+    },
+    { header: "User Id", accessorKey: "id" },
+    {
+      accessorKey: "username",
+      header: ({ column }) => {
+        return (
+          <Button
+            variant="ghost"
+            onClick={() => {
+              if (nameOrder == 0) {
+                fetchAscUsers();
+                setNameOrder(1);
+              } else {
+                fetchDescUsers();
+                setNameOrder(0);
+              }
+            }}
+          >
+            Username
+            <ArrowUpDown className="ml-2 h-4 w-4" />
+          </Button>
+        );
+      },
+    },
+    { header: "Email Address", accessorKey: "email", filterFns: "includes" },
+    { header: "Role", accessorKey: "role" },
+
+    {
+      header: "Change Role",
+      accessorKey: "changeRole",
+      cell: ({ row }) => (
+        <select
+          value={row.original.role}
+          onChange={(e) => updateUserRole(row.original.id, e.target.value)}
+          className="bg-yellow-500 text-white rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+          disabled={isDeleting}
+        >
+          <option value="admin">Admin</option>
+          <option value="team_member">team_member</option>
+        </select>
+      ),
+    },
   ];
 
   const fetchUsers = () => {
@@ -49,6 +100,70 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       .then((data) => {
         console.log("Fetch list:", data);
         setUsersList(data);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to load users",
+        });
+        setUsersList([]);
+      });
+  };
+
+  const fetchAscUsers = (nameOrder) => {
+    fetch(proxy + "user/all", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "The users can't be loaded");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const sortAlph = data.sort((a, b) => {
+          const useA = a.username;
+          const useB = b.username;
+          if (useA < useB) return -1;
+          if (useA > useB) return 1;
+          return 0;
+        });
+
+        console.log("Fetch list:", sortAlph);
+        setUsersList(sortAlph);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to load users",
+        });
+        setUsersList([]);
+      });
+  };
+
+  const fetchDescUsers = (nameOrder) => {
+    fetch(proxy + "user/all", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "The users can't be loaded");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const sortAlph = data.sort((a, b) => {
+          const useA = a.username;
+          const useB = b.username;
+          if (useA < useB) return 1;
+          if (useA > useB) return -1;
+          return 0;
+        });
+
+        console.log("Fetch list:", sortAlph);
+        setUsersList(sortAlph);
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -197,19 +312,19 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="mp5 my-16 animate-fadein">
+    <div className="mp5 my-16 animate-fadein bg-slate-700">
       <h1 className="title text-center">Welcome to the Admin Dashboard!</h1>
 
       <section className="my-8 p-4">
-        <div className="bg-sky-800">
-          <div className="bg-sky-900 rounded-t-lg">
+        <div className="bg-slate-900">
+          <div className="bg-slate-900 rounded-t-lg">
             <h1 className="text-2xl font-bold text-center">
               Manage Users, Tasks and Roles
             </h1>
           </div>
 
           <div className="flex justify-around items-center">
-            <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
+            <div className="mt-5 bg-slate-800 inline-block ml-20 p-4 rounded-xl">
               <label className="text-xl mt-15">Action:</label>
               <button
                 onClick={deleteUsers}
@@ -237,7 +352,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
           </div>
 
           <div>
-            <DBTable
+            <DataTable
               columns={usersColumns}
               data={usersList.map((user) => {
                 const Ticked = chosenUserIds.includes(user.id);
@@ -265,9 +380,37 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
               })}
               loading={false}
             />
+            {/* <DBTable
+              columns={usersColumns}
+              data={usersList.map((user) => {
+                const Ticked = chosenUserIds.includes(user.id);
+                return {
+                  ...user,
+                  selectUser: (
+                    <TickCheckbox
+                      userId={user.id}
+                      checked={Ticked}
+                      onChange={() => changeTable(user.id)}
+                    />
+                  ),
+                  changeRole: (
+                    <select
+                      value={user.role}
+                      onChange={(e) => updateUserRole(user.id, e.target.value)}
+                      className="bg-yellow-500 text-white rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-yellow-600"
+                      disabled={isDeleting}
+                    >
+                      <option value="admin">Admin</option>
+                      <option value="team_member">team_member</option>
+                    </select>
+                  ),
+                };
+              })}
+              loading={false}
+            /> */}
           </div>
 
-          <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2"></div>
+          <div className="rounded-sm mt-5 bg-slate-900 rounded-b-lg p-2"></div>
         </div>
       </section>
     </div>
