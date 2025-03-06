@@ -5,7 +5,6 @@ import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 import DataTable from "../components/Datatable";
 import { Button } from "@/components/ui/button";
 import { ArrowUpDown } from "lucide-react";
-import { filterFns } from "@tanstack/react-table";
 
 const proxy = "http://localhost:15000/";
 
@@ -111,7 +110,8 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       });
   };
 
-  const fetchAscUsers = (nameOrder) => {
+  //Users will be sorted in ascending order(A-Z)
+  const fetchAscUsers = () => {
     fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
@@ -143,7 +143,8 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       });
   };
 
-  const fetchDescUsers = (nameOrder) => {
+  //Users will be sorted in descending order(Z-A)
+  const fetchDescUsers = () => {
     fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
@@ -380,34 +381,6 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
               })}
               loading={false}
             />
-            {/* <DBTable
-              columns={usersColumns}
-              data={usersList.map((user) => {
-                const Ticked = chosenUserIds.includes(user.id);
-                return {
-                  ...user,
-                  selectUser: (
-                    <TickCheckbox
-                      userId={user.id}
-                      checked={Ticked}
-                      onChange={() => changeTable(user.id)}
-                    />
-                  ),
-                  changeRole: (
-                    <select
-                      value={user.role}
-                      onChange={(e) => updateUserRole(user.id, e.target.value)}
-                      className="bg-yellow-500 text-white rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                      disabled={isDeleting}
-                    >
-                      <option value="admin">Admin</option>
-                      <option value="team_member">team_member</option>
-                    </select>
-                  ),
-                };
-              })}
-              loading={false}
-            /> */}
           </div>
 
           <div className="rounded-sm mt-5 bg-slate-900 rounded-b-lg p-2"></div>
