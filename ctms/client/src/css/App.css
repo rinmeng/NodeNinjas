@@ -118,6 +118,14 @@
   .navbar-links {
     @apply text-white hover:bg-blue-700 px-3 py-2 rounded-md transition-all duration-200 ease-in-out;
   }
+
+  .text-destructive {
+    color: hsl(var(--destructive));
+  }
+
+  .focus\:text-destructive:focus {
+    color: hsl(var(--destructive));
+  }
 }
 
 @theme {

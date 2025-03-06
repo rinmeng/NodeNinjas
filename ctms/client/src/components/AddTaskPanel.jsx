@@ -124,10 +124,12 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
-          Add Task
-          <ListPlus />
-        </Button>
+        <div>
+          <Button className="bg-blue-600 hover:bg-blue-700 text-white cursor-pointer">
+            Add Task
+            <ListPlus />
+          </Button>
+        </div>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px] bg-slate-900 text-white border-slate-600">
         <DialogHeader>

@@ -544,21 +544,25 @@ const AssignTaskPanel = ({
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button
-            variant="outline"
-            className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
-          >
-            Cancel
-          </Button>
+          <div>
+            <Button
+              variant="outline"
+              className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
+            >
+              Cancel
+            </Button>
+          </div>
         </DialogClose>
         <DialogClose asChild>
-          <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleManageUsers}
-          >
-            Update Assignments
-            <UserRoundCheck className="h-4 w-4 ml-1" />
-          </Button>
+          <div>
+            <Button
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+              onClick={handleManageUsers}
+            >
+              Update Assignments
+              <UserRoundCheck className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </DialogClose>
       </DialogFooter>
     </DialogContent>

@@ -1,6 +1,16 @@
+import { Checkbox } from "@/components/ui/checkbox";
+import { MoreHorizontal } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import DBTable from "./testing/subcomp/DBTable";
 import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 import DataTable from "../components/Datatable";
 import { Button } from "@/components/ui/button";
@@ -33,15 +43,26 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
 
   const usersColumns = [
     {
-      header: "Select User",
-      accessorKey: "selectUser",
-      cell: ({ row }) => (
-        <TickCheckbox
-          userId={row.original.id}
-          checked={chosenUserIds.includes(row.original.id)}
-          onChange={() => changeTable(row.original.id)}
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
         />
       ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
     },
     { header: "User Id", accessorKey: "id" },
     {
@@ -51,7 +72,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
           <Button
             variant="ghost"
             onClick={() => {
-              if (nameOrder == 0) {
+              if (nameOrder === 0) {
                 fetchAscUsers();
                 setNameOrder(1);
               } else {
@@ -66,25 +87,120 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         );
       },
     },
-    { header: "Email Address", accessorKey: "email", filterFns: "includes" },
+    { header: "Email Address", accessorKey: "email" },
     { header: "Role", accessorKey: "role" },
-
+    // In your usersColumns definition, update the actions cell:
     {
-      header: "Change Role",
-      accessorKey: "changeRole",
-      cell: ({ row }) => (
-        <select
-          value={row.original.role}
-          onChange={(e) => updateUserRole(row.original.id, e.target.value)}
-          className="bg-yellow-500 text-white rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-          disabled={isDeleting}
-        >
-          <option value="admin">Admin</option>
-          <option value="team_member">team_member</option>
-        </select>
-      ),
+      id: "actions",
+      cell: ({ row }) => {
+        const user = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <div className="cursor-pointer">
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="sr-only">Open menu</span>
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  updateUserRole(
+                    user.id,
+                    user.role === "admin" ? "team_member" : "admin"
+                  )
+                }
+              >
+                Change Role to {user.role === "admin" ? "Team Member" : "Admin"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  if (
+                    window.confirm("Are you sure you want to delete this user?")
+                  ) {
+                    deleteUsers([user.id]);
+                  }
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                Delete User
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
     },
   ];
+
+  // Modify your deleteUsers function to accept an array of IDs:
+  const deleteUsers = async (userIds = chosenUserIds) => {
+    if (userIds.length === 0) {
+      setFeedbackMessage({
+        title: "Error",
+        description: "No users are selected!",
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    const validDeletions = [];
+
+    try {
+      for (const userId of userIds) {
+        try {
+          const res = await fetch(proxy + `user/delete/${userId}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            console.error(`Failed to delete user ${userId}:`, errorData);
+            continue;
+          }
+
+          const data = await res.json();
+          validDeletions.push(userId);
+        } catch (error) {
+          console.error(`Error deleting user ${userId}:`, error);
+        }
+      }
+
+      if (validDeletions.length > 0) {
+        setUsersList((prev) =>
+          prev.filter((user) => !validDeletions.includes(user.id))
+        );
+        setChosenUserIds((prev) =>
+          prev.filter((id) => !validDeletions.includes(id))
+        );
+        setFeedbackMessage({
+          title: "Success",
+          description: `Successfully deleted ${validDeletions.length} user(s)`,
+        });
+      } else {
+        setFeedbackMessage({
+          title: "Error",
+          description:
+            "No users were deleted. Users with admin role or active assignments cannot be deleted.",
+        });
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error("Error in delete operation:", error);
+      setFeedbackMessage({
+        title: "Error",
+        description: "An unexpected error occurred while deleting users",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const fetchUsers = () => {
     fetch(proxy + "user/all", { credentials: "include" })
@@ -187,88 +303,6 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
     });
   };
 
-  const deleteUsers = async () => {
-    // First check if any users are selected
-    if (chosenUserIds.length === 0) {
-      setFeedbackMessage({
-        title: "Error",
-        description: "No users are selected!",
-      });
-      return;
-    }
-
-    // Ask for confirmation before deleting
-    const confirm = window.confirm("Would you like to delete these users?");
-    if (!confirm) {
-      return;
-    }
-
-    setIsDeleting(true);
-    const validDeletions = []; // Move array inside function to avoid persistence issues
-
-    try {
-      // Process deletions sequentially to avoid race conditions
-      for (const userId of chosenUserIds) {
-        try {
-          const res = await fetch(proxy + `user/delete/${userId}`, {
-            method: "DELETE",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          });
-
-          if (!res.ok) {
-            const errorData = await res.json();
-            console.error(`Failed to delete user ${userId}:`, errorData);
-            continue; // Skip to next user if this one fails
-          }
-
-          const data = await res.json();
-          console.log("Deleted user:", data);
-          validDeletions.push(userId);
-        } catch (error) {
-          console.error(`Error deleting user ${userId}:`, error);
-        }
-      }
-
-      // Update UI based on deletion results
-      if (validDeletions.length > 0) {
-        // Update user list to remove deleted users
-        setUsersList((prev) =>
-          prev.filter((user) => !validDeletions.includes(user.id))
-        );
-
-        // Remove deleted users from selected IDs
-        setChosenUserIds((prev) =>
-          prev.filter((id) => !validDeletions.includes(id))
-        );
-
-        setFeedbackMessage({
-          title: "Success",
-          description: `Successfully deleted ${validDeletions.length} user(s)`,
-        });
-      } else {
-        setFeedbackMessage({
-          title: "Error",
-          description:
-            "No users were deleted. Users with admin role or active assignments cannot be deleted.",
-        });
-
-        // Refresh the list to show current state
-        fetchUsers();
-      }
-    } catch (error) {
-      console.error("Error in delete operation:", error);
-      setFeedbackMessage({
-        title: "Error",
-        description: "An unexpected error occurred while deleting users",
-      });
-    } finally {
-      setIsDeleting(false);
-    }
-  };
-
   const resetSelection = () => {
     setChosenUserIds([]);
   };
@@ -323,35 +357,6 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
               Manage Users, Tasks and Roles
             </h1>
           </div>
-
-          <div className="flex justify-around items-center">
-            <div className="mt-5 bg-slate-800 inline-block ml-20 p-4 rounded-xl">
-              <label className="text-xl mt-15">Action:</label>
-              <button
-                onClick={deleteUsers}
-                disabled={isDeleting || chosenUserIds.length === 0}
-                className={`${
-                  isDeleting || chosenUserIds.length === 0
-                    ? "bg-gray-500"
-                    : "bg-red-700"
-                } w-30 ml-5 p-2 rounded-xl`}
-              >
-                {isDeleting ? "Deleting..." : "Delete Selected Users"}
-              </button>
-              <button
-                onClick={resetSelection}
-                disabled={isDeleting || chosenUserIds.length === 0}
-                className={`${
-                  isDeleting || chosenUserIds.length === 0
-                    ? "bg-gray-500"
-                    : "bg-red-700"
-                } w-30 ml-5 p-2 rounded-xl`}
-              >
-                Reset
-              </button>
-            </div>
-          </div>
-
           <div>
             <DataTable
               columns={usersColumns}
