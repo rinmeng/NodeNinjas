@@ -52,7 +52,7 @@ const TaskDashboard = ({
           <Button
             variant="secondary"
             onClick={refetchTaskClicked}
-            className={`cursor-pointer  ${
+            className={`${
               isRefetching ? "cursor-not-allowed disabled opacity-50" : ""
             }`}
           >

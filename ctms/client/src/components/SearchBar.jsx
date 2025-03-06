@@ -105,7 +105,7 @@ const SearchBar = ({
         ${isExpanded ? "translate-x-full" : " translate-x-0"}`}
       >
         {/* Chevron button that changes icon based on state */}
-        <div onClick={toggleExpansion} className="cursor-pointer t200e">
+        <div onClick={toggleExpansion} className="t200e">
           {isExpanded ? (
             <IconButton
               icon={<ChevronLeft size={50} />}

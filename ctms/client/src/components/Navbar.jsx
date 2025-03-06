@@ -69,7 +69,7 @@ const Navbar = ({
           {(sessionUser || devMode) && (
             <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
               <SheetTrigger asChild>
-                <div className="relative cursor-pointer">
+                <div className="relative">
                   <IconButton
                     icon={<Bell size={24} />}
                     color="hover:bg-blue-600 text-white"

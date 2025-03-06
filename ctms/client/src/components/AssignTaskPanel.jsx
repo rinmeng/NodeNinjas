@@ -499,7 +499,7 @@ const AssignTaskPanel = ({
                         className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white${
                           isTaskOwner(user.id)
                             ? "opacity-50 cursor-not-allowed text-black"
-                            : "cursor-pointer hover:scale-105 transition-transform"
+                            : "hover:scale-105 transition-transform"
                         }`}
                         onClick={() =>
                           !isTaskOwner(user.id) && toggleUserSelection(user)

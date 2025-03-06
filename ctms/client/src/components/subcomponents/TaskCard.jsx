@@ -314,7 +314,7 @@ const TaskCard = ({
           <div className="group flex-grow">
             <div
               onClick={toggleExpanded}
-              className="flex items-center justify-between cursor-pointer w-full"
+              className="flex items-center justify-between  w-full"
             >
               <h1
                 className={`text-2xl font-semibold flex-grow ${

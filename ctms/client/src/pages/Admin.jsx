@@ -98,7 +98,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div className="cursor-pointer">
+              <div>
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
               </div>

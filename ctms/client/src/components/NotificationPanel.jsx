@@ -118,7 +118,7 @@ const NotificationPanel = ({
                   }`}
                 >
                   <div
-                    className="flex items-start gap-3 cursor-pointer"
+                    className="flex items-start gap-3"
                     onClick={handleReadNotification(
                       notification.id,
                       notification.status
