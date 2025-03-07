@@ -1,124 +1,181 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/utils/AuthProvider";
 import {
   User,
   Lock,
   LogIn,
   ChartSpline,
   TrendingUp,
-  X,
   Mail,
   Contact,
   Shield,
   CircleUserRound,
   UserCog,
 } from "lucide-react";
-import IconizedButton from "../components/subcomponents/IconizedButton";
-import IconizedTextField from "../components/subcomponents/IconizedTextField";
 import TickCheckbox from "../components/subcomponents/TickCheckbox";
+import { Badge } from "@/components/ui/badge";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
-const proxy = "http://localhost:15000/";
+import proxy from "@/src/utils/proxy";
 
-const Login = ({
-  setShowNavbar,
-  sessionUser,
-  setSessionUser,
-  setFeedbackMessage,
-}) => {
-  const [formData, setFormData] = useState({
-    username: "",
-    password: "",
-    displayName: "",
-    email: "",
-    role: "team_member",
-    isRemembered: false,
-    manager_username: "",
+// Define your validation schemas with Zod
+const loginSchema = z.object({
+  username: z.string().min(1, "Username is required"),
+  password: z.string().min(1, "Password is required"),
+  isRemembered: z.boolean().default(true),
+});
+
+const registerSchema = z
+  .object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    displayName: z
+      .string()
+      .min(2, "Display name must be at least 2 characters"),
+    email: z.string().email("Please enter a valid email address"),
+    role: z.enum(["team_member", "admin"]),
+    manager_username: z.string().optional(),
+  })
+  .refine(
+    (data) => {
+      // If role is team_member, manager_username is required
+      if (data.role === "team_member" && !data.manager_username) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Manager username is required for team members",
+      path: ["manager_username"],
+    }
+  );
+
+const Login = ({ setShowNavbar, setFeedbackMessage }) => {
+  const { user, login, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+
+  // Replace your login submit handler with:
+  const onLoginSubmit = async (data) => {
+    const result = await login(data.username, data.password, data.isRemembered);
+
+    if (result.success) {
+      setFeedbackMessage({
+        title: "Login Successful",
+        description: "You have successfully logged in.",
+      });
+    } else {
+      setFeedbackMessage({
+        title: "Login Failed",
+        description: result.error,
+      });
+    }
+  };
+
+  // Initialize react-hook-form with Zod validation
+  const loginForm = useForm({
+    resolver: zodResolver(loginSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      isRemembered: true,
+    },
   });
 
-  const [showPopup, setShowPopup] = useState(false);
-
-  const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: type === "checkbox" ? checked : value,
-    }));
-  };
-
-  const registerPopup = (e) => {
-    e.preventDefault();
-    setShowPopup(true);
-  };
-
-  const closePopup = () => {
-    setShowPopup(false);
-  };
-
-  const registerUser = (e) => {
-    e.preventDefault();
-    addUser();
-  };
+  const registerForm = useForm({
+    resolver: zodResolver(registerSchema),
+    defaultValues: {
+      username: "",
+      password: "",
+      displayName: "",
+      email: "",
+      role: "team_member",
+      manager_username: "",
+    },
+  });
 
   useEffect(() => {
-    setShowNavbar(!showPopup);
+    setShowNavbar(!open);
     return () => {
       setShowNavbar(true);
     };
-  }, [showPopup, setShowNavbar]);
+  }, [open, setShowNavbar]);
 
-  const addUser = async () => {
-    const { displayName, email, username, password, role, manager_username } =
-      formData;
-
-    if (
-      !displayName ||
-      !email ||
-      !username ||
-      !password ||
-      !role ||
-      !manager_username
-    ) {
-      setFeedbackMessage("Please fill in all required fields.");
-      return;
-    } else if (password.length < 8) {
-      setFeedbackMessage("Password must be at least 8 characters long.");
-      return;
-    }
-
+  const onRegisterSubmit = async (data) => {
     try {
-      // Fetch the manager's user ID
-      const managerResponse = await fetch(
-        proxy + `user/username/${manager_username}`,
-        {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          credentials: "include",
+      // Only fetch manager's ID if the user is a team member
+      let manager_id = null;
+
+      if (data.role === "team_member") {
+        // Fetch the manager's user ID
+        const managerResponse = await fetch(
+          `${proxy}/user/username/${data.manager_username}`,
+          {
+            method: "GET",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          }
+        );
+
+        const managerData = await managerResponse.json();
+
+        if (managerResponse.status !== 200) {
+          setFeedbackMessage({
+            title: "Manager Not Found",
+            description: "The provided manager username does not exist.",
+          });
+          return;
         }
-      );
 
-      const managerData = await managerResponse.json();
-
-      if (managerResponse.status !== 200) {
-        setFeedbackMessage(managerData.message || "Manager not found.");
-        return;
+        manager_id = managerData.id;
       }
 
-      const manager_id = managerData.id;
-
-      // Register the new user with the manager_id
-      const registerResponse = await fetch(proxy + "user/register", {
+      // Register the new user
+      const registerResponse = await fetch(`${proxy}/user/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
         body: JSON.stringify({
-          display_name: displayName,
-          email,
-          username,
-          password_hash: password,
-          role,
+          display_name: data.displayName,
+          email: data.email,
+          username: data.username,
+          password_hash: data.password,
+          role: data.role,
           manager_id,
         }),
       });
@@ -126,318 +183,408 @@ const Login = ({
       const registerData = await registerResponse.json();
 
       if (registerResponse.status === 201) {
-        setFeedbackMessage("Registration successful!");
+        setFeedbackMessage({
+          title: "Registration Successful",
+          description: "You have successfully registered.",
+        });
 
-        // Clear form fields except username and password
-        setFormData((prev) => ({
-          ...prev,
+        // Update login form with the registered username for convenience
+        loginForm.setValue("username", data.username);
+
+        // Reset register form
+        registerForm.reset({
+          username: "",
+          password: "",
           displayName: "",
           email: "",
           role: "team_member",
-          isRemembered: true,
           manager_username: "",
-        }));
-        setShowPopup(false);
+        });
+
+        setOpen(false);
       } else {
-        setFeedbackMessage(registerData.message || "Registration failed.");
-        setShowPopup(true);
+        setFeedbackMessage({
+          title: "Registration Failed",
+          description:
+            registerData.message || "An error occurred while registering.",
+        });
       }
     } catch (error) {
       console.error(error);
-      setFeedbackMessage(error.message || "An error occurred.");
+      setFeedbackMessage({
+        title: "Registration Failed",
+        description: "An error occurred while trying to register.",
+      });
     }
   };
 
-  // In your Login.js component, modify the loginUser function
-  const loginUser = (e) => {
-    e.preventDefault();
-    if (!formData.username || !formData.password) {
-      setFeedbackMessage("Please fill in all required fields.");
-      return;
-    }
-    fetch(proxy + "user/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-      body: JSON.stringify({
-        username: formData.username,
-        password_hash: formData.password,
-        isRemembered: formData.isRemembered, // Add this line
-      }),
-    })
-      .then((res) => {
-        const statusCode = res.status;
-        return res.json().then((data) => ({
-          statusCode,
-          data,
-        }));
-      })
-      .then(({ statusCode, data }) => {
-        if (statusCode === 200) {
-          setFeedbackMessage("Login successful!");
-          setSessionUser(data.session.user);
-        } else if (statusCode === 401 || statusCode === 404) {
-          setFeedbackMessage("Invalid Credentials");
-        } else {
-          setFeedbackMessage(data.message || "Login failed.");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        setFeedbackMessage("An error occurred while trying to log in.");
-      });
-  };
+  // Replace your logout handler with:
+  const handleLogout = async () => {
+    const result = await logout();
 
-  const userLogout = () => {
-    fetch(proxy + "user/logout", {
-      method: "POST",
-      credentials: "include",
-    })
-      .then((res) => {
-        const statusCode = res.status;
-        return res.json().then((data) => ({
-          statusCode,
-          data,
-        }));
-      })
-      .then(({ statusCode, data }) => {
-        if (statusCode === 200) {
-          setFeedbackMessage("Logout successful!");
-          setSessionUser(null);
-        } else {
-          setFeedbackMessage(data.message || "Logout failed.");
-        }
-      })
-      .catch((error) => {
-        console.error(error);
-        setFeedbackMessage("An error occurred while trying to log out.");
+    if (result.success) {
+      setFeedbackMessage({
+        title: "Logout Successful",
+        description: "You have successfully logged out.",
       });
+    } else {
+      setFeedbackMessage({
+        title: "Logout Failed",
+        description: result.error,
+      });
+    }
   };
 
   return (
     <div className="animate-fadein">
       <div className="grid grid-cols-2 h-screen">
-        <div className="flex flex-col justify-center p-5 bg-slate-950">
-          <h1 className="text-7xl font-extrabold text-left">CTMS.</h1>
-          <p className="text-5xl font-extralight">
-            The next generation of Task Management.
-          </p>
-        </div>
-        {sessionUser ? (
-          <div className="flex flex-col items-center justify-center bg-slate-900">
-            <h1 className="title text-white">
-              {sessionUser
-                ? `Welcome back, ${sessionUser.display_name}`
-                : "Login to myCMTS"}
-            </h1>
-            <hr className="w-1/4 m-auto my-4" />
-            <IconizedButton
-              text="Logout"
-              btnStyle="btn-red w-1/2"
-              icon={<LogIn className="ml-2" size={20} strokeWidth={2} />}
-              onClick={userLogout}
-            />
-          </div>
+        <Card className="flex flex-col justify-center p-5 bg-primary-foreground/20 border-0 rounded-none">
+          <CardHeader>
+            <CardTitle className="text-7xl font-extrabold">CTMS.</CardTitle>
+            <CardDescription className="text-5xl font-extralight">
+              The next generation of Task Management.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+
+        {user ? (
+          <Card className="flex flex-col items-center justify-center bg-primary-foreground/70 border-0 rounded-none">
+            <CardHeader>
+              <CardTitle className="text-2xl">
+                Welcome back, {user.display_name}
+              </CardTitle>
+              <Separator />
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={handleLogout}
+              >
+                Logout
+                <LogIn className="ml-2" size={20} />
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
-          <div className="flex flex-col justify-center bg-slate-900 p-5">
-            <div className="space-y-4 text-center">
-              <h1 className="title text-white">Login to myCMTS</h1>
-              <hr className="w-1/4 m-auto my-4" />
+          <Card className="flex flex-col justify-center bg-primary-foreground/70 border-0 rounded-none">
+            <CardHeader className="space-y-4 text-center">
+              <CardTitle className="text-2xl ">Login to myCMTS</CardTitle>
+              <Separator />
+            </CardHeader>
 
-              <form className="flex flex-col space-y-4 w-1/2 m-auto">
-                <IconizedTextField
-                  icon={<User strokeWidth={2} className="text-field-icon" />}
-                  inputDisplay="Username"
-                  inputStyle="text-field"
-                  name="username"
-                  value={formData.username}
-                  onChange={handleInputChange}
-                  maxLength={50}
-                  inputPlaceholder="Enter your username"
-                />
+            {/* Login Form with Shadcn UI */}
+            <CardContent>
+              <Form {...loginForm}>
+                <form
+                  onSubmit={loginForm.handleSubmit(onLoginSubmit)}
+                  className="flex flex-col space-y-4 w-1/2 m-auto"
+                >
+                  <FormField
+                    control={loginForm.control}
+                    name="username"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <User strokeWidth={2} size={18} /> Username
+                        </FormLabel>
+                        <FormControl>
+                          <Input placeholder="Enter your username" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <IconizedTextField
-                  icon={<Lock strokeWidth={2} className="text-field-icon" />}
-                  inputDisplay="Password"
-                  inputStyle="text-field"
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
-                  maxLength={255}
-                  inputPlaceholder="Enter your password"
-                />
+                  <FormField
+                    control={loginForm.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <Lock strokeWidth={2} size={18} /> Password
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="password"
+                            placeholder="Enter your password"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
-                <div className="flex flex-col space-y-4 items-center justify-center">
-                  <TickCheckbox
-                    checked={formData.isRemembered}
-                    onChange={handleInputChange}
-                    label="Remember Me"
+                  <FormField
+                    control={loginForm.control}
                     name="isRemembered"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row w-full items-center justify-center">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Remember Me</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
                   />
-                  <IconizedButton
-                    text="Login"
-                    btnStyle="btn-blue w-3/4"
-                    icon={<LogIn className="ml-2" size={20} strokeWidth={2} />}
-                    onClick={loginUser}
-                  />
-                </div>
-              </form>
-            </div>
-            <hr className="w-1/2 m-auto my-4" />
-            <div className="space-y-2 text-center">
-              <h1 className="title-sm text-white">New Here?</h1>
-              <form className="flex flex-col space-y-4 w-1/2 m-auto">
+
+                  <Button type="submit">
+                    Login <LogIn />
+                  </Button>
+                </form>
+              </Form>
+            </CardContent>
+
+            <CardFooter className="flex flex-col space-y-4">
+              <Separator />
+              <div className="space-y-2 text-center w-full">
+                <h2 className="text-xl font-semibold ">New Here?</h2>
                 <p>Sign up to start tracking your progress.</p>
-                <IconizedButton
-                  text="Sign Up"
-                  btnStyle="btn-white w-full space-x-2"
-                  icon={<ChartSpline size={20} strokeWidth={2} />}
-                  onClick={registerPopup}
-                />
-              </form>
-            </div>
-          </div>
+
+                {/* Registration Dialog with Shadcn UI */}
+                <Dialog open={open} onOpenChange={setOpen}>
+                  <DialogTrigger asChild>
+                    <Button variant="outline" className="w-1/2 ">
+                      Sign Up
+                      <ChartSpline />
+                    </Button>
+                  </DialogTrigger>
+
+                  <DialogContent className="sm:max-w-[600px] ">
+                    <DialogHeader>
+                      <DialogTitle className="text-2xl font-bold">
+                        Register
+                      </DialogTitle>
+                      <DialogDescription>
+                        Let's get you started on your journey with our intuitive
+                        task manager.
+                      </DialogDescription>
+                    </DialogHeader>
+
+                    <Separator />
+
+                    <Form {...registerForm}>
+                      <form
+                        onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
+                        className="flex flex-col space-y-4"
+                      >
+                        <FormField
+                          control={registerForm.control}
+                          name="username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2">
+                                <User strokeWidth={2} size={18} /> Username
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your unique username"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={registerForm.control}
+                          name="password"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2">
+                                <Lock strokeWidth={2} size={18} /> Password
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="password"
+                                  placeholder="Enter your password"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={registerForm.control}
+                          name="displayName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2">
+                                <Contact strokeWidth={2} size={18} /> Display
+                                Name
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your display name"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={registerForm.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2">
+                                <Mail strokeWidth={2} size={18} /> Email
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  type="email"
+                                  placeholder="Enter your email"
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={registerForm.control}
+                          name="role"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="font-semibold text-md">
+                                User Role
+                              </FormLabel>
+                              <div className="flex space-x-4 justify-center text-center">
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  className="flex space-x-4 w-full"
+                                >
+                                  <FormItem className="w-full">
+                                    <FormControl>
+                                      <label>
+                                        <RadioGroupItem
+                                          value="team_member"
+                                          className="sr-only"
+                                        />
+                                        <Badge
+                                          variant={
+                                            field.value === "team_member"
+                                              ? "default"
+                                              : "outline"
+                                          }
+                                          className={`w-full py-3 hover:bg-primary/90 cursor-pointer transition-colors
+                                                    ${
+                                                      field.value ===
+                                                      "team_member"
+                                                        ? ""
+                                                        : "hover:bg-secondary/80"
+                                                    }`}
+                                        >
+                                          <div className="flex items-center justify-center gap-2">
+                                            <CircleUserRound
+                                              size={20}
+                                              strokeWidth={2}
+                                            />
+                                            <span>Team Member</span>
+                                          </div>
+                                        </Badge>
+                                      </label>
+                                    </FormControl>
+                                  </FormItem>
+
+                                  <FormItem className="w-full">
+                                    <FormControl>
+                                      <label>
+                                        <RadioGroupItem
+                                          value="admin"
+                                          className="sr-only"
+                                        />
+                                        <Badge
+                                          variant={
+                                            field.value === "admin"
+                                              ? "default"
+                                              : "outline"
+                                          }
+                                          className={`w-full py-3 hover:bg-primary/90 cursor-pointer transition-colors
+                                                      ${
+                                                        field.value === "admin"
+                                                          ? ""
+                                                          : "hover:bg-secondary/80"
+                                                      }`}
+                                        >
+                                          <div className="flex items-center justify-center gap-2">
+                                            <Shield size={20} strokeWidth={2} />
+                                            <span>Admin</span>
+                                          </div>
+                                        </Badge>
+                                      </label>
+                                    </FormControl>
+                                  </FormItem>
+                                </RadioGroup>
+                              </div>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <FormField
+                          control={registerForm.control}
+                          name="manager_username"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel className="flex items-center gap-2">
+                                <UserCog strokeWidth={2} size={18} /> Admin's
+                                Username
+                              </FormLabel>
+                              <FormControl>
+                                <Input
+                                  placeholder="Enter your Admin's username"
+                                  className={`
+                                    ${
+                                      registerForm.watch("role") === "admin"
+                                        ? "opacity-50"
+                                        : ""
+                                    }`}
+                                  disabled={
+                                    registerForm.watch("role") === "admin"
+                                  }
+                                  {...field}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+
+                        <DialogFooter className="mt-4">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => setOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button type="submit" variant="default">
+                            Register
+                            <TrendingUp />
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+            </CardFooter>
+          </Card>
         )}
-      </div>
-      <div
-        className={`${
-          showPopup
-            ? "opacity-80 z-20 pointer-events-auto"
-            : "opacity-0 -z-20 pointer-events-none"
-        }  t500e fixed left-0 top-0 bg-black w-full h-full`}
-      ></div>
-      <div
-        className={`${
-          showPopup
-            ? "opacity-100 z-30 translate-x-1/4 pointer-events-auto"
-            : "opacity-0 -z-30 translate-x-full pointer-events-none"
-        } t200e fixed top-0 left-0 w-full h-full flex justify-center items-center`}
-      >
-        <div className="bg-slate-600 p-8 rounded-lg w-1/3">
-          <div className="flex justify-between items-center mb-4">
-            <h1 className="title">Register</h1>
-            <X size={40} onClick={closePopup} className="cursor-pointer" />
-          </div>
-          <div className="mb-4">
-            <p className="font-extralight text-xl">
-              Let's get you started on your journey our intuitive task manager.
-            </p>
-          </div>
-          <hr className="my-4 w-1/2 m-auto" />
-          <form className="flex flex-col space-y-4">
-            <IconizedTextField
-              icon={<User strokeWidth={2} className="text-field-icon" />}
-              inputDisplay="Username"
-              inputStyle="text-field"
-              name="username"
-              value={formData.username}
-              onChange={handleInputChange}
-              maxLength={50}
-              inputPlaceholder="Enter your unique username"
-            />
-            <IconizedTextField
-              icon={<Lock strokeWidth={2} className="text-field-icon" />}
-              inputDisplay="Password"
-              inputStyle="text-field"
-              name="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              maxLength={255}
-              inputPlaceholder="Enter your password"
-            />
-            <IconizedTextField
-              icon={<Contact strokeWidth={2} className="text-field-icon" />}
-              inputDisplay="Display Name*"
-              inputStyle="text-field"
-              name="displayName"
-              value={formData.displayName}
-              onChange={handleInputChange}
-              maxLength={100}
-              inputPlaceholder="Enter your display name"
-            />
-            <IconizedTextField
-              icon={<Mail strokeWidth={2} className="text-field-icon" />}
-              inputDisplay="Email*"
-              inputStyle="text-field"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              maxLength={255}
-              inputPlaceholder="Enter your email"
-            />
-            <h1>
-              <p className="font-semibold text-lg">User Role</p>
-            </h1>
-            <div className="flex space-x-4 justify-center text-center">
-              <label className="w-1/2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="role"
-                  value="team_member"
-                  className="hidden peer"
-                  checked={formData.role === "team_member"}
-                  onChange={handleInputChange}
-                />
-                <div
-                  className="p-4 border-2 t200e font-bold border-slate-500 
-                          bg-slate-700 rounded-full peer-checked:bg-slate-950 
-                          peer-checked:border-slate-300 peer-checked:text-white
-                           flex justify-center items-center space-x-2"
-                >
-                  <p>Team Member</p>
-                  <CircleUserRound size={20} strokeWidth={2} />
-                </div>
-              </label>
-
-              <label className="w-1/2 cursor-pointer">
-                <input
-                  type="radio"
-                  name="role"
-                  value="admin"
-                  className="hidden peer"
-                  checked={formData.role === "admin"}
-                  onChange={handleInputChange}
-                />
-                <div
-                  className="p-4 border-2 t200e font-bold border-slate-500 
-                            bg-slate-700 rounded-full peer-checked:bg-slate-950 
-                            peer-checked:border-slate-300 peer-checked:text-white
-                            flex justify-center items-center space-x-2"
-                >
-                  <p>Admin</p>
-                  <Shield size={20} strokeWidth={2} />
-                </div>
-              </label>
-            </div>
-
-            <div>
-              <IconizedTextField
-                icon={<UserCog strokeWidth={2} className={`text-field-icon`} />}
-                inputDisplay="Admin's Username"
-                inputStyle={`text-field  ${
-                  formData.role === "admin" ? "opacity-50" : "opacity-100"
-                }`}
-                name="manager_username"
-                value={formData.manager_username}
-                onChange={handleInputChange}
-                maxLength={255}
-                inputPlaceholder="Enter your Admin's username"
-                disabled={formData.role === "admin"}
-              />
-            </div>
-            <hr className="my-4 w-1/4 m-auto" />
-            <div className="flex justify-end">
-              <IconizedButton
-                text="Register"
-                btnStyle="btn-white space-x-2 w-full hover:bg-green-600"
-                icon={<TrendingUp size={20} strokeWidth={2} />}
-                onClick={registerUser}
-              />
-            </div>
-          </form>
-        </div>
       </div>
     </div>
   );

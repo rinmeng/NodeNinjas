@@ -3,12 +3,12 @@ import { Check } from "lucide-react";
 
 const TickCheckbox = ({ checked, onChange, label, name }) => {
   return (
-    <label className="flex items-center cursor-pointer">
+    <label className="flex items-center">
       <div className="relative items-center">
         <input
           type="checkbox"
           name={name}
-          className="items-center flex justify-center cursor-pointer
+          className="items-center flex justify-center
                   h-6 w-6 border-2 peer checked:border-blue-500 appearance-none 
                   rounded-md border-slate-400 t200e"
           checked={checked}

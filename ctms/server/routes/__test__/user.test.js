@@ -1,4 +1,4 @@
-const app = require('../../server');
+const { app } = require('../../server');
 const request = require('supertest');
 const pool = require('../../db');
 
@@ -422,6 +422,66 @@ describe('User Routes', () => {
                 expect(response.body.message).toBe('Error adding user.');
             });
         });
+        //unit test for updating user role
+        describe('PUT /user/update/role/:id', () => {
+            it('returns status code 200 if user role was updated successfully', async () => {
+                const updatedUser = {
+                    id: 1,
+                    username: 'testuser',
+                    email: 'testemail',
+                    password_hash: 'testpassword',
+                    role: 'updatedrole',
+                    display_name: 'testdisplayname',
+                    manager_id: '1'
+                };
+
+                pool.query.mockResolvedValueOnce({
+                    rows: [updatedUser],
+                    rowCount: 1
+                });
+
+                const response = await request(app)
+                    .put('/user/update/role/1')
+                    .send({ role: 'updatedrole' });
+
+                expect(response.statusCode).toBe(200);
+                expect(response.body).toEqual(updatedUser);
+            });
+
+            it('returns status code 404 if user is not found', async () => {
+                pool.query.mockResolvedValueOnce({
+                    rows: [],
+                    rowCount: 0
+                });
+
+                const response = await request(app)
+                    .put('/user/update/role/999')
+                    .send({ role: 'updatedrole' });
+
+                expect(response.statusCode).toBe(404);
+                expect(response.body).toEqual({ message: 'User not found' });
+            });
+
+            it('returns status code 400 if required fields are missing', async () => {
+                const response = await request(app)
+                    .put('/user/update/role/1')
+                    .send({});
+
+                expect(response.statusCode).toBe(400);
+                expect(response.body).toEqual({ message: 'Role is required' });
+            });
+
+            it('returns status code 500 if database error occurs', async () => {
+                pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+                const response = await request(app)
+                    .put('/user/update/role/1')
+                    .send({ role: 'updatedrole' });
+
+                expect(response.statusCode).toBe(500);
+                expect(response.body).toEqual({ message: 'Error updating user role.' });
+            });
+        }
 
         // it('returns status code 200 if session is active', async () => {
         //     //first add the user in the database, then log them in, then check if session is 200

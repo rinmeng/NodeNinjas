@@ -1,7 +1,6 @@
 import React from "react";
 import {
   Users,
-  Shield,
   Bell,
   Calendar,
   ListChecks,

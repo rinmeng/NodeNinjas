@@ -1,43 +1,46 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const pool = require('../db'); // Import your database connection pool
+const pool = require("../db"); // Import database connection
 
-// Fetch message history between two users
-router.get('/history/:userId1/:userId2', async (req, res) => {
-  const { userId1, userId2 } = req.params;
+//  Send a message
+router.post("/", async (req, res) => {
+  const { sender_id, recipient_id, text } = req.body; // Use correct column names
+
+  if (!sender_id || !recipient_id || !text.trim()) {
+    return res.status(400).json({ error: "All fields are required." });
+  }
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO messages (sender_id, recipient_id, text) 
+       VALUES ($1, $2, $3) RETURNING *`,
+      [sender_id, recipient_id, text]  
+    );
+
+    res.status(201).json(result.rows[0]); // Send back the inserted message
+  } catch (err) {
+    console.error("Error sending message:", err);
+    res.status(500).json({ error: "Failed to send message." });
+  }
+});
+
+//  Get messages between two users
+router.get("/:sender_id/:recipient_id", async (req, res) => {
+  const { sender_id, recipient_id } = req.params;
 
   try {
     const result = await pool.query(
       `SELECT * FROM messages 
        WHERE (sender_id = $1 AND recipient_id = $2) 
-       OR (sender_id = $2 AND recipient_id = $1) 
+          OR (sender_id = $2 AND recipient_id = $1)
        ORDER BY sent_at ASC`,
-      [userId1, userId2]
+      [sender_id, recipient_id]  
     );
 
-    res.status(200).json(result.rows);
+    res.json(result.rows);
   } catch (err) {
-    console.error('Error fetching message history:', err);
-    res.status(500).json({ error: 'Failed to fetch message history' });
-  }
-});
-
-// Save a message to the database
-router.post('/save', async (req, res) => {
-  const { sender_id, recipient_id, text } = req.body;
-
-  try {
-    const result = await pool.query(
-      `INSERT INTO messages (sender_id, recipient_id, text, sent_at) 
-       VALUES ($1, $2, $3, NOW()) 
-       RETURNING *`,
-      [sender_id, recipient_id, text]
-    );
-
-    res.status(201).json(result.rows[0]);
-  } catch (err) {
-    console.error('Error saving message:', err);
-    res.status(500).json({ error: 'Failed to save message' });
+    console.error("Error fetching messages:", err);
+    res.status(500).json({ error: "Failed to retrieve messages." });
   }
 });
 

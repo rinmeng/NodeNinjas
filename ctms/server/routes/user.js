@@ -9,8 +9,7 @@ const { isAuthenticated, isAuthAsAdmin } = require('../auth');
 
 // GET /user (documentation)
 router.get('/', (req, res) => {
-    res.send(`
-<!DOCTYPE html>
+    res.send(`<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -26,7 +25,7 @@ router.get('/', (req, res) => {
             <!-- Authentication Note -->
             <div class="bg-gray-700 p-4 rounded-lg">
                 <h2 class="text-xl font-semibold text-blue-300 mb-2">Authentication</h2>
-                <p class="text-gray-200">Some endpoints require authentication. Admin-only routes are protected by <code class="bg-gray-600 px-1 rounded">isAuthAsAdmin</code> middleware.</p>
+                <p class="text-gray-200">Some endpoints require authentication. Admin-only routes are protected by <code class="bg-gray-600 px-1 rounded">isAuthAsAdmin</code> middleware, and user routes are protected by <code class="bg-gray-600 px-1 rounded">isAuthenticated</code> middleware.</p>
             </div>
 
             <!-- Endpoints Section -->
@@ -34,7 +33,7 @@ router.get('/', (req, res) => {
                 <!-- GET / -->
                 <div class="border-l-4 border-green-500 pl-4">
                     <h3 class="text-xl font-semibold text-gray-100">GET /user/</h3>
-                    <p class="text-gray-300 mt-2">Returns the main user endpoint navigation page.</p>
+                    <p class="text-gray-300 mt-2">Returns the main user endpoint documentation page.</p>
                 </div>
 
                 <!-- GET /user/all -->
@@ -66,6 +65,19 @@ router.get('/', (req, res) => {
                         <h4 class="font-medium text-gray-200">Parameters:</h4>
                         <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - User ID (number)</p>
                     </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "username": string,
+    "email": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                        </pre>
+                    </div>
                 </div>
 
                 <!-- GET /user/username/:username -->
@@ -75,6 +87,44 @@ router.get('/', (req, res) => {
                     <div class="mt-3">
                         <h4 class="font-medium text-gray-200">Parameters:</h4>
                         <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">username</code> - Username (string)</p>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "username": string,
+    "email": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                        </pre>
+                    </div>
+                </div>
+
+                <!-- GET /user/under/:manager_id -->
+                <div class="border-l-4 border-green-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">GET /user/under/:manager_id</h3>
+                    <p class="text-gray-300 mt-2">Retrieves all users under a specific manager.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">manager_id</code> - Manager ID (number)</p>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+[
+    {
+        "id": number,
+        "username": string,
+        "email": string,
+        "role": string,
+        "display_name": string,
+        "manager_id": number
+    }
+]
+                        </pre>
                     </div>
                 </div>
 
@@ -86,16 +136,55 @@ router.get('/', (req, res) => {
                         <h4 class="font-medium text-gray-200">Parameters:</h4>
                         <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - User ID to delete (number)</p>
                     </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "message": "User deleted successfully"
+}
+                        </pre>
+                    </div>
                 </div>
 
-                <!-- POST /user/add -->
+                <!-- POST /user/register -->
                 <div class="border-l-4 border-blue-500 pl-4">
-                    <h3 class="text-xl font-semibold text-gray-100">POST /user/add</h3>
-                    <p class="text-gray-300 mt-2">Adds a new user to the database.</p>
+                    <h3 class="text-xl font-semibold text-gray-100">POST /user/register</h3>
+                    <p class="text-gray-300 mt-2">Registers a new user in the database.</p>
                     <div class="mt-3">
                         <h4 class="font-medium text-gray-200">Request Body:</h4>
                         <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
 {
+    "username": string,
+    "email": string,
+    "password_hash": string,
+    "role": string,
+    "display_name": string,
+    "manager_id": number
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "message": "User registered successfully"
+}
+                        </pre>  
+                    </div>
+                </div>
+
+                <!-- PUT /user/update/:id -->
+                <div class="border-l-4 border-blue-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">PUT /user/update/:id</h3>
+                    <p class="text-gray-300 mt-2">Updates a user's information by their ID.</p>
+                    <div class="mt-2">
+                        <span class="bg-red-900 text-red-100 text-sm font-medium px-2 py-1 rounded">Admin Only</span>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Request Body:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
     "username": string,
     "email": string,
     "password_hash": string,
@@ -116,7 +205,7 @@ router.get('/', (req, res) => {
     "display_name": string,
     "manager_id": number
 }
-                        </pre>  
+                        </pre>
                     </div>
                 </div>
 
@@ -135,6 +224,24 @@ router.get('/', (req, res) => {
                         </pre>
                     </div>
                     <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "message": "Login successful",
+    "session": {
+        "user": {
+            "id": number,
+            "username": string,
+            "role": string,
+            "display_name": string,
+            "manager_id": number
+        },
+        "maxAge": number
+    }
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
                         <h4 class="font-medium text-gray-200">Notes:</h4>
                         <ul class="list-disc ml-5 text-gray-300">
                             <li>Session expires in 30 days if <code class="bg-gray-600 px-1 rounded">isRemembered</code> is true</li>
@@ -147,12 +254,44 @@ router.get('/', (req, res) => {
                 <div class="border-l-4 border-blue-500 pl-4">
                     <h3 class="text-xl font-semibold text-gray-100">POST /user/logout</h3>
                     <p class="text-gray-300 mt-2">Destroys the current user session and clears session cookie.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "message": "Logout successful"
+}
+                        </pre>
+                    </div>
                 </div>
 
                 <!-- GET /user/session -->
                 <div class="border-l-4 border-green-500 pl-4">
                     <h3 class="text-xl font-semibold text-gray-100">GET /user/session</h3>
                     <p class="text-gray-300 mt-2">Retrieves current session information including user details and expiration.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response (Active Session):</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "isValid": true,
+    "expiresIn": number,
+    "user": {
+        "id": number,
+        "username": string,
+        "role": string,
+        "display_name": string,
+        "manager_id": number
+    }
+}
+                        </pre>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response (No Session):</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "message": "No active session"
+}
+                        </pre>
+                    </div>
                 </div>
             </div>
 
@@ -160,10 +299,34 @@ router.get('/', (req, res) => {
             <div class="bg-gray-700 p-4 rounded-lg mt-8">
                 <h2 class="text-xl font-semibold text-yellow-300 mb-2">Error Responses</h2>
                 <div class="space-y-2">
+                    <p class="text-gray-200"><strong>400:</strong> Bad request (missing required fields)</p>
+                    <p class="text-gray-200"><strong>401:</strong> Unauthorized access (invalid credentials)</p>
                     <p class="text-gray-200"><strong>404:</strong> Resource not found</p>
-                    <p class="text-gray-200"><strong>401:</strong> Unauthorized access</p>
                     <p class="text-gray-200"><strong>500:</strong> Internal server error</p>
                 </div>
+            </div>
+
+            <div class="bg-gray-700 p-4 rounded-lg mt-8">
+                <h2 class="text-xl font-semibold text-purple-300 mb-2">Users Schema</h2>
+                <pre class="bg-gray-600 p-3 rounded mt-2 text-sm text-gray-200">
+CREATE TYPE user_role AS ENUM('admin', 'team_member');
+CREATE TABLE users(
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(50) UNIQUE NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role user_role NOT NULL DEFAULT 'team_member',
+    display_name VARCHAR(100),
+    manager_id INT,
+    FOREIGN KEY(manager_id) REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+CREATE INDEX idx_users_username ON users(username);
+CREATE INDEX idx_users_email ON users(email);
+CREATE INDEX idx_users_role ON users(role);
+
+                </pre>
             </div>
         </div>
     </div>
@@ -295,6 +458,28 @@ router.put('/update/:id', isAuthAsAdmin, async (req, res) => {
         res.status(500).send({ message: 'Error updating user.' });
     }
 });
+//updating the user's role
+router.put('/updateRole/:id', isAuthAsAdmin, async (req, res) => {
+    const id = req.params.id;
+    const { role } = req.body;
+
+    if (!role) {
+        return res.status(400).json({ message: "Role is required" });
+    }
+
+    try {
+        const user= await pool.query('SELECT * FROM users WHERE id = $1', [id]);
+        if (user.rowCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const updatedUser = await pool.query('UPDATE users SET role = $1 WHERE id = $2 RETURNING *', [role, id]);
+        res.status(200).json(updatedUser.rows[0]);
+        
+    } catch (error) {
+        console.error("Error updating user role:", error);
+        res.status(500).json({ message: "Something went wrong while updating user role" });
+    }
+});
 
 // Modified login route with proper session handling
 router.post('/login', async (req, res) => {
@@ -384,10 +569,8 @@ router.post('/logout', (req, res) => {
     if (!req.session.user) {
         return res.status(400).json({ message: "No user to log out" });
     }
-    console.log('Session to destroy:', req.session);
 
     req.session.destroy((err) => {
-        console.log('Session destroyed:', req.sessionID);
         if (err) {
             console.error('Logout error:', err);
             return res.status(500).json({ message: "Error logging out user" });
