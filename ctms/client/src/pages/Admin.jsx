@@ -358,7 +358,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   };
 
   return (
-    <div className=" w-full my-30 animate-fadein">
+    <div className="w-full my-30 animate-fadein ">
       <Card className="max-w-lg mx-auto">
         <CardHeader>
           <CardTitle>
