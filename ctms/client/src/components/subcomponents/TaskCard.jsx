@@ -343,21 +343,28 @@ const TaskCard = ({
             </Dialog>
 
             <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={isTaskLocked}
-                  className="h-8 w-8 p-0"
-                >
-                  {user.role === "admin" ? (
-                    <UserRoundCog className="h-4 w-4" />
-                  ) : (
-                    <Users className="h-4 w-4" />
-                  )}
-                  <span className="sr-only">Manage users</span>
-                </Button>
-              </DialogTrigger>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        disabled={isTaskLocked}
+                        className="h-8 w-8 p-0"
+                      >
+                        {user.role === "admin" ? (
+                          <UserRoundCog className="h-4 w-4" />
+                        ) : (
+                          <Users className="h-4 w-4" />
+                        )}
+                        <span className="sr-only">Manage users</span>
+                      </Button>
+                    </DialogTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Assign task</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
 
               {!isTaskLocked && (
                 <AssignTaskPanel
