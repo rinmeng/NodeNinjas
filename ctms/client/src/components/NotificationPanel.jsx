@@ -253,9 +253,6 @@ const NotificationPanel = ({
         </ScrollArea>
 
         <div className="px-4 py-2 border-t flex justify-between items-center">
-          <Button variant="ghost" onClick={toggleHistoryView}>
-            {showHistory ? "Back to Recent" : "View Notification History"}
-          </Button>
           <Button variant="destructive" onClick={clearAllNotifications}>
             Clear All
           </Button>
