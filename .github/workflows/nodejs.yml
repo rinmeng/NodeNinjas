@@ -20,7 +20,7 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
-          cache-dependency-path: "ctms/server/package-lock.json" # Updated to use server package-lock
+          cache-dependency-path: "ctms/server/package-lock.json"
 
       - name: Debug - List directory structure
         run: |
@@ -32,18 +32,16 @@ jobs:
           cd ctms/server
           npm install
 
-      - name: Setup PostgreSQL
-        uses: ikalnytskyi/action-setup-postgres@v4
-        with:
-          username: postgres
-          password: postgres
-          database: ctms_test # Assuming this is your test database name
-          port: 5432
+      # Mock session for tests
+      - name: Setup test environment
+        run: |
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+          echo "SESSION_SECRET=test-secret" >> $GITHUB_ENV
 
       - name: Run tests
         run: |
           cd ctms/server
-          CI=true npm test
+          NODE_ENV=test npm test
         env:
           NODE_ENV: test
-          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ctms_test
+          SESSION_SECRET: test-secret
