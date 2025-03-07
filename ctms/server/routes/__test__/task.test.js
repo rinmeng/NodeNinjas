@@ -2,6 +2,8 @@ const { app } = require('../../server');
 const request = require('supertest');
 const pool = require('../../db');
 
+// this is a test
+
 // Mock the database pool
 jest.mock('../../db', () => ({
     query: jest.fn()
