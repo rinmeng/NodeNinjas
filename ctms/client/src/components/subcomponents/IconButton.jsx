@@ -22,7 +22,7 @@ const IconButton = ({
         className={`p-2 items-center rounded-full transition-all duration-200 text-slate-500  ${
           isDisabled ? "" : color
         }
-        ${isDisabled ? "opacity-50 cursor-not-allowed " : "cursor-pointer"}`}
+        ${isDisabled ? "opacity-50 cursor-not-allowed " : ""}`}
         disabled={isDisabled}
       >
         {displayIcon}

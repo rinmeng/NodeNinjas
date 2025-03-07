@@ -11,8 +11,6 @@ const THEMES = {
 
 const ChartContext = React.createContext(null);
 
-const ChartConfig = {};
-
 function useChart() {
   const context = React.useContext(ChartContext);
 
@@ -132,6 +130,12 @@ function ChartTooltipContent({
     config,
     labelKey,
   ]);
+  const ChartConfig = {
+    users: {
+      label: "Users",
+      color: "hsl(var(--chart-1))",
+    },
+  };
 
   if (!active || !payload?.length) {
     return null;
@@ -295,12 +299,19 @@ function getPayloadConfigFromPayload(config, payload, key) {
   return configLabelKey in config ? config[configLabelKey] : config[key];
 }
 
+const ChartConfig = {
+  users: {
+    label: "Users",
+    color: "hsl(var(--primary))",
+  },
+};
+
 export {
-  ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+  ChartConfig,
 };
