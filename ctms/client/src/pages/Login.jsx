@@ -12,7 +12,6 @@ import {
   CircleUserRound,
   UserCog,
 } from "lucide-react";
-import IconizedButton from "../components/subcomponents/IconizedButton";
 import TickCheckbox from "../components/subcomponents/TickCheckbox";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -27,7 +26,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
   Form,
@@ -45,6 +43,7 @@ import {
   CardContent,
   CardFooter,
 } from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -321,15 +320,16 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                     control={loginForm.control}
                     name="isRemembered"
                     render={({ field }) => (
-                      <FormItem className="flex flex-row justify-center items-center space-x-2 space-y-0">
+                      <FormItem className="flex flex-row w-full items-center justify-center">
                         <FormControl>
-                          <TickCheckbox
+                          <Checkbox
                             checked={field.value}
-                            onChange={field.onChange}
-                            label="Remember Me"
-                            name="isRemembered"
+                            onCheckedChange={field.onChange}
                           />
                         </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>Remember Me</FormLabel>
+                        </div>
                       </FormItem>
                     )}
                   />
