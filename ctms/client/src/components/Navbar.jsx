@@ -108,19 +108,7 @@ function Navbar({
       <div className="px-10 flex items-center justify-center">
         {/* Desktop Navigation - Main Links */}
 
-        <NavigationMenuItem className={"hidden lg:flex"}>
-          <Toggle
-            variant="secondary"
-            aria-label="Toggle dark mode"
-            onClick={() => document.documentElement.classList.toggle("dark")}
-          >
-            <Moon />
-          </Toggle>
-        </NavigationMenuItem>
-
-        <Separator orientation="vertical" className={"mx-2"} />
-
-        <NavigationMenuList className="hidden lg:flex">
+        <NavigationMenuList className="hidden lg:flex gap-4">
           {links.map((link) => (
             <NavigationMenuItem key={link.route}>
               <Button
@@ -142,7 +130,10 @@ function Navbar({
             </NavigationMenuItem>
           ))}
 
-          <Separator orientation="vertical" className={"mx-2"} />
+          <Separator
+            orientation="vertical"
+            className={"hidden lg:flex border"}
+          />
 
           {(user || devMode) && (
             <NavigationMenuItem>
@@ -159,6 +150,18 @@ function Navbar({
               </Sheet>
             </NavigationMenuItem>
           )}
+
+          <Separator orientation="vertical" className={"border"} />
+
+          <NavigationMenuItem className={"hidden lg:flex"}>
+            <Toggle
+              variant="secondary"
+              aria-label="Toggle dark mode"
+              onClick={() => document.documentElement.classList.toggle("dark")}
+            >
+              <Moon />
+            </Toggle>
+          </NavigationMenuItem>
         </NavigationMenuList>
 
         {/* Mobile Navigation Controls */}
