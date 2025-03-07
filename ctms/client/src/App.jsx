@@ -55,7 +55,6 @@ function AppContent() {
     <Router>
       <Navbar
         showNavbar={showNavbar}
-        sessionUser={user}
         devMode={devMode}
         notifications={notifications}
         setNotificationToAdd={setNotificationToAdd}
@@ -67,7 +66,6 @@ function AppContent() {
           path="/"
           element={
             <Dashboard
-              sessionUser={user}
               devMode={devMode}
               setFeedbackMessage={setFeedbackMessage}
               setNotificationToAdd={setNotificationToAdd}
@@ -77,11 +75,7 @@ function AppContent() {
         <Route
           path="/admin"
           element={
-            <Admin
-              sessionUser={user}
-              devMode={devMode}
-              setFeedbackMessage={setFeedbackMessage}
-            />
+            <Admin devMode={devMode} setFeedbackMessage={setFeedbackMessage} />
           }
         />
         <Route path="/about" element={<About />} />

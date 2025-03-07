@@ -38,7 +38,7 @@ const EditTaskPanel = ({
   setNeedsRefetch,
   setFeedbackMessage,
   setNotificationToAdd,
-  sessionUser,
+  user,
 }) => {
   const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit || {});
 

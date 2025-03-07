@@ -41,7 +41,7 @@ import {
 
 const TaskDashboard = ({
   tasks,
-  sessionUser,
+  user,
   setNeedsRefetch,
   notifications,
   setNotifications,
@@ -373,7 +373,7 @@ const TaskDashboard = ({
         <div className="flex justify-center items-center space-x-4">
           <AddTaskPanel
             setFeedbackMessage={setFeedbackMessage}
-            sessionUser={sessionUser}
+            user={user}
             setNeedsRefetch={setNeedsRefetch}
           />
 
@@ -418,7 +418,7 @@ const TaskDashboard = ({
                 <TaskCard
                   key={task.id}
                   task={task}
-                  sessionUser={sessionUser}
+                  user={user}
                   setNeedsRefetch={setNeedsRefetch}
                   notifications={notifications}
                   setNotifications={setNotifications}

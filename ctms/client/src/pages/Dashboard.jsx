@@ -40,16 +40,12 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useAuth } from "@/utils/AuthProvider";
 
-const Dashboard = ({
-  sessionUser,
-  devMode,
-  setFeedbackMessage,
-  setNotificationToAdd,
-  notifications,
-  setNotifications,
-}) => {
+function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
+  const { user, notifications, setNotifications } = useAuth();
   const [searchCriteria, setSearchCriteria] = useState("");
+
   const [showAddTaskPanel, setShowAddTaskPanel] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
@@ -90,15 +86,13 @@ const Dashboard = ({
 
   const fetchTaskFromDatabase = useCallback(async () => {
     console.log("Fetching tasks from database...");
-    if (!sessionUser && !devMode) {
+    if (!user && !devMode) {
       console.log("No user session found");
       return;
     }
 
     try {
-      const response = await fetch(
-        `${proxy}/task/assignedto/user/${sessionUser.id}`
-      );
+      const response = await fetch(`${proxy}/task/assignedto/user/${user.id}`);
       const data = await response.json();
       console.log("Fetched tasks from database:", data);
 
@@ -111,7 +105,7 @@ const Dashboard = ({
       setAllTasks([]);
       setTasks([]);
     }
-  }, [sessionUser, devMode]);
+  }, [user, devMode]);
 
   useEffect(() => {
     if (needsRefetch) {
@@ -290,7 +284,7 @@ const Dashboard = ({
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
 
-  if (!sessionUser && !devMode) {
+  if (!user && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
         <h1 className="title text-center">Welcome to your Dashboard!</h1>
@@ -305,18 +299,16 @@ const Dashboard = ({
 
   return (
     <Card className="w-full mt-16">
-      <CardHeader>
+      <CardHeader className={"space-y-4"}>
         {/* Search and Filter Section */}
-        <div className="mb-6 w-1/2 mx-auto">
+        <div className="w-1/2 mx-auto">
           <form className="relative" onSubmit={handleSearchSubmit}>
             <div className="relative">
               <Input
                 type="text"
                 value={searchCriteria}
                 placeholder="Search for tasks by title or description..."
-                className={`pl-10 pr-12 py-6 rounded-lg border-slate-600 bg-slate-800/90 text-primary-foreground
-                  ${isSearchActive ? "border-blue-400" : ""} 
-                  focus-visible:ring-blue-500`}
+                className={`pl-10 pr-12`}
                 onChange={handleSearchChange}
               />
               <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
@@ -333,7 +325,7 @@ const Dashboard = ({
                   variant="ghost"
                   size="icon"
                   onClick={handleClearSearch}
-                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
+                  className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
                 >
                   <X size={18} />
                 </Button>
@@ -343,7 +335,7 @@ const Dashboard = ({
         </div>
 
         {/* Filter Options Section */}
-        <div className="flex justify-center items-center gap-3 mb-6">
+        <div className="flex justify-center items-center gap-3">
           <TooltipProvider>
             {/* Reset Filter Button */}
             <Tooltip>
@@ -514,12 +506,10 @@ const Dashboard = ({
           </TooltipProvider>
         </div>
 
-        <Separator className="mb-6" />
-
-        <div className="flex justify-center items-center space-x-4">
+        <div className="flex justify-center items-center gap-3">
           <AddTaskPanel
             setFeedbackMessage={setFeedbackMessage}
-            sessionUser={sessionUser}
+            user={user}
             setNeedsRefetch={setNeedsRefetch}
           />
 
@@ -537,7 +527,7 @@ const Dashboard = ({
         </div>
 
         {isRefetching && (
-          <CardDescription className="text-center mt-2">
+          <CardDescription className="text-center">
             Refetching tasks...
           </CardDescription>
         )}
@@ -545,7 +535,7 @@ const Dashboard = ({
 
       <Separator />
 
-      <CardContent className="pt-6">
+      <CardContent>
         {taskList.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
             <ClipboardList size={48} className="mb-4" />
@@ -564,7 +554,7 @@ const Dashboard = ({
                 <TaskCard
                   key={task.id}
                   task={task}
-                  sessionUser={sessionUser}
+                  user={user}
                   setNeedsRefetch={setNeedsRefetch}
                   notifications={notifications}
                   setNotifications={setNotifications}
@@ -583,6 +573,6 @@ const Dashboard = ({
       </CardFooter>
     </Card>
   );
-};
+}
 
 export default Dashboard;

@@ -5,13 +5,16 @@ import NotificationPanel from "./NotificationPanel";
 import { Bell } from "lucide-react";
 import { Sheet, SheetTrigger } from "@/components/ui/sheet";
 
-const Navbar = ({
+import { useAuth } from "@/utils/AuthProvider";
+
+function Navbar({
   showNavbar,
-  sessionUser,
   devMode,
-  notifications = [],
+  notifications,
+  setNotificationToAdd,
   setNotificationsNeedRefetch,
-}) => {
+}) {
+  const { user } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
 
@@ -39,13 +42,13 @@ const Navbar = ({
           </h1>
         </div>
         <div className="space-x-4 flex justify-center items-center">
-          {(sessionUser || devMode) && (
+          {(user || devMode) && (
             <Link to="/" className={getLinkClass("/")}>
               Dashboard
             </Link>
           )}
 
-          {(sessionUser?.role === "admin" || devMode) && (
+          {(user?.role === "admin" || devMode) && (
             <Link to="/admin" className={getLinkClass("/admin")}>
               Admin
             </Link>
@@ -56,17 +59,17 @@ const Navbar = ({
           </Link>
 
           <Link to="/login" className={getLinkClass("/login")}>
-            {sessionUser ? "Profile" : "Login"}
+            {user ? "Profile" : "Login"}
           </Link>
 
-          {(sessionUser || devMode) && (
+          {(user || devMode) && (
             <Link to="/message" className={getLinkClass("/message")}>
               Message
             </Link>
           )}
 
           {/* Notification Bell with Sheet */}
-          {(sessionUser || devMode) && (
+          {(user || devMode) && (
             <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
               <SheetTrigger asChild>
                 <div className="relative">
@@ -93,6 +96,6 @@ const Navbar = ({
       </div>
     </nav>
   );
-};
+}
 
 export default Navbar;

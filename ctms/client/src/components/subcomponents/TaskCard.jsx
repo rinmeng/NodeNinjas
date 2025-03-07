@@ -52,7 +52,7 @@ import getDateWithRelativeTime from "@/src/utils/getDateWithRelativeTime";
 
 const TaskCard = ({
   task,
-  sessionUser,
+  user,
   setNeedsRefetch,
   setFeedbackMessage,
   setNotificationToAdd,
@@ -63,7 +63,7 @@ const TaskCard = ({
   const [showTaskDetails, setShowTaskDetails] = useState(false);
   const [showAssignTaskPanel, setShowAssignTaskPanel] = useState(false);
 
-  const isTaskOwner = task.owner_id === sessionUser.id;
+  const isTaskOwner = task.owner_id === user.id;
 
   useEffect(() => {
     // Update the local state when the task prop changes
@@ -72,7 +72,7 @@ const TaskCard = ({
 
   const handleEditTask = () => {
     if (isTaskLocked) {
-      if (sessionUser.role === "admin") {
+      if (user.role === "admin") {
         setFeedbackMessage({
           title: "Task Locked",
           description: "This task is locked. Unlock it first to edit.",
@@ -193,7 +193,7 @@ const TaskCard = ({
 
   const handleDeleteTask = () => {
     if (isTaskLocked) {
-      if (sessionUser.role === "admin") {
+      if (user.role === "admin") {
         setFeedbackMessage({
           title: "Task Locked",
           description: "This task is locked. Unlock it first to delete.",
@@ -363,7 +363,7 @@ const TaskCard = ({
 
               {!isTaskLocked && (
                 <EditTaskPanel
-                  sessionUser={sessionUser}
+                  user={user}
                   taskToEdit={task}
                   setNeedsRefetch={setNeedsRefetch}
                   setNotificationToAdd={setNotificationToAdd}
@@ -380,7 +380,7 @@ const TaskCard = ({
                   disabled={isTaskLocked}
                   className="h-8 w-8 p-0"
                 >
-                  {sessionUser.role === "admin" ? (
+                  {user.role === "admin" ? (
                     <UserRoundCog className="h-4 w-4" />
                   ) : (
                     <Users className="h-4 w-4" />
@@ -395,12 +395,12 @@ const TaskCard = ({
                   setNeedsRefetch={setNeedsRefetch}
                   setFeedbackMessage={setFeedbackMessage}
                   setNotificationToAdd={setNotificationToAdd}
-                  sessionUser={sessionUser}
+                  user={user}
                 />
               )}
             </Dialog>
 
-            {sessionUser.role === "admin" && (
+            {user.role === "admin" && (
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

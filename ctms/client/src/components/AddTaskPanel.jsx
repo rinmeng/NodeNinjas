@@ -34,7 +34,7 @@ import {
 import proxy from "../utils/proxy";
 import { Separator } from "@/components/ui/separator";
 
-const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
+const AddTaskPanel = ({ setFeedbackMessage, user, setNeedsRefetch }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
     title: "",
@@ -71,8 +71,8 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
   const addTaskToDatabase = async () => {
     const assignedUserIDs = [];
     // check if user is signed in
-    if (sessionUser) {
-      assignedUserIDs.push(sessionUser.id);
+    if (user) {
+      assignedUserIDs.push(user.id);
     }
 
     // make post request to add task to database
@@ -88,7 +88,7 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
         priority: task.priority,
         status: task.status,
         assigned_users: assignedUserIDs,
-        owner_id: sessionUser ? sessionUser.id : null,
+        owner_id: user ? user.id : null,
       }),
       credentials: "include",
     });
@@ -111,7 +111,7 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
       status: "pending",
     });
 
-    if (!sessionUser) {
+    if (!user) {
       setFeedbackMessage({
         title: "Task added successfully!",
         description:
