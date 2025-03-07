@@ -15,8 +15,6 @@ import DBTable from "./testing/subcomp/DBTable";
 import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 import { Analytics } from "./Graphs";
 
-const proxy = "http://localhost:15000/";
-
 import DataTable from "../components/DataTable";
 import { Button } from "@/components/ui/button";
 import {
