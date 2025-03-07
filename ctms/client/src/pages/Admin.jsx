@@ -11,12 +11,13 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import DataTable from "../components/Datatable";
+import DataTable from "../components/DataTable";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
@@ -34,6 +35,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   const [isRefetching, setIsRefetching] = useState(false);
   const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
   const [initialLoad, setInitialLoad] = useState(true);
+  const tableRef = React.useRef(null);
 
   useEffect(() => {
     // Initial load without visual feedback
@@ -313,6 +315,9 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
 
   const resetSelection = () => {
     setChosenUserIds([]);
+    if (tableRef.current) {
+      tableRef.current.resetRowSelection();
+    }
   };
 
   const updateUserRole = (userId, newRole) => {
@@ -395,38 +400,46 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
                 </DialogDescription>
               </DialogHeader>
 
-              {chosenUserIds.length > 0 && (
-                <div className="flex items-center gap-2 mb-4">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => {
-                      if (
-                        window.confirm(
-                          "Are you sure you want to delete the selected users?"
-                        )
-                      ) {
-                        deleteUsers();
-                      }
-                    }}
-                    disabled={isDeleting}
-                    className="flex items-center"
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete Selected ({chosenUserIds.length})
-                  </Button>
-                  <Button variant="outline" size="sm" onClick={resetSelection}>
-                    Clear Selection
-                  </Button>
-                </div>
-              )}
-
               <DataTable
                 columns={usersColumns}
                 data={usersList}
                 loading={isLoading && !initialLoad}
                 initialPageSize={5}
+                onSelectionChange={setChosenUserIds}
+                tableRef={tableRef}
               />
+
+              <DialogFooter>
+                {chosenUserIds.length > 0 && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete the selected users?"
+                          )
+                        ) {
+                          deleteUsers();
+                        }
+                      }}
+                      disabled={isDeleting}
+                      className="flex items-center"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete Selected ({chosenUserIds.length})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetSelection}
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                )}
+              </DialogFooter>
             </DialogContent>
           </Dialog>
         </CardContent>

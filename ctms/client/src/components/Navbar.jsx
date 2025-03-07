@@ -68,20 +68,22 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
   };
 
   // Notification bell with count
-  const NotificationBell = () => (
-    <Button
-      variant="secondary"
-      onClick={() => setNotificationOpen(true)}
-      className="relative p-2"
-    >
-      <Bell className="h-5 w-5" />
-      {unreadCount > 0 && (
-        <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-          {unreadCount}
-        </span>
-      )}
-    </Button>
-  );
+  const NotificationBell = React.forwardRef(function NotificationBell(
+    { unreadCount, ...props },
+    ref
+  ) {
+    return (
+      <Button ref={ref} variant="secondary" className="relative p-2" {...props}>
+        <Bell className="h-5 w-5" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {unreadCount}
+          </span>
+        )}
+      </Button>
+    );
+  });
+  NotificationBell.displayName = "NotificationBell";
 
   return (
     <NavigationMenu className="fixed top-0 left-0 bg-foreground p-4 flex justify-between min-w-full animate-fade-in z-10">
@@ -132,7 +134,10 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
             <NavigationMenuItem>
               <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
                 <SheetTrigger asChild>
-                  <NotificationBell />
+                  <NotificationBell
+                    unreadCount={unreadCount}
+                    onClick={() => setNotificationOpen(true)}
+                  />
                 </SheetTrigger>
                 <NotificationPanel
                   notifications={notifications}
@@ -163,7 +168,10 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
             <NavigationMenuItem>
               <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
                 <SheetTrigger asChild>
-                  <NotificationBell />
+                  <NotificationBell
+                    unreadCount={unreadCount}
+                    onClick={() => setNotificationOpen(true)}
+                  />
                 </SheetTrigger>
                 <NotificationPanel
                   notifications={notifications}

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -32,7 +32,9 @@ export default function DataTable({
   columns = [],
   data = [],
   loading = false,
-  initialPageSize = 10, // Default page size
+  initialPageSize = 10,
+  onSelectionChange = null,
+  tableRef = null,
 }) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
@@ -51,7 +53,25 @@ export default function DataTable({
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
-    onRowSelectionChange: setRowSelection,
+    onRowSelectionChange: (updater) => {
+      const newSelection =
+        typeof updater === "function" ? updater(rowSelection) : updater;
+
+      setRowSelection(newSelection);
+
+      // Call the callback with selected row IDs if provided
+      if (onSelectionChange) {
+        const selectedIds = Object.keys(newSelection)
+          .filter((key) => newSelection[key])
+          .map((key) => {
+            const rowIndex = parseInt(key);
+            return data[rowIndex]?.id;
+          })
+          .filter((id) => id);
+
+        onSelectionChange(selectedIds);
+      }
+    },
     onPaginationChange: (updater) => {
       // Handle pagination state changes
       const newPaginationState =
@@ -73,6 +93,12 @@ export default function DataTable({
       },
     },
   });
+
+  useEffect(() => {
+    if (tableRef) {
+      tableRef.current = table;
+    }
+  }, [table, tableRef]);
 
   return (
     <Card className="w-full h-full">
