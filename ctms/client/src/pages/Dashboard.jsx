@@ -377,21 +377,21 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
                   )}
                   <span>Title</span>
                   {filterOptions.sortTitleAsc !== null && (
-                    <Badge variant="secondary" className="ml-1">
+                    <Badge variant="secondary" className="capitalize">
                       {filterOptions.sortTitleAsc ? "A-Z" : "Z-A"}
                     </Badge>
                   )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>
+                <div>
                   Sort by title{" "}
                   {filterOptions.sortTitleAsc !== null
                     ? filterOptions.sortTitleAsc
                       ? "ascending"
                       : "descending"
                     : ""}
-                </p>
+                </div>
               </TooltipContent>
             </Tooltip>
 
@@ -416,7 +416,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
                   )}
                   <span>Status</span>
                   {filterOptions.sortStatusAsc !== "" && (
-                    <Badge variant="secondary" className="ml-1">
+                    <Badge variant="secondary" className="capitalize">
                       {filterOptions.sortStatusAsc.replace("_", " ")}
                     </Badge>
                   )}
@@ -450,14 +450,16 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
                   )}
                   <span>Priority</span>
                   {filterOptions.sortPriorityAsc !== "" && (
-                    <Badge variant="secondary" className="ml-1">
+                    <Badge variant="secondary" className="capitalize">
                       {filterOptions.sortPriorityAsc}
                     </Badge>
                   )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Filter by {filterOptions.sortPriorityAsc || "priority"}</p>
+                <div>
+                  Filter by {filterOptions.sortPriorityAsc || "priority"}
+                </div>
               </TooltipContent>
             </Tooltip>
 
@@ -478,23 +480,23 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
                   ) : (
                     <ChevronsUpDown size={18} />
                   )}
-                  <span>Date</span>
+                  <span>Due Date</span>
                   {filterOptions.sortDateAsc !== null && (
-                    <Badge variant="secondary" className="ml-1">
-                      {filterOptions.sortDateAsc ? "Oldest" : "Newest"}
+                    <Badge variant="secondary">
+                      {filterOptions.sortDateAsc ? "Upcoming" : "Not Imminent"}
                     </Badge>
                   )}
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>
+                <div>
                   Sort by date{" "}
                   {filterOptions.sortDateAsc !== null
                     ? filterOptions.sortDateAsc
                       ? "ascending"
                       : "descending"
                     : ""}
-                </p>
+                </div>
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
