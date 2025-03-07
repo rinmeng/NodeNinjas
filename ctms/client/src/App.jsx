@@ -37,7 +37,7 @@ function App() {
 
   useEffect(() => {
     // Apply dark theme
-    document.documentElement.classList.add("light");
+    document.documentElement.classList.add("dark");
   }, []);
 
   useEffect(() => {
