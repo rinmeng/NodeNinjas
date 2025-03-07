@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import IconizedButton from "../components/subcomponents/IconizedButton";
 import TickCheckbox from "../components/subcomponents/TickCheckbox";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -36,6 +37,14 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
@@ -230,32 +239,43 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
   return (
     <div className="animate-fadein">
       <div className="grid grid-cols-2 h-screen">
-        <div className="flex flex-col justify-center p-5 bg-slate-950">
-          <h1 className="text-7xl font-extrabold text-left">CTMS.</h1>
-          <p className="text-5xl font-extralight">
-            The next generation of Task Management.
-          </p>
-        </div>
-        {user ? (
-          <div className="flex flex-col items-center justify-center bg-slate-900">
-            <h1 className="title text-white">
-              {user ? `Welcome back, ${user.display_name}` : "Login to myCMTS"}
-            </h1>
-            <hr className="w-1/4 m-auto my-4" />
-            <IconizedButton
-              text="Logout"
-              btnStyle="btn-red w-1/2"
-              icon={<LogIn className="ml-2" size={20} strokeWidth={2} />}
-              onClick={handleLogout}
-            />
-          </div>
-        ) : (
-          <div className="flex flex-col justify-center bg-slate-900 p-5">
-            <div className="space-y-4 text-center">
-              <h1 className="title text-white">Login to myCMTS</h1>
-              <hr className="w-1/4 m-auto my-4" />
+        <Card className="flex flex-col justify-center p-5 bg-primary-foreground/20 border-0 rounded-none">
+          <CardHeader>
+            <CardTitle className="text-7xl font-extrabold">CTMS.</CardTitle>
+            <CardDescription className="text-5xl font-extralight">
+              The next generation of Task Management.
+            </CardDescription>
+          </CardHeader>
+        </Card>
 
-              {/* Login Form with Shadcn UI */}
+        {user ? (
+          <Card className="flex flex-col items-center justify-center bg-primary-foreground/70 border-0 rounded-none">
+            <CardHeader>
+              <CardTitle className="text-2xl">
+                Welcome back, {user.display_name}
+              </CardTitle>
+              <Separator />
+            </CardHeader>
+            <CardContent>
+              <Button
+                variant="destructive"
+                className="w-full"
+                onClick={handleLogout}
+              >
+                Logout
+                <LogIn className="ml-2" size={20} />
+              </Button>
+            </CardContent>
+          </Card>
+        ) : (
+          <Card className="flex flex-col justify-center bg-primary-foreground/70 border-0 rounded-none">
+            <CardHeader className="space-y-4 text-center">
+              <CardTitle className="text-2xl ">Login to myCMTS</CardTitle>
+              <Separator />
+            </CardHeader>
+
+            {/* Login Form with Shadcn UI */}
+            <CardContent>
               <Form {...loginForm}>
                 <form
                   onSubmit={loginForm.handleSubmit(onLoginSubmit)}
@@ -270,11 +290,7 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                           <User strokeWidth={2} size={18} /> Username
                         </FormLabel>
                         <FormControl>
-                          <Input
-                            placeholder="Enter your username"
-                            className="bg-slate-800 border-slate-700 text-white"
-                            {...field}
-                          />
+                          <Input placeholder="Enter your username" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -293,7 +309,6 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                           <Input
                             type="password"
                             placeholder="Enter your password"
-                            className="bg-slate-800 border-slate-700 text-white"
                             {...field}
                           />
                         </FormControl>
@@ -319,44 +334,39 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                     )}
                   />
 
-                  <Button
-                    type="submit"
-                    className="bg-blue-600 hover:bg-blue-700 text-white w-full"
-                  >
+                  <Button type="submit">
                     Login <LogIn />
                   </Button>
                 </form>
               </Form>
-            </div>
+            </CardContent>
 
-            <hr className="w-1/2 m-auto my-4" />
-
-            <div className="space-y-2 text-center">
-              <h1 className="title-sm text-white">New Here?</h1>
-              <div className="flex flex-col space-y-4 w-1/2 m-auto">
+            <CardFooter className="flex flex-col space-y-4">
+              <Separator />
+              <div className="space-y-2 text-center w-full">
+                <h2 className="text-xl font-semibold ">New Here?</h2>
                 <p>Sign up to start tracking your progress.</p>
 
                 {/* Registration Dialog with Shadcn UI */}
                 <Dialog open={open} onOpenChange={setOpen}>
                   <DialogTrigger asChild>
-                    <Button className="w-full bg-white text-slate-900 hover:bg-slate-200">
+                    <Button variant="outline" className="w-1/2 ">
                       Sign Up
                       <ChartSpline />
                     </Button>
                   </DialogTrigger>
 
-                  <DialogContent className="sm:max-w-[600px] bg-slate-700 text-white border-slate-600">
+                  <DialogContent className="sm:max-w-[600px] ">
                     <DialogHeader>
                       <DialogTitle className="text-2xl font-bold">
                         Register
                       </DialogTitle>
-                      <DialogDescription className="text-slate-200 text-lg">
+                      <DialogDescription>
                         Let's get you started on your journey with our intuitive
                         task manager.
                       </DialogDescription>
                     </DialogHeader>
 
-                    {/* make a vertical separator */}
                     <Separator />
 
                     <Form {...registerForm}>
@@ -370,12 +380,11 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="flex items-center gap-2">
-                                <User /> Username
+                                <User strokeWidth={2} size={18} /> Username
                               </FormLabel>
                               <FormControl>
                                 <Input
                                   placeholder="Enter your unique username"
-                                  className="bg-slate-800 border-slate-700 text-white"
                                   {...field}
                                 />
                               </FormControl>
@@ -390,13 +399,12 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                           render={({ field }) => (
                             <FormItem>
                               <FormLabel className="flex items-center gap-2">
-                                <Lock /> Password
+                                <Lock strokeWidth={2} size={18} /> Password
                               </FormLabel>
                               <FormControl>
                                 <Input
                                   type="password"
                                   placeholder="Enter your password"
-                                  className="bg-slate-800 border-slate-700 text-white"
                                   {...field}
                                 />
                               </FormControl>
@@ -417,7 +425,6 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                               <FormControl>
                                 <Input
                                   placeholder="Enter your display name"
-                                  className="bg-slate-800 border-slate-700 text-white"
                                   {...field}
                                 />
                               </FormControl>
@@ -438,7 +445,6 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                                 <Input
                                   type="email"
                                   placeholder="Enter your email"
-                                  className="bg-slate-800 border-slate-700 text-white"
                                   {...field}
                                 />
                               </FormControl>
@@ -468,44 +474,57 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                                           value="team_member"
                                           className="sr-only"
                                         />
-                                        <div
-                                          className={`p-2 border-2 t200e font-bold border-slate-500 
-                                          bg-slate-700 rounded-full flex justify-center items-center space-x-2
-                                          ${
+                                        <Badge
+                                          variant={
                                             field.value === "team_member"
-                                              ? "bg-slate-950 border-slate-300 text-white"
-                                              : ""
-                                          }`}
+                                              ? "default"
+                                              : "outline"
+                                          }
+                                          className={`w-full py-3 hover:bg-primary/90 cursor-pointer transition-colors
+                                                    ${
+                                                      field.value ===
+                                                      "team_member"
+                                                        ? ""
+                                                        : "hover:bg-secondary/80"
+                                                    }`}
                                         >
-                                          <p>Team Member</p>
-                                          <CircleUserRound
-                                            size={20}
-                                            strokeWidth={2}
-                                          />
-                                        </div>
+                                          <div className="flex items-center justify-center gap-2">
+                                            <CircleUserRound
+                                              size={20}
+                                              strokeWidth={2}
+                                            />
+                                            <span>Team Member</span>
+                                          </div>
+                                        </Badge>
                                       </label>
                                     </FormControl>
                                   </FormItem>
 
                                   <FormItem className="w-full">
                                     <FormControl>
-                                      <label className="cursor-pointer">
+                                      <label>
                                         <RadioGroupItem
                                           value="admin"
                                           className="sr-only"
                                         />
-                                        <div
-                                          className={`p-2 border-2 t200e font-bold border-slate-500 
-                                          bg-slate-700 rounded-full flex justify-center items-center space-x-2
-                                          ${
+                                        <Badge
+                                          variant={
                                             field.value === "admin"
-                                              ? "bg-slate-950 border-slate-300 text-white"
-                                              : ""
-                                          }`}
+                                              ? "default"
+                                              : "outline"
+                                          }
+                                          className={`w-full py-3 hover:bg-primary/90 cursor-pointer transition-colors
+                                                      ${
+                                                        field.value === "admin"
+                                                          ? ""
+                                                          : "hover:bg-secondary/80"
+                                                      }`}
                                         >
-                                          <p>Admin</p>
-                                          <Shield size={20} strokeWidth={2} />
-                                        </div>
+                                          <div className="flex items-center justify-center gap-2">
+                                            <Shield size={20} strokeWidth={2} />
+                                            <span>Admin</span>
+                                          </div>
+                                        </Badge>
                                       </label>
                                     </FormControl>
                                   </FormItem>
@@ -528,7 +547,7 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                               <FormControl>
                                 <Input
                                   placeholder="Enter your Admin's username"
-                                  className={`bg-slate-800 border-slate-700 text-white
+                                  className={`
                                     ${
                                       registerForm.watch("role") === "admin"
                                         ? "opacity-50"
@@ -550,20 +569,12 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                             type="button"
                             variant="outline"
                             onClick={() => setOpen(false)}
-                            className="bg-transparent border-slate-400 text-white hover:bg-slate-600"
                           >
                             Cancel
                           </Button>
-                          <Button
-                            type="submit"
-                            className="bg-white text-slate-900 hover:bg-slate-200"
-                          >
+                          <Button type="submit" variant="default">
                             Register
-                            <TrendingUp
-                              size={20}
-                              className="ml-2"
-                              strokeWidth={2}
-                            />
+                            <TrendingUp />
                           </Button>
                         </DialogFooter>
                       </form>
@@ -571,8 +582,8 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
                   </DialogContent>
                 </Dialog>
               </div>
-            </div>
-          </div>
+            </CardFooter>
+          </Card>
         )}
       </div>
     </div>

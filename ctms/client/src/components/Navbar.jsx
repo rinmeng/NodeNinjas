@@ -110,12 +110,13 @@ function Navbar({
           {links.map((link) => (
             <NavigationMenuItem key={link.route}>
               <Button
-                variant="default"
+                variant="outline"
                 asChild
                 className={cn(
                   "transition-colors",
                   isActive(link.route) &&
-                    "bg-accent text-accent-foreground font-medium"
+                    "bg-secondary text-secondary-foreground font-medium",
+                  !isActive(link.route) && "text-primary-foreground bg-primary"
                 )}
                 onClick={() => handleNavigation(link.route)}
               >
@@ -177,7 +178,6 @@ function Navbar({
               <SheetTrigger asChild>
                 <Button variant="default" size="icon">
                   <Menu />
-                  <span className="sr-only">Toggle menu</span>
                 </Button>
               </SheetTrigger>
 
