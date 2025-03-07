@@ -20,26 +20,30 @@ jobs:
         with:
           node-version: "18"
           cache: "npm"
-          cache-dependency-path: "ctms/client/package-lock.json"
+          cache-dependency-path: "ctms/server/package-lock.json" # Updated to use server package-lock
 
       - name: Debug - List directory structure
         run: |
           ls -la
-          ls -la ctms/client
+          ls -la ctms/server
 
-      - name: Install dependencies
+      - name: Install server dependencies
         run: |
-          cd ctms/client
-          npm install 
-          npm install --save react-router-dom
-          npm install --save-dev @testing-library/jest-dom @testing-library/react @babel/plugin-proposal-private-property-in-object
+          cd ctms/server
+          npm install
 
-      - name: Verify installation
-        run: |
-          cd ctms/client
-          ls -la node_modules/react-router-dom || echo "react-router-dom not found!"
+      - name: Setup PostgreSQL
+        uses: ikalnytskyi/action-setup-postgres@v4
+        with:
+          username: postgres
+          password: postgres
+          database: ctms_test # Assuming this is your test database name
+          port: 5432
 
       - name: Run tests
         run: |
           cd ctms/server
           CI=true npm test
+        env:
+          NODE_ENV: test
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/ctms_test
