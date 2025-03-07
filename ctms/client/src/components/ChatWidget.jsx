@@ -5,6 +5,7 @@ import proxy from "@/src/utils/proxy";
 import {
   Card,
   CardContent,
+  CardDescription,
   CardFooter,
   CardHeader,
   CardTitle,
@@ -103,18 +104,18 @@ const ChatWidget = () => {
       )}
 
       {isOpen && (
-        <Card ref={chatRef} className="w-80 ">
+        <Card ref={chatRef} className="w-80 relative">
+          <Button
+            className=" absolute top-2 right-2"
+            variant="ghost"
+            size="icon"
+            onClick={() => setIsOpen(false)}
+          >
+            <X size={20} />
+          </Button>
           <CardHeader>
-            <div className="flex justify-between items-center">
-              <CardTitle>Chat</CardTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsOpen(false)}
-              >
-                <X size={20} />
-              </Button>
-            </div>
+            <CardTitle>Chat</CardTitle>
+            <CardDescription>Message people in your department</CardDescription>
           </CardHeader>
 
           <CardContent className="space-y-3">
