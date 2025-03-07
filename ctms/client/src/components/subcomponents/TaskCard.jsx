@@ -27,6 +27,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
@@ -60,28 +61,6 @@ const TaskCard = ({
     // Update the local state when the task prop changes
     setIsTaskLocked(task.is_locked || false);
   }, [task.is_locked]);
-
-  const handleEditTask = () => {
-    if (isTaskLocked) {
-      if (user.role === "admin") {
-        setFeedbackMessage({
-          title: "Task Locked",
-          description: "This task is locked. Unlock it first to edit.",
-        });
-      } else {
-        setFeedbackMessage({
-          title: "Task Locked",
-          description: "Contact your admin to make changes.",
-        });
-      }
-      return;
-    }
-    setShowUpdateTaskPanel(!showUpdateTaskPanel);
-  };
-
-  const toggleTaskDetails = () => {
-    setShowTaskDetails(!showTaskDetails);
-  };
 
   const getStatusVariant = (status) => {
     const formattedStatus = status.replace(/\s+/g, "").toLowerCase();
@@ -207,7 +186,6 @@ const TaskCard = ({
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log("Task deleted successfully:", data);
         setNeedsRefetch(true);
         setFeedbackMessage({
           title: "Success",
@@ -235,10 +213,6 @@ const TaskCard = ({
     })
       .then((res) => res.json())
       .then((data) => {
-        console.log(
-          `Task ${isTaskLocked ? "unlocked" : "locked"} successfully:`,
-          data
-        );
         setIsTaskLocked(!isTaskLocked);
         setNeedsRefetch(true);
         setFeedbackMessage({
@@ -317,11 +291,12 @@ const TaskCard = ({
                     <Lock className="h-4 w-4 text-destructive ml-2" />
                   )}
                 </DialogTitle>
+                <DialogDescription></DialogDescription>
               </DialogHeader>
 
               <Separator />
               <div className="pb-1 text-primary">
-                <h4 className="text-sm font-semibold mb-2">Description</h4>
+                <h1 className="text-sm font-semibold mb-2">Description</h1>
                 <p className="mb-4 text-sm ">{task.description}</p>
 
                 <div className="text-xs text-muted-foreground">

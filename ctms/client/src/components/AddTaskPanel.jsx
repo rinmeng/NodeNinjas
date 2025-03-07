@@ -139,7 +139,7 @@ const AddTaskPanel = ({ setFeedbackMessage, user, setNeedsRefetch }) => {
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
           <DialogTitle>
-            <h1 className="text-xl text-primary font-semibold">Add Task</h1>
+            <div className="text-xl text-primary font-semibold">Add Task</div>
           </DialogTitle>
           <DialogDescription>
             Create a new task to track your work.

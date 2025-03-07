@@ -404,7 +404,10 @@ const AssignTaskPanel = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-[900px]  max-h-[100vh] overflow-y-auto">
+    <DialogContent
+      className="sm:max-w-[900px]  max-h-[100vh] overflow-y-auto"
+      aria-describedby="dialog-description"
+    >
       <DialogHeader>
         <DialogTitle>
           <div className="text-primary">Task Assignment</div>

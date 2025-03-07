@@ -85,12 +85,6 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
   );
 
   const fetchTaskFromDatabase = useCallback(async () => {
-    console.log("Fetching tasks from database...");
-    if (!user && !devMode) {
-      console.log("No user session found");
-      return;
-    }
-
     try {
       const response = await fetch(`${proxy}/task/assignedto/user/${user.id}`);
       const data = await response.json();
