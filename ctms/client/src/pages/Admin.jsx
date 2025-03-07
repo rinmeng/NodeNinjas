@@ -2,10 +2,14 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import DBTable from "./testing/subcomp/DBTable";
 import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
+import { Analytics } from "./Graphs";
 
 const proxy = "http://localhost:15000/";
 
 const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
+  useEffect(() => {
+    fetchUsers();
+  }, []);
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -199,6 +203,12 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   return (
     <div className="mp5 my-16 animate-fadein">
       <h1 className="title text-center">Welcome to the Admin Dashboard!</h1>
+        {/* Analytics Section */}
+        <section className="my-8 p-4">
+        <h2 className="text-2xl font-bold mb-4">User Analytics</h2>
+        <Analytics /> 
+      </section>
+
 
       <section className="my-8 p-4">
         <div className="bg-sky-800">
