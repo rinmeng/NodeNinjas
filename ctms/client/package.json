@@ -24,7 +24,7 @@
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
-    "test": "react-scripts test",
+    "test": "react-scripts test --watchAll:false",
     "eject": "react-scripts eject",
     "css": "npx tailwindcss -i ./src/css/input.css -o ./src/css/output.css --watch",
     "dev": "concurrently \"npm run start\" \"npm run css\""
