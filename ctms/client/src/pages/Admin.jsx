@@ -29,8 +29,6 @@ import DBTable from "./testing/subcomp/DBTable";
 import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 import { PieChart } from "../components/PieChart";
 
-const proxy = "http://localhost:15000/";
-
 const Admin = ({ devMode, setFeedbackMessage }) => {
   const { user } = useAuth();
   const [usersList, setUsersList] = useState([]);
@@ -442,11 +440,11 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
                     >
                       Clear Selection
                     </Button>
-        
-            <div>
-              <PieChart />
-            </div>
-          </div>
+
+                    <div>
+                      <PieChart />
+                    </div>
+                  </div>
                 )}
               </DialogFooter>
             </DialogContent>
