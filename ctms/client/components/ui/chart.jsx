@@ -130,25 +130,17 @@ function ChartTooltipContent({
     config,
     labelKey,
   ]);
-  const ChartConfig = {
-    users: {
-      label: "Users",
-      color: "hsl(var(--chart-1))",
-    },
-  };
-  ])
-  const ChartConfig = {
-    users: {
-      label: "Users",
-      color: "hsl(var(--chart-1))",
 
+  const ChartConfig = {
+    users: {
+      label: "Users",
+      color: "hsl(var(--chart-1))",
     },
   };
 
   if (!active || !payload?.length) {
     return null;
   }
-  
 
   const nestLabel = payload.length === 1 && indicator !== "dot";
 
@@ -324,5 +316,3 @@ export {
   ChartStyle,
   ChartConfig,
 };
-  ChartConfig,
-}
