@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
-import SearchBar from "../components/SearchBar";
 import TaskDashboard from "../components/TaskDashboard";
-import AddTaskPanel from "../components/AddTaskPanel";
 import proxy from "../utils/proxy";
 
 const Dashboard = ({
@@ -161,28 +159,24 @@ const Dashboard = ({
   }
 
   return (
-    <div className="bg-slate-700 flex flex-col items-center justify-center py-40 p-10 animate-fadein min-h-screen">
-      <SearchBar
-        setSearchCriteria={setSearchCriteria}
-        searchCriteria={searchCriteria}
-        filterOptions={filterOptions}
-        setFilterOptions={setFilterOptions}
-      />
-      <TaskDashboard
-        sessionUser={sessionUser}
-        showAddTaskPanel={showAddTaskPanel}
-        setShowAddTaskPanel={setShowAddTaskPanel}
-        tasks={tasks}
-        setTasks={setTasks}
-        showEditTaskPanel={showEditTaskPanel}
-        setShowEditTaskPanel={setShowEditTaskPanel}
-        setNeedsRefetch={setNeedsRefetch}
-        setNotificationToAdd={setNotificationToAdd}
-        needsRefetch={needsRefetch}
-        setFeedbackMessage={setFeedbackMessage}
-        devMode={devMode}
-      />
-    </div>
+    <TaskDashboard
+      sessionUser={sessionUser}
+      showAddTaskPanel={showAddTaskPanel}
+      setShowAddTaskPanel={setShowAddTaskPanel}
+      tasks={tasks}
+      setTasks={setTasks}
+      showEditTaskPanel={showEditTaskPanel}
+      setShowEditTaskPanel={setShowEditTaskPanel}
+      setNeedsRefetch={setNeedsRefetch}
+      setNotificationToAdd={setNotificationToAdd}
+      needsRefetch={needsRefetch}
+      setFeedbackMessage={setFeedbackMessage}
+      devMode={devMode}
+      filterOptions={filterOptions}
+      setFilterOptions={setFilterOptions}
+      searchCriteria={searchCriteria}
+      setSearchCriteria={setSearchCriteria}
+    />
   );
 };
 
