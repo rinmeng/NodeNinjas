@@ -23,8 +23,10 @@ import {
 } from "@/components/ui/dialog";
 import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
 import proxy from "@/src/utils/proxy";
+import { useAuth } from "@/utils/AuthProvider";
 
-const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
+const Admin = ({ devMode, setFeedbackMessage }) => {
+  const { user } = useAuth();
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -78,7 +80,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       });
   };
 
-  if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
+  if ((!user || user.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
         <h1 className="title text-center">Welcome to the Admin Page!</h1>
