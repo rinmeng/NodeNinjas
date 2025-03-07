@@ -1,16 +1,24 @@
-import React, { useEffect } from "react";
-import { X, MailWarning, MailCheck } from "lucide-react";
+import React from "react";
+import { MailWarning, MailCheck, BellOff } from "lucide-react";
 import proxy from "../utils/proxy";
-import IconButton from "./subcomponents/IconButton";
 import {
   Sheet,
   SheetContent,
   SheetHeader,
   SheetTitle,
   SheetDescription,
-  SheetClose,
 } from "@/components/ui/sheet";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Card, CardContent } from "@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Badge } from "@/components/ui/badge";
 
 const NotificationPanel = ({
   notifications,
@@ -23,31 +31,19 @@ const NotificationPanel = ({
   };
 
   const handleReadNotification = (id, status) => async () => {
-    if (status === "unread") {
-      try {
-        await fetch(`${proxy}/notification/read/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-      } catch (error) {
-        console.error("Failed to mark notification as read:", error);
-      }
+    const endpoint = status === "unread" ? "read" : "unread";
+
+    try {
+      await fetch(`${proxy}/notification/${endpoint}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      setNotificationsNeedRefetch(true);
+    } catch (error) {
+      console.error(`Failed to mark notification as ${endpoint}:`, error);
     }
-    if (status === "read") {
-      try {
-        await fetch(`${proxy}/notification/unread/${id}`, {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        });
-      } catch (error) {
-        console.error("Failed to mark notification as unread:", error);
-      }
-    }
-    setNotificationsNeedRefetch(true);
   };
 
   const getNotificationText = (type) => {
@@ -62,6 +58,21 @@ const NotificationPanel = ({
         return `You have a new message`;
       default:
         return `New notification`;
+    }
+  };
+
+  const getNotificationTypeVariant = (type) => {
+    switch (type) {
+      case "task_assignment":
+        return "default";
+      case "task_unassignment":
+        return "secondary";
+      case "alert":
+        return "destructive";
+      case "message":
+        return "outline";
+      default:
+        return "default";
     }
   };
 
@@ -88,75 +99,104 @@ const NotificationPanel = ({
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent
-        className="w-[360px] sm:w-[400px] p-0 flex flex-col gap-0 "
+        className="w-[360px] sm:w-[400px] p-0 flex flex-col gap-0"
         side="right"
       >
-        <SheetHeader className="px-4 border-b border-slate-200 pb-3">
-          <SheetTitle className="font-semibold">Notifications</SheetTitle>
+        <SheetHeader>
+          <div className="flex items-center gap-1">
+            <SheetTitle>Notifications</SheetTitle>
+            {notifications.length > 0 && (
+              <Badge variant="default" className="ml-2">
+                {notifications.filter((n) => n.status === "unread").length}{" "}
+                unread
+              </Badge>
+            )}
+          </div>
           <SheetDescription className="text-xs">
-            Mark as read/unread by clicking on them
+            Click on notifications to toggle read/unread status
           </SheetDescription>
         </SheetHeader>
 
+        <Separator />
+
         <ScrollArea className="flex-1 h-full">
           {notifications.length === 0 ? (
-            <div className="p-6 text-center text-slate-500">
-              No new notifications
+            <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2 h-[200px]">
+              <BellOff className="h-10 w-10 opacity-20" />
+              <p>No notifications</p>
             </div>
           ) : (
-            <div>
+            <div className="py-1">
               {notifications.map((notification) => (
-                <div
+                <Card
                   key={notification.id}
-                  className={`p-4 hover:bg-slate-100 transition-colors duration-200 ease-in-out border-b border-slate-200
-                  ${
+                  className={`rounded-none border-l-0 border-r-0 border-t-0 border-b ${
                     !isNotificationRead(notification)
-                      ? "bg-blue-50"
-                      : "bg-white"
-                  }`}
+                      ? "bg-blue-50/50 dark:bg-blue-900/20"
+                      : ""
+                  } hover:bg-accent/10 transition-colors`}
+                  onClick={handleReadNotification(
+                    notification.id,
+                    notification.status
+                  )}
                 >
-                  <div
-                    className="flex items-start gap-3"
-                    onClick={handleReadNotification(
-                      notification.id,
-                      notification.status
-                    )}
-                  >
-                    {isNotificationRead(notification) ? (
-                      <MailCheck size={18} className="mt-1 text-slate-400" />
-                    ) : (
-                      <MailWarning size={18} className="mt-1 text-blue-600" />
-                    )}
+                  <CardContent className="p-0">
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <div className="flex items-start gap-3 px-4">
+                            {isNotificationRead(notification) ? (
+                              <MailCheck
+                                size={18}
+                                className="mt-1 text-muted-foreground"
+                              />
+                            ) : (
+                              <MailWarning
+                                size={18}
+                                className="mt-1 text-primary"
+                              />
+                            )}
 
-                    {/* Main content */}
-                    <div className="flex-1">
-                      <p
-                        className={`text-sm ${
-                          !isNotificationRead(notification)
-                            ? "font-bold text-slate-900"
-                            : "text-slate-700"
-                        }`}
-                      >
-                        {getNotificationText(notification.type)}
-                      </p>
-                      <div>
-                        <p
-                          className={`text-sm ${
-                            !isNotificationRead(notification)
-                              ? "font-semibold text-slate-800"
-                              : "text-slate-700"
-                          }`}
-                        >
-                          "{notification.message}"
-                        </p>
-                      </div>
+                            <div className="flex-1 text-left">
+                              <div className="flex items-center justify-between mb-1">
+                                <p
+                                  className={`text-sm ${
+                                    !isNotificationRead(notification)
+                                      ? "font-semibold"
+                                      : ""
+                                  }`}
+                                >
+                                  {getNotificationText(notification.type)}
+                                </p>
+                              </div>
 
-                      <div className="text-xs text-slate-500 mt-1 block">
-                        {dateToTimeAgo(new Date(notification.created_at))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                              <p
+                                className={`text-sm ${
+                                  !isNotificationRead(notification)
+                                    ? "font-medium"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                "{notification.message}"
+                              </p>
+
+                              <div className="text-xs text-muted-foreground mt-1.5">
+                                {dateToTimeAgo(
+                                  new Date(notification.created_at)
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {isNotificationRead(notification)
+                            ? "Mark as unread"
+                            : "Mark as read"}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </CardContent>
+                </Card>
               ))}
             </div>
           )}
