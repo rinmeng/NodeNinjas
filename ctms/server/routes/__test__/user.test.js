@@ -14,7 +14,7 @@ jest.mock('../../auth', () => ({
 }));
 
 // Mock the password hashing function
-jest.mock('../../utils/passwordUtils', () => ({
+jest.mock('../../utils/PasswordHasher', () => ({
     hashPassword: jest.fn().mockResolvedValue('hashed_password'),
     comparePassword: jest.fn().mockResolvedValue(true)
 }));
