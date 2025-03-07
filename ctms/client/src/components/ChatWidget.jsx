@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { Send, X, MessageCircle } from "lucide-react"; // Icons for styling
+import { useAuth } from "@/utils/AuthProvider";
 
-const proxy = "http://localhost:15000"; // Updated to match Docker backend
+import proxy from "@/src/utils/proxy";
 
-const ChatWidget = ({ sessionUser }) => {
+const ChatWidget = () => {
+  const { user } = useAuth();
   const [isOpen, setIsOpen] = useState(false); // Toggle chat visibility
   const [users, setUsers] = useState([]); // List of users
   const [selectedUser, setSelectedUser] = useState(null); // Chat recipient
@@ -26,7 +28,7 @@ const ChatWidget = ({ sessionUser }) => {
   // Fetch messages when a user is selected
   useEffect(() => {
     if (selectedUser) {
-      fetch(`${proxy}/message/${sessionUser.id}/${selectedUser.id}`)
+      fetch(`${proxy}/message/${user.id}/${selectedUser.id}`)
         .then((res) => {
           if (!res.ok) throw new Error("Failed to fetch messages");
           return res.json();
@@ -41,7 +43,7 @@ const ChatWidget = ({ sessionUser }) => {
     if (!newMessage.trim() || !selectedUser) return;
 
     const messageData = {
-      sender_id: sessionUser.id,
+      sender_id: user.id,
       recipient_id: selectedUser.id,
       text: newMessage, // Match column name in DB
     };
@@ -96,12 +98,14 @@ const ChatWidget = ({ sessionUser }) => {
             className="w-full p-2 mb-3 bg-slate-700 text-white rounded-lg"
             value={selectedUser?.id || ""}
             onChange={(e) =>
-              setSelectedUser(users.find((user) => user.id === parseInt(e.target.value)))
+              setSelectedUser(
+                users.find((user) => user.id === parseInt(e.target.value))
+              )
             }
           >
             <option value="">Select a user...</option>
             {users
-              .filter((user) => user.id !== sessionUser.id)
+              .filter((user) => user.id !== user.id)
               .map((user) => (
                 <option key={user.id} value={user.id}>
                   {user.username}
@@ -116,13 +120,14 @@ const ChatWidget = ({ sessionUser }) => {
                 <div
                   key={index}
                   className={`mb-2 p-2 rounded-xl ${
-                    msg.sender_id === sessionUser.id
+                    msg.sender_id === user.id
                       ? "bg-blue-500 ml-auto w-fit"
                       : "bg-gray-600"
                   }`}
                 >
                   <strong>
-                    {msg.sender_id === sessionUser.id ? "You" : selectedUser?.username}:
+                    {msg.sender_id === user.id ? "You" : selectedUser?.username}
+                    :
                   </strong>{" "}
                   {msg.text} {/* Match column name in DB */}
                 </div>

@@ -11,20 +11,23 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import DataTable from "../components/Datatable";
+import DataTable from "../components/DataTable";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
+import proxy from "@/src/utils/proxy";
+import { useAuth } from "@/utils/AuthProvider";
 
-const proxy = "http://localhost:15000/";
-
-const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
+const Admin = ({ devMode, setFeedbackMessage }) => {
+  const { user } = useAuth();
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -32,6 +35,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const [isRefetching, setIsRefetching] = useState(false);
   const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
   const [initialLoad, setInitialLoad] = useState(true);
+  const tableRef = React.useRef(null);
 
   useEffect(() => {
     // Initial load without visual feedback
@@ -58,7 +62,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
 
   // Initial load function without visual feedback
   const loadUsersInitially = () => {
-    fetch(proxy + "user/all", { credentials: "include" })
+    fetch(`${proxy}/user/all`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -78,7 +82,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       });
   };
 
-  if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
+  if ((!user || user.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
         <h1 className="title text-center">Welcome to the Admin Page!</h1>
@@ -149,7 +153,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         return (
           <Button variant="ghost" onClick={sortUsers}>
             Username
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown />
           </Button>
         );
       },
@@ -164,7 +168,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -216,7 +220,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
     try {
       for (const userId of userIds) {
         try {
-          const res = await fetch(proxy + `user/delete/${userId}`, {
+          const res = await fetch(`${proxy}/user/delete/${userId}`, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
@@ -271,7 +275,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const fetchUsers = () => {
     setIsLoading(true);
     setIsRefetching(true);
-    fetch(proxy + "user/all", { credentials: "include" })
+    fetch(`${proxy}/user/all`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -311,11 +315,14 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
 
   const resetSelection = () => {
     setChosenUserIds([]);
+    if (tableRef.current) {
+      tableRef.current.resetRowSelection();
+    }
   };
 
   const updateUserRole = (userId, newRole) => {
     setIsRefetching(true);
-    fetch(proxy + `user/updateRole/${userId}`, {
+    fetch(`${proxy}/user/updateRole/${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -356,45 +363,87 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="flex justify-center py-16 my-8 animate-fadein">
-      <div className="space-y-4">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="mb-4">Manage Users</Button>
-          </DialogTrigger>
+    <div className="w-full my-30 animate-fadein ">
+      <Card className="max-w-lg mx-auto">
+        <CardHeader>
+          <CardTitle>
+            <h2 className="text-2xl font-semibold">User Administration</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className=" flex flex-col items-center">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-full">Manage Users</Button>
+            </DialogTrigger>
 
-          {/* Make the dialog much larger */}
-          <DialogContent className="min-w-[900px]">
-            <DialogHeader>
-              <DialogTitle className="flex gap-4 text-xl">
-                Manage Users
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={fetchUsers}
-                  disabled={isLoading}
-                >
-                  <RefreshCw
-                    className={`h-4 w-4 mr-1 ${
-                      isLoading || isRefetching ? "animate-spin" : ""
-                    }`}
-                  />
-                  Sync Users
-                </Button>
-              </DialogTitle>
-              <DialogDescription>
-                View and manage all users in the system
-              </DialogDescription>
-            </DialogHeader>
-            <DataTable
-              columns={usersColumns}
-              data={usersList}
-              loading={isLoading && !initialLoad}
-              initialPageSize={5}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+            {/* Make the dialog much larger */}
+            <DialogContent className="min-w-[900px]">
+              <DialogHeader>
+                <DialogTitle className="text-primary flex items-center gap-4 text-xl">
+                  Manage Users
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={fetchUsers}
+                    disabled={isLoading}
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 mr-1 ${
+                        isLoading || isRefetching ? "animate-spin" : ""
+                      }`}
+                    />
+                    Sync Users
+                  </Button>
+                </DialogTitle>
+                <DialogDescription>
+                  View and manage all users in the system
+                </DialogDescription>
+              </DialogHeader>
+
+              <DataTable
+                columns={usersColumns}
+                data={usersList}
+                loading={isLoading && !initialLoad}
+                initialPageSize={5}
+                onSelectionChange={setChosenUserIds}
+                tableRef={tableRef}
+              />
+
+              <DialogFooter>
+                {chosenUserIds.length > 0 && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete the selected users?"
+                          )
+                        ) {
+                          deleteUsers();
+                        }
+                      }}
+                      disabled={isDeleting}
+                      className="flex items-center"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete Selected ({chosenUserIds.length})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetSelection}
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
     </div>
   );
 };

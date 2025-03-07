@@ -23,11 +23,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import proxy from "../utils/proxy";
 import { Separator } from "@/components/ui/separator";
 
-const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
+const AddTaskPanel = ({ setFeedbackMessage, user, setNeedsRefetch }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
     title: "",
@@ -64,8 +71,8 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
   const addTaskToDatabase = async () => {
     const assignedUserIDs = [];
     // check if user is signed in
-    if (sessionUser) {
-      assignedUserIDs.push(sessionUser.id);
+    if (user) {
+      assignedUserIDs.push(user.id);
     }
 
     // make post request to add task to database
@@ -81,7 +88,7 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
         priority: task.priority,
         status: task.status,
         assigned_users: assignedUserIDs,
-        owner_id: sessionUser ? sessionUser.id : null,
+        owner_id: user ? user.id : null,
       }),
       credentials: "include",
     });
@@ -104,7 +111,7 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
       status: "pending",
     });
 
-    if (!sessionUser) {
+    if (!user) {
       setFeedbackMessage({
         title: "Task added successfully!",
         description:
@@ -124,113 +131,120 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <div>
-          <Button className="bg-blue-600 hover:bg-blue-700 text-white">
-            Add Task
-            <ListPlus />
-          </Button>
-        </div>
+        <Button variant="default">
+          Add Task
+          <ListPlus />
+        </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] bg-slate-900 text-white border-slate-600">
+      <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle className="text-xl font-semibold">Add Task</DialogTitle>
-          <DialogDescription className="text-slate-400">
+          <DialogTitle>
+            <div className="text-xl text-primary font-semibold">Add Task</div>
+          </DialogTitle>
+          <DialogDescription>
             Create a new task to track your work.
           </DialogDescription>
         </DialogHeader>
 
-        <form className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              placeholder="Task Title"
-              className="bg-slate-800 border-slate-700 text-white"
-              value={task.title}
-              onChange={(e) => setTask({ ...task, title: e.target.value })}
-              maxLength="255"
-            />
-          </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h3 className="text-md">Task Details</h3>
+            </CardTitle>
+            <CardDescription>Enter information about your task</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  placeholder="Task Title"
+                  value={task.title}
+                  onChange={(e) => setTask({ ...task, title: e.target.value })}
+                  maxLength="255"
+                />
+              </div>
 
-          <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Task Description"
-              className="bg-slate-800 border-slate-700 text-white resize-none min-h-[100px]"
-              value={task.description}
-              onChange={(e) =>
-                setTask({ ...task, description: e.target.value })
-              }
-            />
-          </div>
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Task Description"
+                  className="resize-none min-h-[100px]"
+                  value={task.description}
+                  onChange={(e) =>
+                    setTask({ ...task, description: e.target.value })
+                  }
+                />
+              </div>
 
-          <div className="flex flex-row space-x-4">
-            <div className="grid gap-2">
-              <Label htmlFor="date">Due Date</Label>
-              <Input
-                id="date"
-                type="date"
-                className="bg-slate-800 border-slate-700 text-white"
-                value={task.date}
-                onChange={(e) => setTask({ ...task, date: e.target.value })}
-              />
-            </div>
+              <div className="flex flex-row space-x-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="date">Due Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={task.date}
+                    onChange={(e) => setTask({ ...task, date: e.target.value })}
+                  />
+                </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="priority">Priority</Label>
-              <Select
-                value={task.priority}
-                onValueChange={(value) => setTask({ ...task, priority: value })}
-              >
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue placeholder="Select priority" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                  <SelectGroup>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select
+                    value={task.priority}
+                    onValueChange={(value) =>
+                      setTask({ ...task, priority: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="grid gap-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={task.status}
-                onValueChange={(value) => setTask({ ...task, status: value })}
-              >
-                <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                  <SelectValue placeholder="Select status" />
-                </SelectTrigger>
-                <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                  <SelectGroup>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="in_progress">In Progress</SelectItem>
-                    <SelectItem value="completed">Completed</SelectItem>
-                  </SelectGroup>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </form>
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={task.status}
+                    onValueChange={(value) =>
+                      setTask({ ...task, status: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
-        <Separator className="bg-slate-600" />
+        <Separator />
 
         <DialogFooter>
-          <Button
-            variant="outline"
-            className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
-            onClick={() => setOpen(false)}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleAddTask}
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-          >
+          <DialogClose asChild>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button onClick={handleAddTask}>
             Add Task
             <ListPlus className="h-4 w-4 ml-1" />
           </Button>

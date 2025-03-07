@@ -39,7 +39,7 @@ const AssignTaskPanel = ({
   setNeedsRefetch,
   setFeedbackMessage,
   setNotificationToAdd,
-  sessionUser,
+  user,
 }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
@@ -201,13 +201,19 @@ const AssignTaskPanel = ({
   const findAvailableUsers = useCallback(async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(`${proxy}/user/under/${sessionUser.id}`, {
+      const response = await fetch(`${proxy}/user/under/${user.id}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
         credentials: "include",
       });
+
+      // If response is 404, just return an empty array without throwing an error
+      if (response.status === 404) {
+        setAvailableUsers([]);
+        return [];
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
@@ -219,6 +225,7 @@ const AssignTaskPanel = ({
       return data; // Return the users data for potential use
     } catch (error) {
       console.error("Error fetching available users:", error);
+      // Only show feedback for non-404 errors
       setFeedbackMessage({
         title: "Error",
         description: "Failed to fetch available users: " + error.message,
@@ -227,7 +234,7 @@ const AssignTaskPanel = ({
     } finally {
       setIsLoading(false);
     }
-  }, [sessionUser.id, setFeedbackMessage]);
+  }, [user.id, setFeedbackMessage]);
 
   const fetchAssignedUsers = useCallback(
     async (allAvailableUsers) => {
@@ -318,7 +325,7 @@ const AssignTaskPanel = ({
 
   useEffect(() => {
     if (task) {
-      if (sessionUser.role === "admin") {
+      if (user.role === "admin") {
         const initializeData = async () => {
           // First fetch all available users
           const users = await findAvailableUsers();
@@ -335,7 +342,7 @@ const AssignTaskPanel = ({
       // Reset states when component unmounts or task changes
       resetStates();
     }
-  }, [task, sessionUser.role]);
+  }, [task, user.role]);
 
   const resetStates = () => {
     setSearchQuery("");
@@ -404,10 +411,13 @@ const AssignTaskPanel = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-[900px]  max-h-[100vh] overflow-y-auto">
+    <DialogContent
+      className="sm:max-w-[900px]  max-h-[100vh] overflow-y-auto"
+      aria-describedby="dialog-description"
+    >
       <DialogHeader>
         <DialogTitle>
-          <h1 className="text-primary">Task Assignment</h1>
+          <div className="text-primary">Task Assignment</div>
         </DialogTitle>
         <DialogDescription>
           Manage user assignments for this task
@@ -445,7 +455,7 @@ const AssignTaskPanel = ({
         <CardHeader>
           <CardTitle>
             <h3 className="text-md">
-              {sessionUser.role === "admin"
+              {user.role === "admin"
                 ? `Manage Users (${selectedUsers.length}/${availableUsers.length})`
                 : `Assigned Users (${filteredSelectedUsers.length}/${selectedUsers.length})`}
             </h3>
@@ -459,7 +469,7 @@ const AssignTaskPanel = ({
         </CardHeader>
         <CardContent>
           {/* Search Results - For admin only */}
-          {sessionUser.role === "admin" ? (
+          {user.role === "admin" ? (
             <ScrollArea className="h-32 w-full p-4 border border-muted rounded-md">
               {isLoading ? (
                 <div className="text-center py-4 ">
@@ -538,7 +548,7 @@ const AssignTaskPanel = ({
             </ScrollArea>
           )}
         </CardContent>
-        {sessionUser.role === "admin" && (
+        {user.role === "admin" && (
           <CardFooter>
             <p className="text-xs">
               Grayed out: Already assigned | Highlighted: To be assigned | Red:
@@ -556,11 +566,11 @@ const AssignTaskPanel = ({
         <DialogClose asChild>
           <div>
             <Button variant={"outline"}>
-              {sessionUser.role === "admin" ? "Cancel" : "Close"}
+              {user.role === "admin" ? "Cancel" : "Close"}
             </Button>
           </div>
         </DialogClose>
-        {sessionUser.role === "admin" && (
+        {user.role === "admin" && (
           <DialogClose asChild>
             <div>
               <Button onClick={handleManageUsers}>

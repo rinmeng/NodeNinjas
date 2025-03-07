@@ -1,13 +1,15 @@
 import React, { useState, useEffect } from "react";
-import {
-  ChevronDown,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import FilterOptionsBar from "./FilterOptionsBar";
-import IconButton from "./subcomponents/IconButton";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { Card, CardContent } from "@/components/ui/card";
 
 const SearchBar = ({
   setSearchCriteria,
@@ -15,14 +17,11 @@ const SearchBar = ({
   filterOptions,
   setFilterOptions,
 }) => {
-  // Used for setting the search icon to be active or not
   const [isSearchActive, setIsSearchActive] = useState(false);
-  // New state for controlling the chevron/sidebar expansion
-  const [isExpanded, setIsExpanded] = useState(false);
 
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setSearchCriteria(searchCriteria); // Trigger the search with the criteria
+    setSearchCriteria(searchCriteria);
     setIsSearchActive(true);
   };
 
@@ -31,7 +30,6 @@ const SearchBar = ({
     setIsSearchActive(false);
   };
 
-  // if search criteria was erased and empty, set tasks to all tasks
   useEffect(() => {
     if (!searchCriteria) {
       setSearchCriteria("");
@@ -92,49 +90,26 @@ const SearchBar = ({
     });
   };
 
-  // Toggle chevron and sidebar expansion
-  const toggleExpansion = () => {
-    setIsExpanded(!isExpanded);
-  };
-
   return (
-    <div className="m-5 w-3/4 fixed top-0 translate-y-1/3 z-30 t200e">
-      <div
-        className={`glass-slate mp5 rounded-full t500e w-full 
-        flex flex-row justify-center items-center
-        ${isExpanded ? "translate-x-full" : " translate-x-0"}`}
+    <div className="m-5 w-3/4 fixed top-0 translate-y-1/3 z-30 transition-all duration-200">
+      <Card
+        className={`bg-slate-900/80 backdrop-blur-md border-slate-700 transition-all duration-500 w-full 
+        flex flex-row justify-center items-center rounded-full`}
       >
-        {/* Chevron button that changes icon based on state */}
-        <div onClick={toggleExpansion} className="t200e">
-          {isExpanded ? (
-            <IconButton
-              icon={<ChevronLeft size={50} />}
-              color="text-white opacity-50 hover:opacity-100 hover:bg-blue-600"
-              onClick={toggleExpansion}
-              tooltip={"Toggle Search Bar"}
-            />
-          ) : (
-            <IconButton
-              icon={<ChevronRight size={50} />}
-              color="text-white opacity-50 hover:opacity-100 hover:bg-blue-600"
-              onClick={toggleExpansion}
-              tooltip={"Toggle Search Bar"}
-            />
-          )}
-        </div>
-
-        <div className="w-auto flex-grow">
-          <div className="flex flex-col m-auto justify-center items-center space-x-4">
+        <CardContent className="w-auto flex-grow py-4 px-6">
+          <div className="flex flex-col m-auto justify-center items-center">
             <form
-              className="w-2/4 relative hover:w-3/4 t500e"
+              className="w-2/4 relative hover:w-3/4 transition-all duration-500"
               onSubmit={handleSearchSubmit}
             >
               <div className="relative flex items-center">
-                <input
+                <Input
                   type="text"
                   value={searchCriteria}
                   placeholder="Search for tasks by title or description..."
-                  className="forms w-full pl-10 pr-16 py-2 focus:bg-slate-900 rounded-full"
+                  className={`pl-10 pr-12 py-6 rounded-full border-slate-600 bg-slate-800/90 text-primary-foreground
+                    ${isSearchActive ? "border-blue-400" : ""} 
+                    focus-visible:ring-blue-500`}
                   onChange={(e) => {
                     setSearchCriteria(e.target.value);
                     setIsSearchActive(e.target.value.length > 0);
@@ -142,23 +117,26 @@ const SearchBar = ({
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
                   <Search
-                    size={25}
-                    className={`${
-                      isSearchActive ? "text-white" : "text-gray-500"
-                    } t200e`}
+                    size={20}
+                    className={`transition-colors duration-200 ${
+                      isSearchActive ? "text-blue-400" : "text-slate-400"
+                    }`}
                   />
                 </div>
-                <button
-                  type="button"
-                  onClick={handleClearSearch}
-                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-white"
-                >
-                  <X size={30} />
-                </button>
+                {searchCriteria && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleClearSearch}
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8 text-slate-400 hover:text-white hover:bg-slate-700"
+                  >
+                    <X size={18} />
+                  </Button>
+                )}
               </div>
             </form>
           </div>
-          {/* Filter options */}
           <div className="mt-4 w-full">
             <FilterOptionsBar
               filterOptions={filterOptions}
@@ -169,8 +147,8 @@ const SearchBar = ({
               filterTaskByStatus={filterTaskByStatus}
             />
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };
