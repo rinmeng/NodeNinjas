@@ -509,7 +509,7 @@ const Login = ({
                                 >
                                   <FormItem className="w-full">
                                     <FormControl>
-                                      <label className="cursor-pointer">
+                                      <label>
                                         <RadioGroupItem
                                           value="team_member"
                                           className="sr-only"

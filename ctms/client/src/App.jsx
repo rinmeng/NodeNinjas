@@ -10,14 +10,12 @@ import Dashboard from "./pages/Dashboard";
 import ChatWidget from "./components/ChatWidget";
 
 import Chat from "./pages/Chat";
-import Feedback2 from "@/src/components/subcomponents/Feedback2";
 import { CircleAlert, CircleCheck } from "lucide-react";
 
 import proxy from "@/src/utils/proxy";
 
 import { Toaster } from "sonner";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
 
 function App() {
   const [devMode, setDevMode] = useState(false);
@@ -36,6 +34,11 @@ function App() {
     useState(false);
 
   const timer = 3000;
+
+  useEffect(() => {
+    // Apply dark theme
+    document.documentElement.classList.add("dark");
+  }, []);
 
   useEffect(() => {
     fetch(`${proxy}/user/session`, {

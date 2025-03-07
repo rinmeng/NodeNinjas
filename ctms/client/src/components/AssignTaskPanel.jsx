@@ -25,6 +25,14 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 
 import getDateWithRelativeTime from "../utils/getDateWithRelativeTime";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const AssignTaskPanel = ({
   task,
@@ -396,59 +404,108 @@ const AssignTaskPanel = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-[900px]  max-h-[100vh] bg-slate-900 text-white border-slate-600 overflow-y-auto">
+    <DialogContent className="sm:max-w-[900px]  max-h-[100vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle className="text-xl font-semibold flex justify-between items-center">
-          Task Assignment
+        <DialogTitle>
+          <h1 className="text-primary">Task Assignment</h1>
         </DialogTitle>
-        <DialogDescription className="text-slate-400">
+        <DialogDescription>
           Manage user assignments for this task
         </DialogDescription>
       </DialogHeader>
 
       {/* Task Information */}
-      <div className="bg-slate-800 p-4 rounded-lg">
-        <h2 className="text-lg font-semibold text-white">Task: {task.name}</h2>
-        <p className="text-slate-300 text-sm truncate">{task.description}</p>
-        <p className="text-slate-400 text-sm mt-2">
-          Created by:{" "}
-          <span className="text-white">
-            @{task.owner_username} ({task.owner_display_name})
-          </span>
-        </p>
-        <p className="text-slate-400 text-sm">
-          Created on:{" "}
-          <span className="text-white">
-            {getDateWithRelativeTime(task.created_at)}
-          </span>
-        </p>
-      </div>
+      <Card>
+        <CardContent>
+          <CardTitle>
+            <h2 className="text-lg font-semibold">Task: {task.name}</h2>
+          </CardTitle>
+          <CardDescription>
+            <p className=" text-sm truncate">{task.description}</p>
+          </CardDescription>
+          <CardDescription>
+            <p className="text-sm">
+              Created by:{" "}
+              <span>
+                @{task.owner_username} ({task.owner_display_name})
+              </span>
+            </p>
+            <p className="text-sm">
+              Created on:{" "}
+              <span className="">
+                {getDateWithRelativeTime(task.created_at)}
+              </span>
+            </p>
+          </CardDescription>
+        </CardContent>
+      </Card>
 
       {/* Search Users - For both admin and non-admin */}
-      <div>
-        <h3 className="text-md mb-2">Search Users</h3>
-        <div className="relative">
-          <UserSearch className="absolute left-2 top-2.5 h-4 w-4 text-slate-400" />
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h3 className="text-md">
+              {sessionUser.role === "admin"
+                ? `Manage Users (${selectedUsers.length}/${availableUsers.length})`
+                : `Assigned Users (${filteredSelectedUsers.length}/${selectedUsers.length})`}
+            </h3>
+          </CardTitle>
+
           <Input
             placeholder="Search by name, username, or email..."
-            className="pl-8 bg-slate-800 border-slate-700 text-white"
             value={searchQuery}
             onChange={handleSearch}
           />
-        </div>
-      </div>
-
-      {/* Selected Users - For non-admin users */}
-      {sessionUser.role !== "admin" && (
-        <div className="mt-4">
-          <h3 className="text-md mb-2">
-            Assigned Users ({filteredSelectedUsers.length}/
-            {selectedUsers.length})
-          </h3>
-          <div className="bg-slate-800 rounded-lg p-2">
-            <ScrollArea className="h-32 w-full">
+        </CardHeader>
+        <CardContent>
+          {/* Search Results - For admin only */}
+          {sessionUser.role === "admin" ? (
+            <ScrollArea className="h-32 w-full p-4 border border-muted rounded-md">
               {isLoading ? (
-                <div className="text-slate-400 text-center py-4">
+                <div className="text-center py-4 ">
+                  Loading available users...
+                </div>
+              ) : filteredUsers.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {filteredUsers.map((user) => (
+                    <Badge
+                      key={user.id}
+                      variant={getUserBadgeVariant(user)}
+                      className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border-2${
+                        isTaskOwner(user.id)
+                          ? "opacity-50 cursor-not-allowed text-muted-foreground"
+                          : "hover:scale-105 transition-transform"
+                      }`}
+                      onClick={() =>
+                        !isTaskOwner(user.id) && toggleUserSelection(user)
+                      }
+                    >
+                      @{user.username} ({user.display_name})
+                      {isUserPreAssigned(user.id) &&
+                        isUserToUnassign(user.id) &&
+                        !isTaskOwner(user.id) && <UserRoundMinus size={16} />}
+                      {isUserPreAssigned(user.id) &&
+                        !isUserToUnassign(user.id) &&
+                        !isTaskOwner(user.id) && <UserRoundCheck size={16} />}
+                      {!isUserPreAssigned(user.id) &&
+                        isUserSelected(user.id) &&
+                        !isTaskOwner(user.id) && <UserPlus size={16} />}
+                    </Badge>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4">
+                  <UserX size={24} className="mx-auto mb-2" />
+                  {searchQuery
+                    ? "No users match your search"
+                    : "No available users found"}
+                </div>
+              )}
+            </ScrollArea>
+          ) : (
+            <ScrollArea className="h-32 w-full p-4 border border-muted rounded-md">
+              {isLoading ? (
+                <div className="text-center py-4">
                   Loading assigned users...
                 </div>
               ) : filteredSelectedUsers.length > 0 ? (
@@ -456,110 +513,63 @@ const AssignTaskPanel = ({
                   {filteredSelectedUsers.map((user) => (
                     <Badge
                       key={user.id}
-                      variant="success"
-                      className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white"
+                      variant={
+                        user.id === task.owner_id ? "secondary" : "default"
+                      }
+                      className="flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium"
                     >
                       @{user.username} ({user.display_name})
-                      <UserRoundCheck size={16} />
+                      {user.id === task.owner_id ? (
+                        <span className="text-xs ml-1">(Owner)</span>
+                      ) : (
+                        <UserRoundCheck size={16} />
+                      )}
                     </Badge>
                   ))}
                 </div>
               ) : (
-                <div className="text-slate-400 text-center py-4">
+                <div className="text-center py-4">
+                  <UserX size={24} className="mx-auto mb-2" />
                   {searchQuery
                     ? "No users match your search"
                     : "This task has no assigned users"}
                 </div>
               )}
             </ScrollArea>
-          </div>
-        </div>
-      )}
+          )}
+        </CardContent>
+        {sessionUser.role === "admin" && (
+          <CardFooter>
+            <p className="text-xs">
+              Grayed out: Already assigned | Highlighted: To be assigned | Red:
+              To be unassigned
+            </p>
+          </CardFooter>
+        )}
+      </Card>
 
-      {/* Search Results - For admin only */}
-      {sessionUser.role === "admin" && (
-        <div className="space-y-4">
-          <div>
-            <h3 className="text-md mb-2">
-              Manage Users ({selectedUsers.length}/{availableUsers.length})
-            </h3>
-            <div className="bg-slate-800 rounded-lg p-2">
-              <ScrollArea className="h-32 w-full">
-                {isLoading ? (
-                  <div className="text-slate-400 text-center py-4 ">
-                    Loading available users...
-                  </div>
-                ) : filteredUsers.length > 0 ? (
-                  <div className="flex flex-wrap gap-2 p-2">
-                    {filteredUsers.map((user) => (
-                      // ...existing code...
-                      <Badge
-                        key={user.id}
-                        variant={getUserBadgeVariant(user)}
-                        className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium text-white${
-                          isTaskOwner(user.id)
-                            ? "opacity-50 cursor-not-allowed text-black"
-                            : "cursor-pointer hover:scale-105 transition-transform"
-                        }`}
-                        onClick={() =>
-                          !isTaskOwner(user.id) && toggleUserSelection(user)
-                        }
-                      >
-                        @{user.username} ({user.display_name})
-                        {isUserPreAssigned(user.id) &&
-                          isUserToUnassign(user.id) &&
-                          !isTaskOwner(user.id) && <UserRoundMinus size={16} />}
-                        {isUserPreAssigned(user.id) &&
-                          !isUserToUnassign(user.id) &&
-                          !isTaskOwner(user.id) && <UserRoundCheck size={16} />}
-                        {!isUserPreAssigned(user.id) &&
-                          isUserSelected(user.id) &&
-                          !isTaskOwner(user.id) && <UserPlus size={16} />}
-                      </Badge>
-                      // ...existing code...
-                    ))}
-                  </div>
-                ) : (
-                  <div className="text-slate-400 text-center py-4">
-                    <UserX size={24} className="mx-auto mb-2" />
-                    {searchQuery
-                      ? "No users match your search"
-                      : "No available users found"}
-                  </div>
-                )}
-              </ScrollArea>
-            </div>
-
-            <div className="text-xs text-slate-400 mt-1">
-              <p>
-                Slate: Already assigned or to be assigned | Red: To be
-                unassigned
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      <Separator className="bg-slate-600" />
+      {/* Remove the previously separated non-admin view since we've integrated it above */}
+      {/* Separator */}
+      <Separator />
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button
-            variant="outline"
-            className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
-          >
-            Cancel
-          </Button>
+          <div>
+            <Button variant={"outline"}>
+              {sessionUser.role === "admin" ? "Cancel" : "Close"}
+            </Button>
+          </div>
         </DialogClose>
-        <DialogClose asChild>
-          <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleManageUsers}
-          >
-            Update Assignments
-            <UserRoundCheck className="h-4 w-4 ml-1" />
-          </Button>
-        </DialogClose>
+        {sessionUser.role === "admin" && (
+          <DialogClose asChild>
+            <div>
+              <Button onClick={handleManageUsers}>
+                Update Assignments
+                <UserRoundCheck className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </DialogClose>
+        )}
       </DialogFooter>
     </DialogContent>
   );

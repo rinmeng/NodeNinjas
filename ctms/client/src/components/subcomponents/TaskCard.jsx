@@ -314,7 +314,7 @@ const TaskCard = ({
           <div className="group flex-grow">
             <div
               onClick={toggleExpanded}
-              className="flex items-center justify-between cursor-pointer w-full"
+              className="flex items-center justify-between  w-full"
             >
               <h1
                 className={`text-2xl font-semibold flex-grow ${
@@ -345,16 +345,18 @@ const TaskCard = ({
           </div>
 
           {/* Action buttons */}
-          <div className="flex items-center">
+          <div className="flex justify-center items-center">
             <Dialog>
               <DialogTrigger asChild>
-                <IconButton
-                  icon={<SquarePen size={20} />}
-                  tooltip="Edit this task"
-                  isDisabled={isTaskLocked}
-                  disabled={isTaskLocked}
-                  color={"hover:bg-blue-500 hover:text-white"}
-                />
+                <div>
+                  <IconButton
+                    icon={<SquarePen size={20} />}
+                    tooltip="Edit this task"
+                    isDisabled={isTaskLocked}
+                    disabled={isTaskLocked}
+                    color={"hover:bg-blue-500 hover:text-white"}
+                  />
+                </div>
               </DialogTrigger>
 
               {!isTaskLocked && (
@@ -371,22 +373,24 @@ const TaskCard = ({
             <div>
               <Dialog>
                 <DialogTrigger asChild>
-                  <IconButton
-                    icon={
-                      sessionUser.role === "admin" ? (
-                        <UserRoundCog size={20} />
-                      ) : (
-                        <Users size={20} />
-                      )
-                    }
-                    tooltip={
-                      sessionUser.role === "admin"
-                        ? "Manage assigned users"
-                        : "View assigned users"
-                    }
-                    isDisabled={isTaskLocked}
-                    color={"hover:bg-blue-500 hover:text-white"}
-                  />
+                  <div className="relative inline-block ">
+                    <IconButton
+                      icon={
+                        sessionUser.role === "admin" ? (
+                          <UserRoundCog size={20} />
+                        ) : (
+                          <Users size={20} />
+                        )
+                      }
+                      tooltip={
+                        sessionUser.role === "admin"
+                          ? "Manage assigned users"
+                          : "View assigned users"
+                      }
+                      isDisabled={isTaskLocked}
+                      color={"hover:bg-blue-500 hover:text-white"}
+                    />
+                  </div>
                 </DialogTrigger>
 
                 {!isTaskLocked && (

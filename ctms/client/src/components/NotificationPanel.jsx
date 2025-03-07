@@ -92,10 +92,10 @@ const NotificationPanel = ({
         side="right"
       >
         <SheetHeader className="px-4 border-b border-slate-200 pb-3">
-          <SheetTitle className="font-semibold text-slate-800 text-right">
+          <SheetTitle className="font-semibold  text-right">
             Notifications
           </SheetTitle>
-          <SheetDescription className="text-xs text-slate-500 text-right">
+          <SheetDescription className="text-xs text-right">
             Mark as read/unread by clicking on them
           </SheetDescription>
         </SheetHeader>
@@ -118,7 +118,7 @@ const NotificationPanel = ({
                   }`}
                 >
                   <div
-                    className="flex items-start gap-3 cursor-pointer"
+                    className="flex items-start gap-3"
                     onClick={handleReadNotification(
                       notification.id,
                       notification.status
