@@ -11,6 +11,10 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
+import DBTable from "./testing/subcomp/DBTable";
+import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
+import { Analytics } from "./Graphs";
+
 import DataTable from "../components/DataTable";
 import { Button } from "@/components/ui/button";
 import {
@@ -364,6 +368,10 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
 
   return (
     <div className="w-full my-30 animate-fadein ">
+      <h2 className="text-2xl font-bold mb-4 text-center ">User Analytics</h2>
+      <section className="flex justify-center">
+        <Analytics /> 
+      </section>
       <Card className="max-w-lg mx-auto">
         <CardHeader>
           <CardTitle>

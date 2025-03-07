@@ -135,10 +135,18 @@ function ChartTooltipContent({
     config,
     labelKey,
   ])
+  const ChartConfig = {
+    users: {
+      label: "Users",
+      color: "hsl(var(--chart-1))",
+
+    },
+  };
 
   if (!active || !payload?.length) {
     return null
   }
+  
 
   const nestLabel = payload.length === 1 && indicator !== "dot"
 
@@ -299,6 +307,13 @@ function getPayloadConfigFromPayload(
     : config[key];
 }
 
+const ChartConfig = {
+  users: {
+    label: "Users",
+    color: "hsl(var(--primary))",
+  },
+};
+
 export {
   ChartContainer,
   ChartTooltip,
@@ -306,4 +321,5 @@ export {
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
+  ChartConfig,
 }
