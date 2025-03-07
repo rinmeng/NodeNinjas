@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/utils/AuthProvider";
 import {
   User,
   Lock,
@@ -73,13 +74,26 @@ const registerSchema = z
     }
   );
 
-const Login = ({
-  setShowNavbar,
-  sessionUser,
-  setSessionUser,
-  setFeedbackMessage,
-}) => {
+const Login = ({ setShowNavbar, setFeedbackMessage }) => {
+  const { user, login, logout } = useAuth();
   const [open, setOpen] = useState(false);
+
+  // Replace your login submit handler with:
+  const onLoginSubmit = async (data) => {
+    const result = await login(data.username, data.password, data.isRemembered);
+
+    if (result.success) {
+      setFeedbackMessage({
+        title: "Login Successful",
+        description: "You have successfully logged in.",
+      });
+    } else {
+      setFeedbackMessage({
+        title: "Login Failed",
+        description: result.error,
+      });
+    }
+  };
 
   // Initialize react-hook-form with Zod validation
   const loginForm = useForm({
@@ -109,49 +123,6 @@ const Login = ({
       setShowNavbar(true);
     };
   }, [open, setShowNavbar]);
-
-  const onLoginSubmit = async (data) => {
-    try {
-      const response = await fetch(`${proxy}/user/login`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          username: data.username,
-          password_hash: data.password,
-          isRemembered: data.isRemembered,
-        }),
-      });
-
-      const responseData = await response.json();
-
-      if (response.status === 200) {
-        setFeedbackMessage({
-          title: "Login Successful",
-          description: "You have successfully logged in.",
-        });
-        setSessionUser(responseData.session.user);
-      } else if (response.status === 401 || response.status === 404) {
-        setFeedbackMessage({
-          title: "Invalid Credentials",
-          description: "Username or password is incorrect.",
-        });
-      } else {
-        setFeedbackMessage({
-          title: "Login Failed",
-          description: "An error occurred while trying to log in.",
-        });
-      }
-    } catch (error) {
-      console.error(error);
-      setFeedbackMessage({
-        title: "Login Failed",
-        description: "An error occurred while trying to log in.",
-      });
-    }
-  };
 
   const onRegisterSubmit = async (data) => {
     try {
@@ -239,34 +210,19 @@ const Login = ({
     }
   };
 
-  const userLogout = async () => {
-    try {
-      const response = await fetch(`${proxy}/user/logout`, {
-        method: "POST",
-        credentials: "include",
+  // Replace your logout handler with:
+  const handleLogout = async () => {
+    const result = await logout();
+
+    if (result.success) {
+      setFeedbackMessage({
+        title: "Logout Successful",
+        description: "You have successfully logged out.",
       });
-
-      const data = await response.json();
-
-      if (response.status === 200) {
-        setFeedbackMessage({
-          title: "Logout Successful",
-          description: "You have successfully logged out.",
-        });
-
-        setSessionUser(null);
-        loginForm.reset();
-      } else {
-        setFeedbackMessage({
-          title: "Logout Failed",
-          description: "An error occurred while trying to log out.",
-        });
-      }
-    } catch (error) {
-      console.error(error);
+    } else {
       setFeedbackMessage({
         title: "Logout Failed",
-        description: "An error occurred while trying to log out.",
+        description: result.error,
       });
     }
   };
@@ -280,19 +236,17 @@ const Login = ({
             The next generation of Task Management.
           </p>
         </div>
-        {sessionUser ? (
+        {user ? (
           <div className="flex flex-col items-center justify-center bg-slate-900">
             <h1 className="title text-white">
-              {sessionUser
-                ? `Welcome back, ${sessionUser.display_name}`
-                : "Login to myCMTS"}
+              {user ? `Welcome back, ${user.display_name}` : "Login to myCMTS"}
             </h1>
             <hr className="w-1/4 m-auto my-4" />
             <IconizedButton
               text="Logout"
               btnStyle="btn-red w-1/2"
               icon={<LogIn className="ml-2" size={20} strokeWidth={2} />}
-              onClick={userLogout}
+              onClick={handleLogout}
             />
           </div>
         ) : (
