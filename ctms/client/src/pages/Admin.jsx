@@ -11,18 +11,12 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-<<<<<<< HEAD
 import DBTable from "./testing/subcomp/DBTable";
 import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 import { Analytics } from "./Graphs";
 
 const proxy = "http://localhost:15000/";
 
-const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
-  useEffect(() => {
-    fetchUsers();
-  }, []);
-=======
 import DataTable from "../components/DataTable";
 import { Button } from "@/components/ui/button";
 import {
@@ -40,7 +34,6 @@ import { useAuth } from "@/utils/AuthProvider";
 
 const Admin = ({ devMode, setFeedbackMessage }) => {
   const { user } = useAuth();
->>>>>>> 367fa2d2a35e3c8c537f8fef07392bf29803abb8
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -376,17 +369,11 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   };
 
   return (
-<<<<<<< HEAD
-    <div className="mp5 my-16 animate-fadein">
-      <h1 className="title text-center">Welcome to the Admin Dashboard!</h1>
-        {/* Analytics Section */}
-        <section className="my-8 p-4">
+    <div className="w-full my-30 animate-fadein ">
+      <section className="my-8 p-4">
         <h2 className="text-2xl font-bold mb-4">User Analytics</h2>
         <Analytics /> 
       </section>
-
-=======
-    <div className="w-full my-30 animate-fadein ">
       <Card className="max-w-lg mx-auto">
         <CardHeader>
           <CardTitle>
@@ -398,7 +385,6 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
             <DialogTrigger asChild>
               <Button className="w-full">Manage Users</Button>
             </DialogTrigger>
->>>>>>> 367fa2d2a35e3c8c537f8fef07392bf29803abb8
 
             {/* Make the dialog much larger */}
             <DialogContent className="min-w-[900px]">
