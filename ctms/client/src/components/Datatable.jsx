@@ -125,7 +125,7 @@ export default function DataTable({
 
   return (
     <Card className="w-full h-full">
-      <CardContent className="p-4">
+      <CardContent>
         <div className="flex items-center py-4 gap-2">
           <Input
             placeholder="Search users by username, email, id, or role..."
