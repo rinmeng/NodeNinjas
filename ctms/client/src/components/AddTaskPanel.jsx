@@ -131,12 +131,10 @@ const AddTaskPanel = ({ setFeedbackMessage, sessionUser, setNeedsRefetch }) => {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <div>
-          <Button>
-            Add Task
-            <ListPlus className="ml-2 h-4 w-4" />
-          </Button>
-        </div>
+        <Button variant="default">
+          Add Task
+          <ListPlus />
+        </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>

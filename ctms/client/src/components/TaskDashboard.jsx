@@ -3,6 +3,15 @@ import { ClipboardList, RefreshCw } from "lucide-react";
 import TaskCard from "./subcomponents/TaskCard";
 import AddTaskPanel from "./AddTaskPanel";
 import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 const TaskDashboard = ({
   tasks,
@@ -37,72 +46,77 @@ const TaskDashboard = ({
         }
       }, 1000);
     }
-  }, [needsRefetch, setNeedsRefetch, setFeedbackMessage]);
+  }, [needsRefetch, setNeedsRefetch, setFeedbackMessage, isRefetching]);
 
   return (
-    <div className="bg-slate-950 w-full h-full rounded-xl p-5 mt-28">
-      <div className="flex justify-center items-center space-x-4">
-        <AddTaskPanel
-          setFeedbackMessage={setFeedbackMessage}
-          sessionUser={sessionUser}
-          setNeedsRefetch={setNeedsRefetch}
-        />
+    <Card className="w-full mt-28">
+      <CardHeader>
+        <div className="flex justify-center items-center space-x-4">
+          <AddTaskPanel
+            setFeedbackMessage={setFeedbackMessage}
+            sessionUser={sessionUser}
+            setNeedsRefetch={setNeedsRefetch}
+          />
 
-        <div className="group">
           <Button
-            variant="secondary"
+            variant="outline"
             onClick={refetchTaskClicked}
-            className={`${
-              isRefetching ? "cursor-not-allowed disabled opacity-50" : ""
-            }`}
+            disabled={isRefetching}
+            className="flex gap-2"
           >
             Sync Tasks
-            <RefreshCw className={`${isRefetching ? "animate-spin" : ""}`} />
+            <RefreshCw
+              className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            />
           </Button>
         </div>
-      </div>
 
-      {isRefetching && (
-        <div className="text-center text-slate-400 mt-2">
-          <p>Refetching tasks...</p>
-        </div>
-      )}
+        {isRefetching && (
+          <CardDescription className="text-center mt-2">
+            Refetching tasks...
+          </CardDescription>
+        )}
+      </CardHeader>
 
-      <div className="border-b border-slate-700 my-4"></div>
+      <Separator />
 
-      {taskList.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-8 text-slate-400">
-          <ClipboardList size={48} className="mb-4" />
-          <p className="text-lg">No tasks available</p>
-          <p className="text-sm mt-2">
-            Click 'Create Task' to add your first task
-          </p>
-        </div>
-      ) : (
-        <div>
-          <h1 className="text-center text-slate-400 mb-4">
-            {taskList.length} tasks found
-          </h1>
-          <div className="flex flex-col">
-            {taskList.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                sessionUser={sessionUser}
-                setNeedsRefetch={setNeedsRefetch}
-                notifications={notifications}
-                setNotifications={setNotifications}
-                setFeedbackMessage={setFeedbackMessage}
-                devMode={devMode}
-                setNotificationToAdd={setNotificationToAdd}
-              />
-            ))}
+      <CardContent className="pt-6">
+        {taskList.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+            <ClipboardList size={48} className="mb-4" />
+            <p className="text-lg">No tasks available</p>
+            <p className="text-sm mt-2">
+              Click 'Create Task' to add your first task
+            </p>
           </div>
-        </div>
-      )}
+        ) : (
+          <div>
+            <CardTitle className="text-center text-muted-foreground mb-6">
+              {taskList.length} tasks found
+            </CardTitle>
+            <div className="flex flex-col gap-4 w-1/2 mx-auto">
+              {taskList.map((task) => (
+                <TaskCard
+                  key={task.id}
+                  task={task}
+                  sessionUser={sessionUser}
+                  setNeedsRefetch={setNeedsRefetch}
+                  notifications={notifications}
+                  setNotifications={setNotifications}
+                  setFeedbackMessage={setFeedbackMessage}
+                  devMode={devMode}
+                  setNotificationToAdd={setNotificationToAdd}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+      </CardContent>
 
-      <div className="border-b border-slate-700 my-4"></div>
-    </div>
+      <CardFooter>
+        <Separator className="w-full" />
+      </CardFooter>
+    </Card>
   );
 };
 
