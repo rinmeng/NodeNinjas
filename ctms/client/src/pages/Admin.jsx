@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
 import proxy from "@/src/utils/proxy";
 
 const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
@@ -356,10 +356,14 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="container py-16 my-8 animate-fadein">
+    <div className=" w-full my-30 animate-fadein">
       <Card className="max-w-lg mx-auto">
+        <CardHeader>
+          <CardTitle>
+            <h2 className="text-2xl font-semibold">User Administration</h2>
+          </CardTitle>
+        </CardHeader>
         <CardContent className=" flex flex-col items-center">
-          <h2 className="text-2xl font-semibold mb-6">User Administration</h2>
           <Dialog>
             <DialogTrigger asChild>
               <Button className="w-full">Manage Users</Button>
