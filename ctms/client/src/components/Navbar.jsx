@@ -25,19 +25,12 @@ import {
   NavigationMenu,
   NavigationMenuItem,
   NavigationMenuList,
-  navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import NotificationPanel from "./NotificationPanel";
 import { Separator } from "@/components/ui/separator";
 
-function Navbar({
-  showNavbar,
-  devMode,
-  notifications,
-  setNotificationToAdd,
-  setNotificationsNeedRefetch,
-}) {
+function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
   const { user } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -122,7 +115,7 @@ function Navbar({
                 )}
                 onClick={() => handleNavigation(link.route)}
               >
-                <Link to={link.route} className="flex items-center gap-2">
+                <Link to={link.route} className="flex items-center">
                   {link.icon && <link.icon className="h-4 w-4" />}
                   {link.label}
                 </Link>
