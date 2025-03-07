@@ -25,7 +25,6 @@ import {
 import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
 import proxy from "@/src/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
-import { Input } from "@/components/ui/input";
 
 const Admin = ({ devMode, setFeedbackMessage }) => {
   const { user } = useAuth();
@@ -34,11 +33,9 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
+  const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
   const [initialLoad, setInitialLoad] = useState(true);
   const tableRef = React.useRef(null);
-  const [sortColumn, setSortColumn] = useState("username"); // Default sort column
-  const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
-  const [filterValue, setFilterValue] = useState(""); // Global filter value
 
   useEffect(() => {
     // Initial load without visual feedback
@@ -99,35 +96,21 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   }
 
   // Sort users based on current sort direction
-  const sortUsersByColumn = (column) => {
-    // Toggle sort direction for the clicked column
+  const sortUsers = () => {
+    // Toggle sort direction
     const newDirection =
-      sortColumn === column && sortDirection === "asc" ? "desc" : "asc";
-
-    setSortColumn(column);
+      sortDirection === "none" || sortDirection === "desc" ? "asc" : "desc";
     setSortDirection(newDirection);
 
     // Create a new sorted array without modifying the original data
     const sortedUsers = [...usersList].sort((a, b) => {
-      let valueA, valueB;
+      const useA = a.username.toLowerCase();
+      const useB = b.username.toLowerCase();
 
-      // Get values based on column to sort
-      if (column === "username" || column === "email" || column === "role") {
-        valueA = String(a[column]).toLowerCase();
-        valueB = String(b[column]).toLowerCase();
-      } else if (column === "id") {
-        // For ID, compare as string to handle both numeric and string IDs
-        valueA = String(a.id);
-        valueB = String(b.id);
-      } else {
-        return 0;
-      }
-
-      // Sort based on direction
       if (newDirection === "asc") {
-        return valueA < valueB ? -1 : valueA > valueB ? 1 : 0;
+        return useA < useB ? -1 : useA > useB ? 1 : 0;
       } else {
-        return valueA > valueB ? -1 : valueA < valueB ? 1 : 0;
+        return useA > useB ? -1 : useA < useB ? 1 : 0;
       }
     });
 
@@ -158,26 +141,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
       enableHiding: false,
     },
     {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => sortUsersByColumn("id")}
-            className="flex items-center"
-          >
-            ID
-            <ArrowUpDown
-              className={`ml-1 h-4 w-4 ${
-                sortColumn === "id"
-                  ? sortDirection === "asc"
-                    ? "text-primary rotate-180"
-                    : "text-primary"
-                  : ""
-              }`}
-            />
-          </Button>
-        );
-      },
+      header: "ID",
       accessorKey: "id",
       cell: ({ row }) => (
         <span className="font-mono text-xs">{row.getValue("id")}</span>
@@ -187,71 +151,15 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
       accessorKey: "username",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => sortUsersByColumn("username")}
-            className="flex items-center"
-          >
+          <Button variant="ghost" onClick={sortUsers}>
             Username
-            <ArrowUpDown
-              className={`ml-1 h-4 w-4 ${
-                sortColumn === "username"
-                  ? sortDirection === "asc"
-                    ? "text-primary rotate-180"
-                    : "text-primary"
-                  : ""
-              }`}
-            />
+            <ArrowUpDown />
           </Button>
         );
       },
     },
-    {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => sortUsersByColumn("email")}
-            className="flex items-center"
-          >
-            Email Address
-            <ArrowUpDown
-              className={`ml-1 h-4 w-4 ${
-                sortColumn === "email"
-                  ? sortDirection === "asc"
-                    ? "text-primary rotate-180"
-                    : "text-primary"
-                  : ""
-              }`}
-            />
-          </Button>
-        );
-      },
-      accessorKey: "email",
-    },
-    {
-      header: ({ column }) => {
-        return (
-          <Button
-            variant="ghost"
-            onClick={() => sortUsersByColumn("role")}
-            className="flex items-center"
-          >
-            Role
-            <ArrowUpDown
-              className={`ml-1 h-4 w-4 ${
-                sortColumn === "role"
-                  ? sortDirection === "asc"
-                    ? "text-primary rotate-180"
-                    : "text-primary"
-                  : ""
-              }`}
-            />
-          </Button>
-        );
-      },
-      accessorKey: "role",
-    },
+    { header: "Email Address", accessorKey: "email" },
+    { header: "Role", accessorKey: "role" },
     {
       id: "actions",
       cell: ({ row }) => {
@@ -380,8 +288,6 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
         console.log("Fetch list:", data);
         setUsersList(data);
         setSortDirection("none"); // Reset sort direction when fetching new data
-        setSortColumn("username"); // Reset sort column when fetching new data
-        setFilterValue(""); // Reset filter when fetching new data
         // Loading indicator will be cleared by the useEffect
       })
       .catch((error) => {
@@ -456,21 +362,6 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
       });
   };
 
-  const getFilteredUsers = () => {
-    if (!filterValue.trim()) return usersList;
-
-    const searchTerm = filterValue.toLowerCase().trim();
-
-    return usersList.filter((user) => {
-      return (
-        (user.id && String(user.id).toLowerCase().includes(searchTerm)) ||
-        (user.username && user.username.toLowerCase().includes(searchTerm)) ||
-        (user.email && user.email.toLowerCase().includes(searchTerm)) ||
-        (user.role && user.role.toLowerCase().includes(searchTerm))
-      );
-    });
-  };
-
   return (
     <div className="w-full my-30 animate-fadein ">
       <Card className="max-w-lg mx-auto">
@@ -508,32 +399,16 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
                   View and manage all users in the system
                 </DialogDescription>
               </DialogHeader>
-              {/* Add global search input */}
-              <div className="flex items-center mb-4">
-                <Input
-                  placeholder="Search users by ID, username, email or role..."
-                  value={filterValue}
-                  onChange={(e) => setFilterValue(e.target.value)}
-                  className="max-w-md"
-                />
-                {filterValue && (
-                  <Button
-                    variant="ghost"
-                    className="ml-2"
-                    onClick={() => setFilterValue("")}
-                  >
-                    Clear
-                  </Button>
-                )}
-              </div>
+
               <DataTable
                 columns={usersColumns}
-                data={getFilteredUsers()}
+                data={usersList}
                 loading={isLoading && !initialLoad}
                 initialPageSize={5}
                 onSelectionChange={setChosenUserIds}
                 tableRef={tableRef}
               />
+
               <DialogFooter>
                 {chosenUserIds.length > 0 && (
                   <div className="flex items-center gap-2 mb-4">
