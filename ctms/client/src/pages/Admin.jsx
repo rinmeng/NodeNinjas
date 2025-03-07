@@ -164,7 +164,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="h-8 w-8 p-0">
+              <Button variant="ghost" className="h-8 w-8">
                 <MoreHorizontal className="h-4 w-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -358,7 +358,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   return (
     <div className="container py-16 my-8 animate-fadein">
       <Card className="max-w-lg mx-auto">
-        <CardContent className="p-8 flex flex-col items-center">
+        <CardContent className=" flex flex-col items-center">
           <h2 className="text-2xl font-semibold mb-6">User Administration</h2>
           <Dialog>
             <DialogTrigger asChild>
@@ -368,7 +368,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
             {/* Make the dialog much larger */}
             <DialogContent className="min-w-[900px]">
               <DialogHeader>
-                <DialogTitle className="flex items-center gap-4 text-xl">
+                <DialogTitle className="text-primary flex items-center gap-4 text-xl">
                   Manage Users
                   <Button
                     variant="default"
