@@ -50,7 +50,6 @@ function ChartContainer({
   );
 }
 
-
 const ChartStyle = ({
   id,
   config
@@ -262,13 +261,6 @@ function ChartLegendContent({
     </div>
   );
 }
-//config
-const ChartConfig = {
-  users: {
-      label: "Users",
-      color: "hsl(var(--chart-1))",
-  },
-};
 
 // Helper to extract item config from a payload.
 function getPayloadConfigFromPayload(
@@ -314,5 +306,4 @@ export {
   ChartLegend,
   ChartLegendContent,
   ChartStyle,
-  ChartConfig,
 }
