@@ -37,6 +37,7 @@ async function setupAssignedTo() {
             );
             CREATE INDEX idx_assignedto_user_id ON assignedto (user_id);
             CREATE INDEX idx_assignedto_task_id ON assignedto (task_id);
+            
             -- Assign tasks to users
             INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES
             -- Rin's assignments (user_id: 1)
@@ -77,7 +78,35 @@ async function setupAssignedTo() {
             (CURRENT_DATE, 6, 30),
             (CURRENT_DATE, 6, 31);
         `);
-        return { message: "assignedto table created successfully" };
+
+        // Generate notifications only for tasks assigned by admins
+        // In the setup data, all task owners (from Task table) are admins (users 1-5)
+        await pool.query(`
+            WITH task_assignments AS (
+                SELECT 
+                    a.user_id, 
+                    t.name as task_name,
+                    t.owner_id
+                FROM 
+                    assignedto a
+                JOIN 
+                    Task t ON a.task_id = t.id
+                JOIN
+                    users u ON t.owner_id = u.id
+                WHERE
+                    u.role = 'admin'
+            )
+            INSERT INTO notifications (user_id, message, type, status)
+            SELECT 
+                user_id,
+                task_name,
+                'task_assignment',
+                'unread'
+            FROM 
+                task_assignments;
+        `);
+
+        return { message: "assignedto table created successfully with admin-assigned notifications" };
     } catch (err) {
         console.error("Error setting up assignedto table:", err.message);
         throw new Error("Failed to create assignedto table: " + err.message);
@@ -100,7 +129,7 @@ async function setupTasks() {
                 status task_status NOT NULL DEFAULT 'pending',
                 priority task_priority NOT NULL DEFAULT 'medium',
                 is_locked BOOLEAN DEFAULT FALSE,
-                owner_id INT NOT NULL,
+                owner_id INT,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (owner_id) REFERENCES users (id) ON DELETE SET NULL,
@@ -163,30 +192,6 @@ async function setupTasks() {
     }
 }
 
-async function setupMessages() {
-    try {
-        await pool.query(`
-            DROP TABLE IF EXISTS messages CASCADE;
-            CREATE TABLE messages (
-                id SERIAL PRIMARY KEY,
-                message TEXT NOT NULL,
-                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                user_id INT NOT NULL,
-                task_id INT,
-                FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
-                FOREIGN KEY (task_id) REFERENCES Task (id) ON DELETE SET NULL,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            );
-            CREATE INDEX idx_messages_user_id ON messages (user_id);
-            CREATE INDEX idx_messages_task_id ON messages (task_id);
-        `);
-        return { message: "Messages table created successfully" };
-    } catch (err) {
-        console.error("Error setting up messages table:", err.message);
-        throw new Error("Failed to create Messages table: " + err.message);
-    }
-}
 
 async function setupNotifications() {
     try {
@@ -194,22 +199,56 @@ async function setupNotifications() {
             DROP TABLE IF EXISTS notifications CASCADE;
             CREATE TABLE notifications (
                 id SERIAL PRIMARY KEY,
-                message TEXT NOT NULL,
                 user_id INT NOT NULL,
-                type VARCHAR(50) NOT NULL,
-                status VARCHAR(20) DEFAULT 'unread',
+                message TEXT NOT NULL,
+                type VARCHAR(50) NOT NULL CHECK (type IN ('message', 'task_assignment', 'alert', 'task_update', 'task_unassignment')),
+                status VARCHAR(20) DEFAULT 'unread' CHECK (status IN ('unread', 'read')),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
             );
+
+            -- Indexes for better performance
             CREATE INDEX idx_notifications_user_id ON notifications (user_id);
+            CREATE INDEX idx_notifications_status ON notifications (user_id, status);
         `);
+
         return { message: "Notifications table created successfully" };
     } catch (err) {
         console.error("Error setting up notifications table:", err.message);
         throw new Error("Failed to create Notifications table: " + err.message);
     }
 }
+
+async function setupMessages() {
+    try {
+        await pool.query(`
+            DROP TABLE IF EXISTS messages CASCADE;
+            CREATE TABLE messages (
+                id SERIAL PRIMARY KEY, -- Unique message ID
+                sender_id INT NOT NULL,
+                receiver_id INT,
+                task_id INT,
+                message TEXT NOT NULL,
+                sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+                FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
+                FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE SET NULL,
+                FOREIGN KEY (task_id) REFERENCES task (id) ON DELETE SET NULL
+            );
+
+            -- Indexes for faster lookups
+            CREATE INDEX idx_messages_sender_id ON messages (sender_id);
+            CREATE INDEX idx_messages_receiver_id ON messages (receiver_id);
+            CREATE INDEX idx_messages_task_id ON messages (task_id);
+        `);
+
+        return { message: "Messages table created successfully" };
+    } catch (err) {
+        console.error("Error setting up messages table:", err.message);
+        throw new Error("Failed to create Messages table: " + err.message);
+    }
+}
+
 
 async function setupUsers() {
     try {
@@ -390,8 +429,8 @@ async function deleteAllTables() {
 router.get('/', async (req, res) => {
     try {
         await deleteAllTables();
-        const users = await setupUsers();
         const session = await setupPgSession();
+        const users = await setupUsers();
         const tasks = await setupTasks();
         const messages = await setupMessages();
         const notifications = await setupNotifications();

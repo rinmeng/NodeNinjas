@@ -1,90 +1,285 @@
-import React, { useEffect } from "react";
+import { Checkbox } from "@/components/ui/checkbox";
+import { MoreHorizontal, ArrowUpDown, RefreshCw, Trash2 } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import DBTable from "./testing/subcomp/DBTable";
-import { useState } from "react";
+import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
+import { Analytics } from "./Graphs";
 
-const proxy = "http://localhost:15000/";
+import DataTable from "../components/DataTable";
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
+import proxy from "@/src/utils/proxy";
+import { useAuth } from "@/utils/AuthProvider";
 
-const Admin = ({ sessionUser, devMode }) => {
-  const [taskName, setTaskName] = useState("");
-  const [taskDesc, setTaskDesc] = useState("");
-  const [taskPriority, setTaskPriority] = useState("1");
-  const [taskDue, setTaskDue] = useState("");
-
+const Admin = ({ devMode, setFeedbackMessage }) => {
+  const { user } = useAuth();
   const [usersList, setUsersList] = useState([]);
-
-  //This is my UseState for filtering my data in the table
-  const [filterData, setFilterData] = useState("");
-
-  // UseState for the list of tasks you can view
-  const [taskList, setTaskList] = useState([]);
+  const [chosenUserIds, setChosenUserIds] = useState([]);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefetching, setIsRefetching] = useState(false);
+  const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
+  const [initialLoad, setInitialLoad] = useState(true);
+  const tableRef = React.useRef(null);
 
   useEffect(() => {
-    fetchUsers();
+    // Initial load without visual feedback
+    if (initialLoad) {
+      loadUsersInitially();
+    }
   }, []);
 
-  if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
+  // Handle loading state and feedback only for user-initiated refreshes
+  useEffect(() => {
+    if (isRefetching && !initialLoad) {
+      const timer = setTimeout(() => {
+        setIsRefetching(false);
+        setIsLoading(false);
+        setFeedbackMessage({
+          title: "Success",
+          description: "User data has been successfully synced",
+        });
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isRefetching, setFeedbackMessage, initialLoad]);
+
+  // Initial load function without visual feedback
+  const loadUsersInitially = () => {
+    fetch(`${proxy}/user/all`, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "The users can't be loaded");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setUsersList(data);
+        setInitialLoad(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setUsersList([]);
+        setInitialLoad(false);
+      });
+  };
+
+  if ((!user || user.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
-        <h1 className="title text-center">Welcome to the Admin Dashboard!</h1>
+        <h1 className="title text-center">Welcome to the Admin Page!</h1>
         <p className="text-center text-xl">
           Please log in as admin to view this page, or enable{" "}
           <code>devMode</code> to bypass authentication in <code>App.jsx</code>
         </p>
-        {/* redirect to /login */}
         <Navigate to="/login" />
       </div>
     );
   }
 
-  //Here is my data for the table which view all created tasks under Managing Roles.
-  const columns = [
-    { header: "Task Name", key: "name" },
-    { header: "Task Description", key: "description" },
-    { header: "Task Priority", key: "priority" },
-    { header: "Due Date", key: "date" },
-  ];
+  // Sort users based on current sort direction
+  const sortUsers = () => {
+    // Toggle sort direction
+    const newDirection =
+      sortDirection === "none" || sortDirection === "desc" ? "asc" : "desc";
+    setSortDirection(newDirection);
+
+    // Create a new sorted array without modifying the original data
+    const sortedUsers = [...usersList].sort((a, b) => {
+      const useA = a.username.toLowerCase();
+      const useB = b.username.toLowerCase();
+
+      if (newDirection === "asc") {
+        return useA < useB ? -1 : useA > useB ? 1 : 0;
+      } else {
+        return useA > useB ? -1 : useA < useB ? 1 : 0;
+      }
+    });
+
+    setUsersList(sortedUsers);
+  };
 
   const usersColumns = [
-    { header: "User Id", key: "id" },
-    { header: "Username", key: "username" },
-    { header: "Email Address", key: "email" },
-    { header: "Role", key: "role" },
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      header: "ID",
+      accessorKey: "id",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs">{row.getValue("id")}</span>
+      ),
+    },
+    {
+      accessorKey: "username",
+      header: ({ column }) => {
+        return (
+          <Button variant="ghost" onClick={sortUsers}>
+            Username
+            <ArrowUpDown />
+          </Button>
+        );
+      },
+    },
+    { header: "Email Address", accessorKey: "email" },
+    { header: "Role", accessorKey: "role" },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const user = row.original;
+
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  updateUserRole(
+                    user.id,
+                    user.role === "admin" ? "team_member" : "admin"
+                  )
+                }
+              >
+                Change Role to {user.role === "admin" ? "Team Member" : "Admin"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  if (
+                    window.confirm("Are you sure you want to delete this user?")
+                  ) {
+                    deleteUsers([user.id]);
+                  }
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                Delete User
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
   ];
 
-  //Our function will check the new task that is added when the user presses the "Add" button on the Add Task form
-  const HandleAddandViewTask = () => {
-    // A new Task object is made and it contains name, description, priority and date fields.
-    const addedTask = {
-      id: Date.now(),
-      name: taskName,
-      description: taskDesc,
-      priority: taskPriority,
-      date: taskDue,
-    };
+  // Modify your deleteUsers function to accept an array of IDs:
+  const deleteUsers = async (userIds = chosenUserIds) => {
+    if (userIds.length === 0) {
+      setFeedbackMessage({
+        title: "Error",
+        description: "No users are selected!",
+      });
+      return;
+    }
 
-    //Once the new task has been created, we will added the created task to our existing array of tasks.
-    setTaskList([...taskList, addedTask]);
+    setIsDeleting(true);
+    const validDeletions = [];
 
-    // After creating our new task, we will reset all the fields in the Add Task section
-    setTaskName("");
-    setTaskDesc("");
-    setTaskPriority("1");
-    setTaskDue("");
+    try {
+      for (const userId of userIds) {
+        try {
+          const res = await fetch(`${proxy}/user/delete/${userId}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            console.error(`Failed to delete user ${userId}:`, errorData);
+            continue;
+          }
+
+          const data = await res.json();
+          validDeletions.push(userId);
+        } catch (error) {
+          console.error(`Error deleting user ${userId}:`, error);
+        }
+      }
+
+      if (validDeletions.length > 0) {
+        setUsersList((prev) =>
+          prev.filter((user) => !validDeletions.includes(user.id))
+        );
+        setChosenUserIds((prev) =>
+          prev.filter((id) => !validDeletions.includes(id))
+        );
+        setFeedbackMessage({
+          title: "Success",
+          description: `Successfully deleted ${validDeletions.length} user(s)`,
+        });
+      } else {
+        setFeedbackMessage({
+          title: "Error",
+          description:
+            "No users were deleted. Users with admin role or active assignments cannot be deleted.",
+        });
+        fetchUsers();
+      }
+    } catch (error) {
+      console.error("Error in delete operation:", error);
+      setFeedbackMessage({
+        title: "Error",
+        description: "An unexpected error occurred while deleting users",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
-  //If the user chooses a specific option from the selector, this function will be called and sort our tasks based on their priority or due date
-  const FilterDataByOption = () => {
-    const clonedList = [...taskList];
-    if (filterData === "priority") {
-      clonedList.sort((a, b) => a.priority - b.priority);
-    } else clonedList.sort((a, b) => new Date(a.date) - new Date(b.date));
-
-    return clonedList;
-  };
-
+  // User-initiated fetch with loading indicators
   const fetchUsers = () => {
-    fetch(proxy + "user/all", { credentials: "include" })
+    setIsLoading(true);
+    setIsRefetching(true);
+    fetch(`${proxy}/user/all`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -96,326 +291,166 @@ const Admin = ({ sessionUser, devMode }) => {
       .then((data) => {
         console.log("Fetch list:", data);
         setUsersList(data);
+        setSortDirection("none"); // Reset sort direction when fetching new data
+        // Loading indicator will be cleared by the useEffect
       })
       .catch((error) => {
-        console.error("error fetching data:", error);
-        setUsersList(null);
+        console.error("Error fetching data:", error);
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to load users",
+        });
+        setUsersList([]);
+        setIsLoading(false);
+        setIsRefetching(false);
+      });
+  };
+
+  const changeTable = (userId) => {
+    setChosenUserIds((prev) => {
+      if (!Array.isArray(prev)) {
+        return [userId];
+      }
+      return prev.includes(userId)
+        ? prev.filter((id) => id !== userId)
+        : [...prev, userId];
+    });
+  };
+
+  const resetSelection = () => {
+    setChosenUserIds([]);
+    if (tableRef.current) {
+      tableRef.current.resetRowSelection();
+    }
+  };
+
+  const updateUserRole = (userId, newRole) => {
+    setIsRefetching(true);
+    fetch(`${proxy}/user/updateRole/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ role: newRole }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "Failed to update role");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setFeedbackMessage({
+          title: "Success",
+          description: "Role updated successfully",
+        });
+
+        // Update local state with the new role
+        setUsersList((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, role: newRole } : user
+          )
+        );
+        setIsRefetching(false);
+      })
+      .catch((error) => {
+        console.error("Error updating role:", error);
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to update role: " + error.message,
+        });
+        setIsRefetching(false);
       });
   };
 
   return (
-    <div className="mp5 my-16 animate-fadein">
-      <h1 className="title text-center">Welcome to the Admin Dashboard!</h1>
+    <div className="w-full my-30 animate-fadein ">
+      <Card className="max-w-lg mx-auto">
+        <CardHeader>
+          <CardTitle>
+            <h2 className="text-2xl font-semibold">User Administration</h2>
+          </CardTitle>
+        </CardHeader>
+        <CardContent className=" flex flex-col items-center">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-full">Manage Users</Button>
+            </DialogTrigger>
 
-      {/*--------------------------------------- Managing Roles}---------------------------------------- */}
-      <section className="my-8 p-4">
-        <div className="bg-sky-800">
-          <div className="bg-sky-900 rounded-t-lg">
-            <h1 className="text-2xl font-bold text-center">
-              {" "}
-              Manage Users, Tasks and Roles{" "}
-            </h1>
-          </div>
+            {/* Make the dialog much larger */}
+            <DialogContent className="min-w-[900px]">
+              <DialogHeader>
+                <DialogTitle className="text-primary flex items-center gap-4 text-xl">
+                  Manage Users
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={fetchUsers}
+                    disabled={isLoading}
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 mr-1 ${
+                        isLoading || isRefetching ? "animate-spin" : ""
+                      }`}
+                    />
+                    Sync Users
+                  </Button>
+                </DialogTitle>
+                <DialogDescription>
+                  View and manage all users in the system
+                </DialogDescription>
+              </DialogHeader>
 
-          <div className="flex justify-around items-center">
-            <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-              <label className="text-xl mt-15">Filter Tasks by:</label>
-              <select
-                className="bg-blue-900 mt-15 ml-5"
-                value={filterData}
-                onChange={(e) => setFilterData(e.target.value)}
-              >
-                <option value="teamMember">Team Members</option>
-                <option value="priority">Priority</option>
-                <option value="date">Due Date</option>
-              </select>
-            </div>
+              <DataTable
+                columns={usersColumns}
+                data={usersList}
+                loading={isLoading && !initialLoad}
+                initialPageSize={5}
+                onSelectionChange={setChosenUserIds}
+                tableRef={tableRef}
+              />
 
-            <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-              <label className="text-xl mt-15">Adjust Users:</label>
-              <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
-                Deactivate
-              </button>
-              <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
-                Delete
-              </button>
-            </div>
-
-            <div>
-              <button className="btn-red">Reset</button>
-            </div>
-          </div>
-
-          <div>
-            <DBTable
-              columns={columns}
-              data={FilterDataByOption()}
-              loading={false}
-            />
-          </div>
-
-          <div>
-            <DBTable
-              columns={usersColumns}
-              data={usersList || []}
-              loading={false}
-            />
-          </div>
-
-          <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 "></div>
-        </div>
-      </section>
-
-      {/*-------------------------------- Searching Tasks------------------------------------------------------ */}
-      <section className="my-8 p-4">
-        <div className="bg-sky-800">
-          <div className="bg-sky-900 rounded-t-lg">
-            <h1 className="text-2xl font-bold text-center"> Search Task </h1>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">
-              Search the Name of the Task:
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Task Name"
-              className="rounded-sm pl-5 ml-5 bg-blue-900"
-            ></input>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">Filter Tasks by:</label>
-            <select className="bg-blue-900 mt-15 ml-5">
-              <option value="name">Name</option>
-              <option value="priority">Priority</option>
-              <option value="status">Status</option>
-              <option value="date">Due Date</option>
-            </select>
-          </div>
-
-          <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 "></div>
-        </div>
-      </section>
-
-      {/*---------------------------------------- View Task------------------------------------------------------------------- */}
-
-      <section>
-        <div className="bg-sky-800">
-          <div className="bg-sky-900 rounded-t-lg">
-            <h1 className="text-2xl font-bold text-center"> View Task </h1>
-          </div>
-
-          {/* If there are no new tasks, there will be a display message. Otherwise, all created Tasks can be viewed on the View Task */}
-          {taskList.length > 0 ? (
-            taskList.map((task, index) => (
-              <div
-                key={task.id}
-                className="text-center text-xl m-5 bg-blue-900 rounded pt-5 pb-5"
-              >
-                <h2>
-                  {index + 1}. Name: {task.name}
-                </h2>
-                <p>Priority: {task.priority}</p>
-                <p>Description: {task.description}</p>
-                <p>Due Date: {task.date}</p>
-              </div>
-            ))
-          ) : (
-            <p className="text-center text-xl">
-              There aren't any assigned tasks here!
-            </p>
-          )}
-          <div className="mt-4 flex justify-end">
-            <div className="bg-sky-700 inline-block p-4 rounded-xl mr-5">
-              <label className="text-xl mt-15">Filter by:</label>
-              <select className="bg-blue-900 mt-15 ml-5 p-1">
-                <option value="pending">Pending</option>
-                <option value="inProgress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 "></div>
-        </div>
-      </section>
-
-      {/*----------------------------------------------------Add Task----------------------------------------------------------*/}
-      <section className="my-8 p-4">
-        <div className="bg-sky-800">
-          <div className="bg-sky-900 rounded-t-lg">
-            <h1 className="text-2xl font-bold text-center"> Add Task </h1>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15 ">
-              Enter the Name of the Task:
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Task Name..."
-              className="rounded-sm pl-5 ml-5 bg-blue-900"
-              value={taskName}
-              onChange={(e) => setTaskName(e.target.value)}
-            ></input>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">
-              Choose the Priority Level(1 being Critical and 5 being Low
-              Priority):
-            </label>
-            <select
-              className="bg-blue-900 mt-15 ml-5"
-              value={taskPriority}
-              onChange={(e) => setTaskPriority(e.target.value)}
-            >
-              <option value="1">1</option>
-              <option value="2">2</option>
-              <option value="3">3</option>
-              <option value="4">4</option>
-              <option value="5">5</option>
-            </select>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">Choose a Due Date:</label>
-            <input
-              type="date"
-              className="mt-15 ml-5 bg-blue-900"
-              value={taskDue}
-              onChange={(e) => setTaskDue(e.target.value)}
-            ></input>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15 block">
-              Enter Task Description:
-            </label>
-            <textarea
-              placeholder="Enter a Description..."
-              className="rounded-sm mt-30 bg-blue-900 pl-5"
-              value={taskDesc}
-              onChange={(e) => setTaskDesc(e.target.value)}
-            ></textarea>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl absolute">
-            <label className="text-xl mt-15 block">Assign User:</label>
-            <input
-              type="text"
-              placeholder="Enter User ID..."
-              className="rounded-sm pl-5  bg-blue-900"
-            ></input>
-            <button className="bg-green-700 w-30 ml-5 p-2 rounded-xl">
-              Add Users
-            </button>
-          </div>
-
-          <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 flex justify-center">
-            <button
-              className="bg-green-700 w-30 p-2 ml-auto mr-auto rounded-xl"
-              onClick={HandleAddandViewTask}
-            >
-              Add Task
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/*------------------------------------------Update Task---------------------------------------------------------------------*/}
-      <section className="my-8 p-4">
-        <div className="bg-sky-800">
-          <div className="bg-sky-900 rounded-t-lg">
-            <h1 className="text-2xl font-bold text-center"> Update Task </h1>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15 ">
-              Change the Name of the Task:
-            </label>
-            <input
-              type="text"
-              placeholder="Enter Task Name..."
-              className="rounded-sm pl-5 ml-5 bg-blue-900"
-            ></input>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">
-              Change the Priority Level(1 being Critical and 5 being Low
-              Priority):
-            </label>
-            <select className="bg-blue-900 mt-15 ml-5">
-              <option>1</option>
-              <option>2</option>
-              <option>3</option>
-              <option>4</option>
-              <option>5</option>
-            </select>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15">Change Due Date:</label>
-            <input type="date" className="mt-15 ml-5 bg-blue-900"></input>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15 block">
-              Change Task Description:
-            </label>
-            <textarea
-              placeholder="Enter a Description..."
-              className="rounded-sm mt-30 bg-blue-900 pl-5"
-            ></textarea>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl absolute">
-            <label className="text-xl mt-15 block">Re-assign Users:</label>
-            <input
-              type="text"
-              placeholder="Enter User ID..."
-              className="rounded-sm pl-5  bg-blue-900"
-            ></input>
-            <button className="bg-green-700 w-30 ml-5 p-2 rounded-xl">
-              Add User
-            </button>
-            <button className="bg-red-700 w-30 ml-5 p-2 rounded-xl">
-              Remove User
-            </button>
-          </div>
-
-          <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 flex justify-center">
-            <button className="bg-green-700 w-30 p-2 ml-auto mr-auto rounded-xl">
-              Update Task
-            </button>
-          </div>
-        </div>
-      </section>
-
-      {/*-----------------------------------------Lock Task from Users-----------------------------------------------------------------------*/}
-      <section>
-        <div className="bg-sky-800">
-          <div className="bg-sky-900 rounded-t-lg">
-            <h1 className="text-2xl font-bold text-center"> Lock Task </h1>
-          </div>
-
-          <div className="mt-5 bg-sky-700 inline-block ml-20 p-4 rounded-xl">
-            <label className="text-xl mt-15 block">Type in Task ID:</label>
-            <input
-              type="text"
-              placeholder="Enter Task Name..."
-              className="rounded-sm pl-5  bg-blue-900"
-            ></input>
-          </div>
-
-          <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2 flex justify-center">
-            <button className="bg-red-700 w-30 p-2 ml-auto mr-auto rounded-xl">
-              Lock Task
-            </button>
-          </div>
-        </div>
+              <DialogFooter>
+                {chosenUserIds.length > 0 && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        if (
+                          window.confirm(
+                            "Are you sure you want to delete the selected users?"
+                          )
+                        ) {
+                          deleteUsers();
+                        }
+                      }}
+                      disabled={isDeleting}
+                      className="flex items-center"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete Selected ({chosenUserIds.length})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetSelection}
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
+      <h2 className="text-2xl font-bold mb-4 text-center ">User Analytics</h2>
+      <section className="flex justify-center">
+        <Analytics /> 
       </section>
     </div>
   );

@@ -1,227 +1,240 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Link } from "react-router-dom";
-import { Mail, X, Bell } from "lucide-react";
+import React, { useState } from "react";
+import { Link, useLocation } from "react-router-dom";
+import {
+  Bell,
+  LayoutDashboard,
+  Shield,
+  Info,
+  User,
+  MessageSquare,
+  Menu,
+  Moon,
+} from "lucide-react";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
+import { useAuth } from "@/utils/AuthProvider";
+import {
+  NavigationMenu,
+  NavigationMenuItem,
+  NavigationMenuList,
+} from "@/components/ui/navigation-menu";
+import { cn } from "@/lib/utils";
+import NotificationPanel from "./NotificationPanel";
+import { Separator } from "@/components/ui/separator";
 
-// Defines the Notification Panel component
-const NotificationPanel = ({ notifications, onClose, onToggleRead }) => {
-  const [expandedIds, setExpandedIds] = useState(new Set());
-  const panelRef = useRef(null);
+function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
+  const { user } = useAuth();
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const unreadCount = notifications.filter((n) => n.status === "unread").length;
+  const location = useLocation();
 
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (panelRef.current && !panelRef.current.contains(event.target)) {
-        onClose();
+  const isActive = (route) => location.pathname === route;
+
+  // Define navigation links based on user role and dev mode
+  const getLinks = () => {
+    const links = [];
+
+    if (user || devMode) {
+      links.push({ label: "Dashboard", route: "/", icon: LayoutDashboard });
+      if (user?.role === "admin" || devMode) {
+        links.push({ label: "Admin", route: "/admin", icon: Shield });
       }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [onClose]);
-
-  const toggleDescription = (id) => {
-    setExpandedIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
-    });
-  };
-
-  return (
-    <div
-      ref={panelRef}
-      className="absolute right-4 top-16 bg-white shadow-lg rounded-lg w-80 z-20"
-    >
-      <div className="p-4 border-b border-slate-200 flex justify-between items-center">
-        <h3 className="font-semibold text-slate-800">Notifications</h3>
-        <button
-          onClick={onClose}
-          className="text-slate-600 hover:text-slate-800"
-        >
-          <X size={20} />
-        </button>
-      </div>
-
-      <div className="max-h-96 overflow-y-auto">
-        {notifications.length === 0 ? (
-          <div className="p-4 text-center text-slate-500">
-            No new notifications
-          </div>
-        ) : (
-          notifications.map((notification) => {
-            const isExpanded = expandedIds.has(notification.id);
-
-            return (
-              <div
-                key={notification.id}
-                className="p-4 hover:bg-slate-50 border-b border-slate-100 last:border-0"
-              >
-                <div className="flex items-start gap-3">
-                  {/* Mail icon and read toggle */}
-                  <button
-                    onClick={() => onToggleRead(notification.id)}
-                    className="flex-shrink-0"
-                  >
-                    <Mail
-                      size={18}
-                      className={`mt-1 transition-transform duration-200 ease-in-out ${
-                        !notification.read ? "text-blue-600" : "text-slate-600"
-                      }`}
-                    />
-                  </button>
-
-                  {/* Main content */}
-                  <div
-                    className="flex-1 cursor-pointer"
-                    onClick={() => toggleDescription(notification.id)}
-                  >
-                    <p className="text-sm text-slate-800">
-                      {notification.message}
-                    </p>
-                    <time className="text-xs text-slate-500 mt-1 block">
-                      {new Date(notification.timestamp).toLocaleString()}
-                    </time>
-
-                    {/* Collapisable description */}
-                    {isExpanded && (
-                      <div className="mt-2 text-sm text-slate-600 transition-all duration-300 ease-in-out">
-                        {notification.description}
-                      </div>
-                    )}
-                  </div>
-
-                  {/*Mark read/unread button*/}
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation(); // Prevent the notification from being toggled
-                      onToggleRead(notification.id);
-                    }}
-                    className="text-sm text-slate-500 hover:text-blue-600 ml-2"
-                  >
-                    {notification.read ? "Mark unread" : "Mark read"}
-                  </button>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
-  );
-};
-
-const Navbar = ({
-  showNavbar,
-  sessionUser,
-  devMode,
-  notifications = [],
-  onMarkAsRead,
-  onToggleRead,
-}) => {
-  const [isNotificationsVisible, setIsNotificationsVisible] = useState(false);
-  const unreadCount = notifications.filter((n) => !n.read).length;
-
-  const handleBellClick = (e) => {
-    e.stopPropagation();
-    const wasVisible = isNotificationsVisible;
-    setIsNotificationsVisible(!wasVisible);
-
-    if (!wasVisible && unreadCount > 0) {
-      onMarkAsRead();
+      links.push({ label: "Message", route: "/message", icon: MessageSquare });
     }
+
+    links.push({ label: "About", route: "/about", icon: Info });
+    links.push({
+      label: user ? user.username : "Login",
+      route: "/login",
+      icon: User,
+    });
+
+    return links;
   };
 
+  const links = getLinks();
+
+  const handleNavigation = (route) => {
+    setMobileMenuOpen(false);
+  };
+
+  // Notification bell with count
+  const NotificationBell = React.forwardRef(function NotificationBell(
+    { unreadCount, ...props },
+    ref
+  ) {
+    return (
+      <Button ref={ref} variant="secondary" className="relative p-2" {...props}>
+        <Bell className="h-5 w-5" />
+        {unreadCount > 0 && (
+          <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+            {unreadCount}
+          </span>
+        )}
+      </Button>
+    );
+  });
+  NotificationBell.displayName = "NotificationBell";
+
   return (
-    <nav
-      className={`${showNavbar ? "animate-fadein" : "animate-fadeout"}
-    fixed left-0 top-0 w-screen bg-slate-950 p-4 z-10`}
-    >
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="text-white text-xl">
-          <h1>
+    <NavigationMenu className="fixed top-0 left-0 bg-foreground p-4 flex justify-between min-w-full animate-fade-in z-10">
+      <NavigationMenuList className={"px-10"}>
+        {/* CTMS Logo inside NavigationMenu */}
+        <NavigationMenuItem>
+          <Button
+            variant="link"
+            className="text-primary-foreground font-bold text-4xl"
+            asChild
+          >
             <Link to="/">CTMS.</Link>
-          </h1>
-        </div>
-        <div className="space-x-4">
-          {/* Deprecated */}
-          {/* {(sessionUser?.role === "admin" || devMode) && (
-            <Link
-              to="/test"
-              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-            >
-              Test Database Connection
-            </Link>
-          )} */}
+          </Button>
+        </NavigationMenuItem>
+      </NavigationMenuList>
 
-          {(sessionUser || devMode) && (
-            <Link
-              to="/"
-              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-            >
-              Your Dashboard
-            </Link>
+      <div className="px-10 flex items-center justify-center">
+        {/* Desktop Navigation - Main Links */}
+
+        <NavigationMenuList className="hidden lg:flex gap-4">
+          {links.map((link) => (
+            <NavigationMenuItem key={link.route}>
+              <Button
+                variant="ghost"
+                asChild
+                className={cn(
+                  "transition-colors",
+                  isActive(link.route) &&
+                    "bg-secondary text-secondary-foreground font-medium",
+                  !isActive(link.route) && "text-primary-foreground bg-primary"
+                )}
+                onClick={() => handleNavigation(link.route)}
+              >
+                <Link to={link.route} className="flex items-center">
+                  {link.icon && <link.icon className="h-4 w-4" />}
+                  {link.label}
+                </Link>
+              </Button>
+            </NavigationMenuItem>
+          ))}
+
+          <Separator
+            orientation="vertical"
+            className={"hidden lg:flex border"}
+          />
+
+          {(user || devMode) && (
+            <NavigationMenuItem>
+              <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
+                <SheetTrigger asChild>
+                  <NotificationBell
+                    unreadCount={unreadCount}
+                    onClick={() => setNotificationOpen(true)}
+                  />
+                </SheetTrigger>
+                <NotificationPanel
+                  notifications={notifications}
+                  open={notificationOpen}
+                  onOpenChange={setNotificationOpen}
+                  setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+                />
+              </Sheet>
+            </NavigationMenuItem>
           )}
 
-          {(sessionUser?.role === "admin" || devMode) && (
-            <Link
-              to="/admin"
-              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
+          <Separator orientation="vertical" className={"border"} />
+
+          <NavigationMenuItem className={"hidden lg:flex"}>
+            <Toggle
+              variant="secondary"
+              aria-label="Toggle dark mode"
+              onClick={() => document.documentElement.classList.toggle("dark")}
             >
-              Admin Page
-            </Link>
+              <Moon />
+            </Toggle>
+          </NavigationMenuItem>
+        </NavigationMenuList>
+
+        {/* Mobile Navigation Controls */}
+        <NavigationMenuList className="lg:hidden">
+          {(user || devMode) && (
+            <NavigationMenuItem>
+              <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
+                <SheetTrigger asChild>
+                  <NotificationBell
+                    unreadCount={unreadCount}
+                    onClick={() => setNotificationOpen(true)}
+                  />
+                </SheetTrigger>
+                <NotificationPanel
+                  notifications={notifications}
+                  open={notificationOpen}
+                  onOpenChange={setNotificationOpen}
+                  setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+                />
+              </Sheet>
+            </NavigationMenuItem>
           )}
 
-          <Link
-            to="/about"
-            className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-          >
-            About
-          </Link>
+          <NavigationMenuItem>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="default" size="icon">
+                  <Menu />
+                </Button>
+              </SheetTrigger>
 
-          <Link
-            to="/login"
-            className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-          >
-            {sessionUser ? "Profile" : "Login"}
-          </Link>
-          {(sessionUser || devMode) && (
-            <Link
-              to="/message"
-              className="text-white hover:bg-blue-700 px-3 py-2 rounded-md"
-            >
-              Message
-            </Link>
-          )}
-          {/* Notification Bell */}
+              <SheetContent side="right" className="w-[240px] sm:w-[300px]">
+                <SheetHeader>
+                  <SheetTitle>
+                    <div className="text-xl font-bold">CTMS</div>
+                  </SheetTitle>
+                  <SheetDescription>Navigation menu</SheetDescription>
+                </SheetHeader>
 
-          <button
-            onClick={handleBellClick}
-            className="text-white hover:text-slate-300 relative p-2"
-          >
-            <Bell size={24} />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                {unreadCount}
-              </span>
-            )}
-          </button>
+                <nav className="flex flex-col items-center gap-4">
+                  {links.map((link) => (
+                    <Button
+                      key={link.route}
+                      variant="default"
+                      asChild
+                      className={`w-3/4`}
+                      onClick={() => handleNavigation(link.route)}
+                    >
+                      <Link to={link.route} className="flex items-center gap-2">
+                        {link.icon && <link.icon className="h-4 w-4" />}
+                        {link.label}
+                      </Link>
+                    </Button>
+                  ))}
+                </nav>
 
-          {isNotificationsVisible && (
-            <NotificationPanel
-              notifications={notifications}
-              onClose={() => setIsNotificationsVisible(false)}
-              onToggleRead={onToggleRead}
-            />
-          )}
-        </div>
+                {/* Toggle dark/light mode */}
+                <div className="flex justify-center">
+                  <Toggle
+                    variant="secondary"
+                    aria-label="Toggle dark mode"
+                    onClick={() =>
+                      document.documentElement.classList.toggle("dark")
+                    }
+                  >
+                    <Moon className="h-4 w-4" />
+                  </Toggle>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </NavigationMenuItem>
+        </NavigationMenuList>
       </div>
-    </nav>
+    </NavigationMenu>
   );
-};
+}
 
 export default Navbar;

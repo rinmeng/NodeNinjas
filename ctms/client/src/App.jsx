@@ -1,146 +1,106 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import Navbar from "./components/Navbar";
-import About from "./pages/About";
-import Admin from "./pages/Admin";
-import Login from "./pages/Login";
-import TestUser from "./pages/testing/TestUser";
-import Test from "./pages/Test";
-import NotFound from "./pages/NotFound";
-import "./css/output.css";
-import Dashboard from "./pages/Dashboard";
-import Chat from "./pages/Chat";
-import Feedback2 from "./components/subcomponents/Feedback2";
+import { AuthProvider, useAuth } from "@/utils/AuthProvider";
+import Navbar from "@/src/components/Navbar";
+import About from "@/src/pages/About";
+import Admin from "@/src/pages/Admin";
+import Login from "@/src/pages/Login";
+import NotFound from "@/src/pages/NotFound";
+import Dashboard from "@/src/pages/Dashboard";
+import ChatWidget from "@/src/components/ChatWidget";
 import { CircleAlert, CircleCheck } from "lucide-react";
+import { Toaster } from "sonner";
+import { toast } from "sonner";
 
-const proxy = "http://localhost:15000/";
-
-function App() {
-  const [devMode, setDevMode] = useState(false);
-
+function AppContent() {
+  const { user, notifications, setNotificationsNeedRefetch } = useAuth();
+  const [devMode] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
-  const [sessionUser, setSessionUser] = useState(null);
+  const [feedbackMessage, setFeedbackMessage] = useState({
+    title: "",
+    description: "",
+  });
+  const [notificationToAdd, setNotificationToAdd] = useState("");
 
-  const [isLoading, setIsLoading] = useState(true);
-  const [notifications, setNotifications] = useState([]);
-
-  const [feedbackMessage, setFeedbackMessage] = useState("");
-
-  const timer = 2000;
-
+  // Apply dark theme
   useEffect(() => {
-    fetch(proxy + "user/session", {
-      credentials: "include", // Important for cross-origin cookies
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.isValid && data.user) {
-          setSessionUser(data.user);
-        } else {
-          setSessionUser(null);
-        }
-      })
-      .catch((error) => {
-        console.error("Session check failed:", error);
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
+    document.documentElement.classList.add("light");
   }, []);
 
+  // Handle feedback messages
   useEffect(() => {
-    if (feedbackMessage !== "") {
-      setTimeout(() => {
-        setFeedbackMessage("");
-      }, timer);
+    if (feedbackMessage.title) {
+      const isFeedbackSuccess = feedbackMessage.title
+        .toLowerCase()
+        .includes("success");
+      toast(feedbackMessage.title, {
+        description: feedbackMessage.description,
+        duration: 3000,
+        icon: isFeedbackSuccess ? (
+          <CircleCheck className="text-green-500" />
+        ) : (
+          <CircleAlert className="text-black" />
+        ),
+        position: "bottom-right",
+        classNames: {
+          title: "ml-2 text-base font-bold",
+          description: "ml-2",
+        },
+      });
+      setFeedbackMessage("");
     }
   }, [feedbackMessage]);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
-
-  // Mark notifications as read
-  const markNotificationsAsRead = () => {
-    setNotifications((prev) => prev.map((n) => ({ ...n, read: true })));
-  };
-
-  // Toggle notification read status
-  const toggleNotificationReadStatus = (id) => {
-    setNotifications((prev) =>
-      prev.map((n) => (n.id === id ? { ...n, read: !n.read } : n))
-    );
-  };
 
   return (
     <Router>
       <Navbar
         showNavbar={showNavbar}
-        sessionUser={sessionUser}
         devMode={devMode}
         notifications={notifications}
-        setNotifications={setNotifications}
-        onMarkAsRead={markNotificationsAsRead}
-        onToggleRead={toggleNotificationReadStatus}
+        setNotificationToAdd={setNotificationToAdd}
+        setNotificationsNeedRefetch={setNotificationsNeedRefetch}
       />
 
-      <div>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <Dashboard
-                sessionUser={sessionUser}
-                devMode={devMode}
-                notifications={notifications}
-                setNotifications={setNotifications}
-                setFeedbackMessage={setFeedbackMessage}
-              />
-            }
-          />
-
-          <Route
-            path="/admin"
-            element={<Admin sessionUser={sessionUser} devMode={devMode} />}
-          />
-          <Route path="/about" element={<About />} />
-          <Route
-            path="/login"
-            element={
-              <Login
-                setShowNavbar={setShowNavbar}
-                sessionUser={sessionUser}
-                setSessionUser={setSessionUser}
-                setFeedbackMessage={setFeedbackMessage}
-              />
-            }
-          />
-          <Route
-            path="/test"
-            element={<Test sessionUser={sessionUser} devMode={devMode} />}
-          />
-          {/* <Route path="/message" element={<Chat />} /> */}
-          <Route path="/test/user" element={<TestUser />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </div>
-
-      <div>
-        {feedbackMessage && (
-          <Feedback2
-            icon={
-              feedbackMessage.toLowerCase().includes("success") ? (
-                <CircleCheck size={24} />
-              ) : (
-                <CircleAlert size={24} />
-              )
-            }
-            message={feedbackMessage}
-            isSuccess={feedbackMessage.toLowerCase().includes("success")}
-          />
-        )}
-      </div>
+      <Routes>
+        <Route
+          path="/"
+          element={
+            <Dashboard
+              devMode={devMode}
+              setFeedbackMessage={setFeedbackMessage}
+              setNotificationToAdd={setNotificationToAdd}
+            />
+          }
+        />
+        <Route
+          path="/admin"
+          element={
+            <Admin devMode={devMode} setFeedbackMessage={setFeedbackMessage} />
+          }
+        />
+        <Route path="/about" element={<About />} />
+        <Route
+          path="/login"
+          element={
+            <Login
+              setShowNavbar={setShowNavbar}
+              setFeedbackMessage={setFeedbackMessage}
+            />
+          }
+        />
+        <Route path="*" element={<NotFound />} />
+      </Routes>
+      <ChatWidget />
+      <Toaster />
     </Router>
+  );
+}
+
+function App() {
+  return (
+    <AuthProvider>
+      <AppContent />
+    </AuthProvider>
   );
 }
 
