@@ -151,7 +151,7 @@ const EditTaskPanel = ({
     <DialogContent className="sm:max-w-[900px] max-h-[100vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
-          <h1 className="text-primary">Edit Task</h1>
+          <div className="text-primary">Edit Task</div>
         </DialogTitle>
         <DialogDescription>
           Make changes to your task details below

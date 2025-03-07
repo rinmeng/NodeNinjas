@@ -407,7 +407,7 @@ const AssignTaskPanel = ({
     <DialogContent className="sm:max-w-[900px]  max-h-[100vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle>
-          <h1 className="text-primary">Task Assignment</h1>
+          <div className="text-primary">Task Assignment</div>
         </DialogTitle>
         <DialogDescription>
           Manage user assignments for this task

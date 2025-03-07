@@ -7,8 +7,6 @@ import {
   ClockAlert,
   ClockArrowUp,
   ClockArrowDown,
-  ChevronDown,
-  ChevronUp,
   CalendarClock,
   SquarePen,
   Trash,
@@ -29,16 +27,9 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardHeader,
-  CardContent,
-  CardFooter,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import {
   Tooltip,
@@ -349,17 +340,21 @@ const TaskCard = ({
 
           <div className="flex items-center space-x-1">
             <Dialog>
-              <DialogTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  disabled={isTaskLocked}
-                  className="h-8 w-8 p-0"
-                >
-                  <SquarePen className="h-4 w-4" />
-                  <span className="sr-only">Edit task</span>
-                </Button>
-              </DialogTrigger>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <DialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      disabled={isTaskLocked}
+                      className="h-8 w-8 p-0"
+                    >
+                      <SquarePen className="h-4 w-4" />
+                    </Button>
+                  </DialogTrigger>
+                </TooltipTrigger>
+                <TooltipContent>Edit task</TooltipContent>
+              </Tooltip>
 
               {!isTaskLocked && (
                 <EditTaskPanel
