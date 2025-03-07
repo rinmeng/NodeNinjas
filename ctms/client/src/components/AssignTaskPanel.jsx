@@ -209,6 +209,12 @@ const AssignTaskPanel = ({
         credentials: "include",
       });
 
+      // If response is 404, just return an empty array without throwing an error
+      if (response.status === 404) {
+        setAvailableUsers([]);
+        return [];
+      }
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.message || "Failed to fetch available users");
@@ -219,6 +225,7 @@ const AssignTaskPanel = ({
       return data; // Return the users data for potential use
     } catch (error) {
       console.error("Error fetching available users:", error);
+      // Only show feedback for non-404 errors
       setFeedbackMessage({
         title: "Error",
         description: "Failed to fetch available users: " + error.message,

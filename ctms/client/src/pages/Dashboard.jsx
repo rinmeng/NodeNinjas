@@ -533,7 +533,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
 
       <CardContent>
         {taskList.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+          <div className="flex w-full flex-col items-center justify-center py-8 text-muted-foreground">
             <ClipboardList size={48} className="mb-4" />
             <p className="text-lg">No tasks available</p>
             <p className="text-sm mt-2">
