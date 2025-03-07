@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
 import NotificationPanel from "./NotificationPanel";
+import { Separator } from "@/components/ui/separator";
 
 function Navbar({
   showNavbar,
@@ -104,9 +105,22 @@ function Navbar({
         </NavigationMenuItem>
       </NavigationMenuList>
 
-      <div className="px-10">
+      <div className="px-10 flex items-center justify-center">
         {/* Desktop Navigation - Main Links */}
-        <NavigationMenuList className="hidden md:flex">
+
+        <NavigationMenuItem className={"hidden lg:flex"}>
+          <Toggle
+            variant="secondary"
+            aria-label="Toggle dark mode"
+            onClick={() => document.documentElement.classList.toggle("dark")}
+          >
+            <Moon />
+          </Toggle>
+        </NavigationMenuItem>
+
+        <Separator orientation="vertical" className={"mx-2"} />
+
+        <NavigationMenuList className="hidden lg:flex">
           {links.map((link) => (
             <NavigationMenuItem key={link.route}>
               <Button
@@ -128,15 +142,7 @@ function Navbar({
             </NavigationMenuItem>
           ))}
 
-          <NavigationMenuItem>
-            <Toggle
-              variant="secondary"
-              aria-label="Toggle dark mode"
-              onClick={() => document.documentElement.classList.toggle("dark")}
-            >
-              <Moon />
-            </Toggle>
-          </NavigationMenuItem>
+          <Separator orientation="vertical" className={"mx-2"} />
 
           {(user || devMode) && (
             <NavigationMenuItem>
@@ -156,7 +162,7 @@ function Navbar({
         </NavigationMenuList>
 
         {/* Mobile Navigation Controls */}
-        <NavigationMenuList className="md:hidden">
+        <NavigationMenuList className="lg:hidden">
           {(user || devMode) && (
             <NavigationMenuItem>
               <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
