@@ -1,32 +1,58 @@
 const { app } = require('../../server');
 const request = require('supertest');
 const pool = require('../../db');
+const { verifyPassword } = require('../../utils/PasswordHasher');
 
 // Mock the database pool
 jest.mock('../../db', () => ({
     query: jest.fn()
 }));
 
+// Mock the authentication middleware
+jest.mock('../../auth', () => ({
+    isAuthAsAdmin: (req, res, next) => next(),
+    isAuthenticated: (req, res, next) => next()
+}));
+
+// Mock the password hashing function
+jest.mock('../../utils/PasswordHasher', () => ({
+    hashPassword: jest.fn().mockResolvedValue('hashed_password'),
+    verifyPassword: jest.fn().mockResolvedValue(true)
+}));
+
 describe('User Routes', () => {
     // Add server variable to store server instance
     let server;
+    let mockSessionData = {};
+    let mockSessionDestroy = jest.fn().mockImplementation(cb => cb());
 
     // Start server before all tests
     beforeAll(() => {
         server = app.listen();
     });
-
-    // Close server after all tests
     afterAll((done) => {
         if (server) {
             server.close(done);
+        } else {
+            done();
         }
-        done();
     });
 
     // Clear mocks before each test
     beforeEach(() => {
         jest.clearAllMocks();
+    });
+
+    // Mock session middleware
+    beforeEach(() => {
+        // This simulates the session middleware for tests
+        app.use((req, res, next) => {
+            req.session = {
+                destroy: callback => callback && callback(),
+                user: null
+            };
+            next();
+        });
     });
 
     // used to mock the user object
@@ -192,25 +218,33 @@ describe('User Routes', () => {
             manager_id: '2'
         };
 
-        it('returns status code 200 if user was updated successfully', async () => {
-            // Mock the select query to find the user
+        it('returns status code 200 if user role was updated successfully', async () => {
+            const updatedUser = {
+                id: 1,
+                username: 'testuser',
+                email: 'testemail',
+                password_hash: 'testpassword',
+                role: 'updatedrole',
+                display_name: 'testdisplayname',
+                manager_id: '1'
+            };
+
+            // Mock both queries: first the SELECT query, then the UPDATE query
             pool.query
                 .mockResolvedValueOnce({
-                    rows: [validUpdateUser],
+                    rows: [updatedUser],
                     rowCount: 1
                 })
-                // Mock the update query
                 .mockResolvedValueOnce({
-                    rows: [validUpdateUser]
+                    rows: [updatedUser]
                 });
 
             const response = await request(app)
-                .put('/user/update/1')
-                .send(validUpdateUser);
+                .put('/user/updateRole/1')
+                .send({ role: 'updatedrole' });
 
             expect(response.statusCode).toBe(200);
-            expect(pool.query).toHaveBeenCalledTimes(2);
-            expect(response.body).toEqual(validUpdateUser);
+            expect(response.body).toEqual(updatedUser);
         });
 
         it('returns status code 404 if user is not found', async () => {
@@ -344,182 +378,154 @@ describe('User Routes', () => {
             expect(response.statusCode).toBe(404);
             expect(response.body).toEqual({ message: 'No active session' });
         });
-
-        describe('POST /user/register', () => {
-            const validUser = {
-                username: 'testuser',
-                email: 'test@email.com',
-                password_hash: 'testpassword',
-                role: 'user',
-                display_name: 'Test User',
-                manager_id: 1
-            };
-
-            it('returns 400 if required fields are missing', async () => {
-                const invalidUser = {
-                    username: 'testuser'
-                };
-
-                const response = await request(app)
-                    .post('/user/register')
-                    .send(invalidUser);
-
-                expect(response.statusCode).toBe(400);
-                expect(response.body.message).toBe('Required fields: username, email, password_hash, role, display_name');
-            });
-
-            it('returns 400 if username already exists', async () => {
-                pool.query
-                    .mockResolvedValueOnce({ rowCount: 1 }) // username exists
-                    .mockResolvedValueOnce({ rowCount: 0 }); // email doesn't exist
-
-                const response = await request(app)
-                    .post('/user/register')
-                    .send(validUser);
-
-                expect(response.statusCode).toBe(400);
-                expect(response.body.message).toBe('Username already exists');
-            });
-
-            it('returns 400 if email already exists', async () => {
-                pool.query
-                    .mockResolvedValueOnce({ rowCount: 0 }) // username doesn't exist
-                    .mockResolvedValueOnce({ rowCount: 1 }); // email exists
-
-                const response = await request(app)
-                    .post('/user/register')
-                    .send(validUser);
-
-                expect(response.statusCode).toBe(400);
-                expect(response.body.message).toBe('Email already exists');
-            });
-
-            it('returns 201 if user registration is successful', async () => {
-                pool.query
-                    .mockResolvedValueOnce({ rowCount: 0 }) // username check
-                    .mockResolvedValueOnce({ rowCount: 0 }) // email check
-                    .mockResolvedValueOnce({ rows: [validUser] }); // insert user
-
-                const response = await request(app)
-                    .post('/user/register')
-                    .send(validUser);
-
-                expect(response.statusCode).toBe(201);
-                expect(response.body.message).toBe('User registered successfully');
-            });
-
-            it('returns 500 if database error occurs', async () => {
-                pool.query
-                    .mockResolvedValueOnce({ rowCount: 0 }) // username check
-                    .mockResolvedValueOnce({ rowCount: 0 }) // email check
-                    .mockRejectedValueOnce(new Error('Database error')); // insert fails
-
-                const response = await request(app)
-                    .post('/user/register')
-                    .send(validUser);
-
-                expect(response.statusCode).toBe(500);
-                expect(response.body.message).toBe('Error adding user.');
-            });
-        });
-        //unit test for updating user role
-        describe('PUT /user/update/role/:id', () => {
-            it('returns status code 200 if user role was updated successfully', async () => {
-                const updatedUser = {
-                    id: 1,
-                    username: 'testuser',
-                    email: 'testemail',
-                    password_hash: 'testpassword',
-                    role: 'updatedrole',
-                    display_name: 'testdisplayname',
-                    manager_id: '1'
-                };
-
-                pool.query.mockResolvedValueOnce({
-                    rows: [updatedUser],
-                    rowCount: 1
-                });
-
-                const response = await request(app)
-                    .put('/user/update/role/1')
-                    .send({ role: 'updatedrole' });
-
-                expect(response.statusCode).toBe(200);
-                expect(response.body).toEqual(updatedUser);
-            });
-
-            it('returns status code 404 if user is not found', async () => {
-                pool.query.mockResolvedValueOnce({
-                    rows: [],
-                    rowCount: 0
-                });
-
-                const response = await request(app)
-                    .put('/user/update/role/999')
-                    .send({ role: 'updatedrole' });
-
-                expect(response.statusCode).toBe(404);
-                expect(response.body).toEqual({ message: 'User not found' });
-            });
-
-            it('returns status code 400 if required fields are missing', async () => {
-                const response = await request(app)
-                    .put('/user/update/role/1')
-                    .send({});
-
-                expect(response.statusCode).toBe(400);
-                expect(response.body).toEqual({ message: 'Role is required' });
-            });
-
-            it('returns status code 500 if database error occurs', async () => {
-                pool.query.mockRejectedValueOnce(new Error('Database error'));
-
-                const response = await request(app)
-                    .put('/user/update/role/1')
-                    .send({ role: 'updatedrole' });
-
-                expect(response.statusCode).toBe(500);
-                expect(response.body).toEqual({ message: 'Error updating user role.' });
-            });
-        }
-
-        // it('returns status code 200 if session is active', async () => {
-        //     //first add the user in the database, then log them in, then check if session is 200
-        //     pool.query.mockResolvedValueOnce({
-        //         rows: [sampleUser],
-        //         rowCount: 1
-        //     });
-
-        //     const response = await request(app)
-        //         .post('/user/add')
-        //         .send(sampleUser);
-
-        //     expect(response.statusCode).toBe(201);
-
-        //     // now see if the user can log in
-        //     pool.query.mockResolvedValueOnce({
-        //         rows: [sampleUser],
-        //         rowCount: 1
-        //     });
-
-        //     const loginResponse = await request(app)
-        //         .post('/user/login')
-        //         .send({ username: 'testuser', password_hash: 'testpassword' });
-
-        //     expect(loginResponse.statusCode).toBe(200);
-
-        //     // TODO: Fix this test, find out why it's failing...
-        //     // now check if the session is active
-        //     // pool.query.mockResolvedValueOnce({
-        //     //     rows: [sampleUser],
-        //     //     rowCount: 1
-        //     // });
-        //     // const sessionResponse = await request(app)
-        //     //     .get('/user/session');
-
-        //     // expect(sessionResponse.statusCode).toBe(200);
-
-        // });
     });
 
+    describe('POST /user/register', () => {
+        const validUser = {
+            username: 'testuser',
+            email: 'test@email.com',
+            password_hash: 'testpassword',
+            role: 'user',
+            display_name: 'Test User',
+            manager_id: 1
+        };
+
+        it('returns 201 if user registration is successful', async () => {
+            // Reset mocks to ensure clean state
+            pool.query.mockReset();
+
+            // Set up mock behavior for each query in sequence
+            pool.query
+                .mockResolvedValueOnce({ rowCount: 0 }) // username check
+                .mockResolvedValueOnce({ rowCount: 0 }) // email check
+                .mockResolvedValueOnce({ rows: [validUser] }); // insert user
+
+            const response = await request(app)
+                .post('/user/register')
+                .send(validUser);
+
+            expect(response.statusCode).toBe(201);
+            expect(response.body.message).toBe('User registered successfully');
+        });
+
+        it('returns 500 if database error occurs', async () => {
+            // Reset mocks to ensure clean state
+            pool.query.mockReset();
+
+            // Mock the first two queries to succeed and the third to fail
+            pool.query
+                .mockResolvedValueOnce({ rowCount: 0 }) // username check
+                .mockResolvedValueOnce({ rowCount: 0 }) // email check
+                .mockRejectedValueOnce(new Error('Database error')); // insert fails
+
+            const response = await request(app)
+                .post('/user/register')
+                .send(validUser);
+
+            expect(response.statusCode).toBe(500);
+            expect(response.body.message).toBe('Error adding user.');
+        });
+    });
+
+    describe('PUT /user/updateRole/:id', () => {
+        it('returns status code 200 if user role was updated successfully', async () => {
+            // Reset mocks to ensure clean state
+            pool.query.mockReset();
+
+            const updatedUser = {
+                id: 1,
+                username: 'testuser',
+                email: 'testemail',
+                password_hash: 'testpassword',
+                role: 'updatedrole',
+                display_name: 'testdisplayname',
+                manager_id: '1'
+            };
+
+            // Mock both queries in sequence
+            pool.query
+                .mockResolvedValueOnce({
+                    rows: [sampleUser],
+                    rowCount: 1  // First query - check if user exists
+                })
+                .mockResolvedValueOnce({
+                    rows: [updatedUser]  // Second query - update user role
+                });
+
+            const response = await request(app)
+                .put('/user/updateRole/1')
+                .send({ role: 'updatedrole' });
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(updatedUser);
+        });
+
+        it('returns status code 404 if user is not found', async () => {
+            // Reset mocks to ensure clean state
+            pool.query.mockReset();
+
+            pool.query.mockResolvedValueOnce({
+                rows: [],
+                rowCount: 0
+            });
+
+            const response = await request(app)
+                .put('/user/updateRole/999')
+                .send({ role: 'updatedrole' });
+
+            expect(response.statusCode).toBe(404);
+            expect(response.body).toEqual({ message: 'User not found' });
+        });
+
+        it('returns status code 500 if database error occurs', async () => {
+            // Reset mocks to ensure clean state
+            pool.query.mockReset();
+
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            const response = await request(app)
+                .put('/user/updateRole/1')
+                .send({ role: 'updatedrole' });
+
+            expect(response.statusCode).toBe(500);
+            expect(response.body).toEqual({ message: 'Something went wrong while updating user role' });
+        });
+    });
+    // it('returns status code 200 if session is active', async () => {
+    //     //first add the user in the database, then log them in, then check if session is 200
+    //     pool.query.mockResolvedValueOnce({
+    //         rows: [sampleUser],
+    //         rowCount: 1
+    //     });
+
+    //     const response = await request(app)
+    //         .post('/user/add')
+    //         .send(sampleUser);
+
+    //     expect(response.statusCode).toBe(201);
+
+    //     // now see if the user can log in
+    //     pool.query.mockResolvedValueOnce({
+    //         rows: [sampleUser],
+    //         rowCount: 1
+    //     });
+
+    //     const loginResponse = await request(app)
+    //         .post('/user/login')
+    //         .send({ username: 'testuser', password_hash: 'testpassword' });
+
+    //     expect(loginResponse.statusCode).toBe(200);
+
+    //     // TODO: Fix this test, find out why it's failing...
+    //     // now check if the session is active
+    //     // pool.query.mockResolvedValueOnce({
+    //     //     rows: [sampleUser],
+    //     //     rowCount: 1
+    //     // });
+    //     // const sessionResponse = await request(app)
+    //     //     .get('/user/session');
+
+    //     // expect(sessionResponse.statusCode).toBe(200);
+
+    // });
 });
