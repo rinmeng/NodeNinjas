@@ -2,6 +2,23 @@ import React, { useState, useEffect, useRef } from "react";
 import { Send, X, MessageSquare } from "lucide-react";
 import { useAuth } from "@/utils/AuthProvider";
 import proxy from "@/src/utils/proxy";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 const ChatWidget = () => {
   const { user } = useAuth();
@@ -13,26 +30,24 @@ const ChatWidget = () => {
   const chatRef = useRef(null);
   const toggleButtonRef = useRef(null);
 
-  // Close chat when clicking outside
-  useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (isOpen && 
-          !chatRef.current?.contains(event.target) && 
-          !toggleButtonRef.current?.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
-
   useEffect(() => {
     if (isOpen) {
-      fetch(`${proxy}/user`)
-        .then((res) => res.json())
-        .then((data) => setUsers(data))
-        .catch((err) => console.error("Error fetching users:", err));
+      fetch(`${proxy}/user/under/${user.manager_id}`) // Changed from /user to /user/all based on your API routes
+        .then((res) => {
+          if (!res.ok) {
+            throw new Error(`Error: ${res.status}`);
+          }
+          return res.json();
+        })
+        .then((data) => {
+          console.log("Users fetched:", data); // Add logging to debug
+          setUsers(data);
+        })
+        .catch((err) => {
+          console.error("Error fetching users:", err);
+          // Add user feedback for errors
+          setUsers([]);
+        });
     }
   }, [isOpen]);
 
@@ -76,91 +91,99 @@ const ChatWidget = () => {
   return (
     <div className="fixed bottom-5 right-5">
       {!isOpen && (
-        <button
+        <Button
           ref={toggleButtonRef}
           onClick={() => setIsOpen(true)}
-          className="bg-primary hover:bg-white text-white p-4 rounded-full shadow-lg flex items-center justify-center
-                     dark:bg-primary dark:hover:bg-black transition duration-300"
+          size="icon"
+          variant="default"
+          className="rounded-full shadow-lg"
         >
-          <MessageSquare className="text-white dark:text-black hover:text-black dark:hover:text-white transition duration-300" size={24} />
-        </button>
+          <MessageSquare size={24} />
+        </Button>
       )}
 
       {isOpen && (
-        <div
-          ref={chatRef}
-          className="w-80 p-4 rounded-2xl shadow-lg border transition-colors duration-300
-                     bg-white text-black border-gray-300 hover:bg-gray-100
-                     dark:bg-slate-800 dark:text-white dark:border-gray-700 dark:hover:bg-slate-700"
-        >
-          <div className="flex justify-between items-center border-b pb-2 mb-3
-                           dark:border-gray-600">
-            <h2 className="text-lg font-bold">Chat</h2>
-            <div className="flex gap-2">
-              <button onClick={() => setIsOpen(false)} className="text-gray-400 hover:text-red-500">
+        <Card ref={chatRef} className="w-80 ">
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <CardTitle>Chat</CardTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsOpen(false)}
+              >
                 <X size={20} />
-              </button>
+              </Button>
             </div>
-          </div>
+          </CardHeader>
 
-          <select
-            className="w-full p-2 mb-3 rounded-lg border dark:bg-slate-700 dark:border-gray-600"
-            value={selectedUser?.id || ""}
-            onChange={(e) =>
-              setSelectedUser(users.find((user) => user.id === parseInt(e.target.value)))
-            }
-          >
-            <option value="">Select a user...</option>
-            {users
-              .filter((u) => u.id !== user?.id)
-              .map((user) => (
-                <option key={user.id} value={user.id}>
-                  {user.username}
-                </option>
-              ))}
-          </select>
+          <CardContent className="space-y-3">
+            <Select
+              value={selectedUser?.id?.toString() || ""}
+              onValueChange={(value) => {
+                setSelectedUser(
+                  users.find((user) => user.id === parseInt(value))
+                );
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a user..." />
+              </SelectTrigger>
+              <SelectContent>
+                {users
+                  .filter((u) => u.id !== user?.id)
+                  .map((user) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      {user.username}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
 
-          <div className="h-60 overflow-y-auto p-3 rounded-xl mb-3 border
-                           bg-opacity-30 dark:border-gray-600">
-            {messages.length > 0 ? (
-              messages.map((msg, index) => (
-                <div
-                  key={index}
-                  className={`mb-2 p-2 rounded-xl w-fit ${
-                    msg.sender_id === user?.id 
-                      ? "bg-blue-500 ml-auto" 
-                      : "bg-gray-200 dark:bg-gray-600"
-                  }`}
-                >
-                  <strong>
-                    {msg.sender_id === user?.id ? "You" : selectedUser?.username}:
-                  </strong>{" "}
-                  {msg.text}
-                </div>
-              ))
-            ) : (
-              <p className="text-gray-400">No messages yet. Start chatting!</p>
-            )}
-          </div>
+            <ScrollArea className="h-60 rounded-md border">
+              <div className="p-3">
+                {messages.length > 0 ? (
+                  messages.map((msg, index) => (
+                    <div
+                      key={index}
+                      className={`mb-2 p-2 rounded-xl w-fit ${
+                        msg.sender_id === user?.id
+                          ? "bg-primary text-primary-foreground ml-auto"
+                          : "bg-muted"
+                      }`}
+                    >
+                      <strong>
+                        {msg.sender_id === user?.id
+                          ? "You"
+                          : selectedUser?.username}
+                        :
+                      </strong>{" "}
+                      {msg.text}
+                    </div>
+                  ))
+                ) : (
+                  <p className="text-muted-foreground">
+                    No messages yet. Start chatting!
+                  </p>
+                )}
+              </div>
+            </ScrollArea>
+          </CardContent>
 
-          <div className="flex items-center border-t pt-2 dark:border-gray-600">
-            <input
+          <CardFooter className="flex items-center gap-2 pt-2">
+            <Input
               type="text"
               value={newMessage}
               onChange={(e) => setNewMessage(e.target.value)}
-              className="p-3 rounded-xl w-full border dark:bg-slate-700 dark:border-gray-600"
+              className="flex-1"
               placeholder="Type a message..."
-              onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
+              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
             />
-            <button 
-              onClick={handleSendMessage} 
-              className="ml-2 bg-primary text-white p-3 rounded-xl hover:bg-primary-dark
-                         dark:bg-black dark:text-white dark:hover:bg-gray-800 transition duration-300"
-            >
+            <Button size="icon" onClick={handleSendMessage}>
               <Send size={20} />
-            </button>
-          </div>
-        </div>
+            </Button>
+          </CardFooter>
+        </Card>
       )}
     </div>
   );
