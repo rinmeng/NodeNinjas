@@ -446,16 +446,22 @@ const TaskCard = ({
                 </Tooltip>
               </TooltipProvider>
             )}
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowTaskDetails(true)}
-              className="h-8 w-8 p-0"
-            >
-              <ExternalLink className="h-4 w-4" />
-              <span className="sr-only">View details</span>
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowTaskDetails(true)}
+                    className="h-8 w-8 p-0"
+                  >
+                    <ExternalLink className="h-4 w-4" />
+                    <span className="sr-only">View details</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>View task details</TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
         </div>
       </CardHeader>
