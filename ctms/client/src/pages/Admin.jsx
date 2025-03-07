@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import DBTable from "./testing/subcomp/DBTable";
 import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
+import { PieChart } from "../components/PieChart";
 
 const proxy = "http://localhost:15000/";
 
@@ -265,6 +266,10 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
               })}
               loading={false}
             />
+
+            <div>
+              <PieChart />
+            </div>
           </div>
 
           <div className="rounded-sm mt-5 bg-sky-900 rounded-b-lg p-2"></div>
