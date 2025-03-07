@@ -22,7 +22,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 
-const proxy = "http://localhost:15000/";
+import proxy from "@/src/utils/proxy";
 
 const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const [usersList, setUsersList] = useState([]);
@@ -58,7 +58,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
 
   // Initial load function without visual feedback
   const loadUsersInitially = () => {
-    fetch(proxy + "user/all", { credentials: "include" })
+    fetch(`${proxy}/user/all`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -216,7 +216,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
     try {
       for (const userId of userIds) {
         try {
-          const res = await fetch(proxy + `user/delete/${userId}`, {
+          const res = await fetch(`${proxy}/user/delete/${userId}`, {
             method: "DELETE",
             headers: {
               "Content-Type": "application/json",
@@ -271,7 +271,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const fetchUsers = () => {
     setIsLoading(true);
     setIsRefetching(true);
-    fetch(proxy + "user/all", { credentials: "include" })
+    fetch(`${proxy}/user/all`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -315,7 +315,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
 
   const updateUserRole = (userId, newRole) => {
     setIsRefetching(true);
-    fetch(proxy + `user/updateRole/${userId}`, {
+    fetch(`${proxy}/user/updateRole/${userId}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
