@@ -112,7 +112,7 @@ function Navbar({
           {links.map((link) => (
             <NavigationMenuItem key={link.route}>
               <Button
-                variant="outline"
+                variant="ghost"
                 asChild
                 className={cn(
                   "transition-colors",
