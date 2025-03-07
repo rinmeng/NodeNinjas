@@ -32,6 +32,36 @@ const NotificationPanel = ({
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [historyFilter, setHistoryFilter] = useState("all"); // "all" or "unread"
 
+  const getNotificationText = (type) => {
+    switch (type) {
+      case "task_assignment":
+        return `You have been assigned to a task`;
+      case "task_unassignment":
+        return `You have been unassigned from a task`;
+      case "alert":
+        return `Alert`;
+      case "message":
+        return `You have a new message`;
+      default:
+        return `New notification`;
+    }
+  };
+
+  const getNotificationTypeVariant = (type) => {
+    switch (type) {
+      case "task_assignment":
+        return "default";
+      case "task_unassignment":
+        return "secondary";
+      case "alert":
+        return "destructive";
+      case "message":
+        return "outline";
+      default:
+        return "default";
+    }
+  };
+
   const isNotificationRead = (notification) => notification.status === "read";
 
   const handleReadNotification = (id, status) => async () => {
@@ -136,48 +166,11 @@ const NotificationPanel = ({
         <Separator />
 
         <ScrollArea className="flex-1 h-full">
-          {showHistory ? (
-            loadingHistory ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2">
-                <p>Loading history...</p>
-              </div>
-            ) : notificationHistory.length === 0 ? (
-              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2">
-                <p>No older notifications</p>
-              </div>
-            ) : (
-              <div className="py-1">
-                {notificationHistory.map((notification) => (
-                  <Card key={notification.id} className="rounded-none border-t">
-                    <CardContent className="p-3 flex justify-between">
-                      <div>
-                        <p className="text-sm">{notification.message}</p>
-                        <div className="text-xs text-muted-foreground mt-1.5">
-                          {dateToTimeAgo(new Date(notification.created_at))}
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteNotification(notification.id)}
-                      >
-                        <Trash2 size={16} className="text-red-500" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                ))}
-                {notificationHistory.length > 0 && (
-                  <div className="text-center my-4">
-                    <Button
-                      onClick={fetchNotificationHistory}
-                      disabled={loadingHistory}
-                    >
-                      {loadingHistory ? "Loading..." : "Load More"}
-                    </Button>
-                  </div>
-                )}
-              </div>
-            )
+          {notifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2 h-[200px]">
+              <BellOff className="h-10 w-10 opacity-20" />
+              <p>No notifications</p>
+            </div>
           ) : (
             <div className="py-1">
               {notifications.map((notification) => (
@@ -188,18 +181,16 @@ const NotificationPanel = ({
                       ? "bg-blue-50/50 dark:bg-blue-900/20"
                       : ""
                   } hover:bg-accent/10 transition-colors`}
+                  onClick={handleReadNotification(
+                    notification.id,
+                    notification.status
+                  )}
                 >
-                  <CardContent className="p-0 flex justify-between">
+                  <CardContent className="p-0">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div
-                            className="flex items-start gap-3 px-4"
-                            onClick={handleReadNotification(
-                              notification.id,
-                              notification.status
-                            )}
-                          >
+                          <div className="flex items-start gap-3 px-4">
                             {isNotificationRead(notification) ? (
                               <MailCheck
                                 size={18}
@@ -211,7 +202,40 @@ const NotificationPanel = ({
                                 className="mt-1 text-primary"
                               />
                             )}
-                            <p className="text-sm">{notification.message}</p>
+
+                            <div className="flex-1 text-left">
+                              <div className="flex items-center justify-between mb-1">
+                                <p
+                                  className={`text-sm ${
+                                    !isNotificationRead(notification)
+                                      ? "font-semibold"
+                                      : ""
+                                  }`}
+                                >
+                                  {getNotificationText(notification.type)}
+                                </p>
+                              </div>
+
+                              <p
+                                className={`text-sm ${
+                                  !isNotificationRead(notification)
+                                    ? "font-medium"
+                                    : "text-muted-foreground"
+                                }`}
+                              >
+                                "{notification.message}"
+                              </p>
+
+                              <div className="text-xs text-muted-foreground mt-1.5">
+                                {dateToTimeAgo(
+                                  new Date(notification.created_at)
+                                )}
+                              </div>
+                            </div>
+
+                            <Button size="icon" variant="destructive">
+                              <Trash2 />
+                            </Button>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -221,13 +245,6 @@ const NotificationPanel = ({
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => deleteNotification(notification.id)}
-                    >
-                      <Trash2 size={16} className="text-red-500" />
-                    </Button>
                   </CardContent>
                 </Card>
               ))}
