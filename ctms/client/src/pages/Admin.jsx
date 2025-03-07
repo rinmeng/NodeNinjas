@@ -368,8 +368,8 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
 
   return (
     <div className="w-full my-30 animate-fadein ">
-      <section className="my-8 p-4">
-        <h2 className="text-2xl font-bold mb-4">User Analytics</h2>
+      <h2 className="text-2xl font-bold mb-4 text-center ">User Analytics</h2>
+      <section className="flex justify-center">
         <Analytics /> 
       </section>
       <Card className="max-w-lg mx-auto">

@@ -51,23 +51,16 @@ export function Analytics() {
     fetchData();
   }, []);
 
-  const chartConfig = {
-    users: {
-      label: "Users",
-      color: "hsl(var(--chart-1))",
-
-    },
-  };
+  
 
   return (
-    
-         <Card>
+         <Card className={"w-1/4"}>
       <CardHeader>
         <CardTitle>Admin User Distribution</CardTitle>
         <CardDescription>Total Users: {chartData.reduce((sum, admin) => sum + admin.users, 0)}</CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={chartConfig}>
+        <ChartContainer config={ChartConfig}>
           <BarChart width={10} height={40} data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
@@ -80,7 +73,7 @@ export function Analytics() {
               cursor={false}
               content={<ChartTooltipContent hideLabel />}
             />
-            <Bar dataKey="users" fill="var(--color-chart-1)" radius={8} />
+            <Bar dataKey="users" fill="var(--primary)" radius={8} />
           </BarChart>
         </ChartContainer>
       </CardContent>
