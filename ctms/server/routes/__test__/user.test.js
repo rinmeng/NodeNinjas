@@ -1,6 +1,7 @@
 const { app } = require('../../server');
 const request = require('supertest');
 const pool = require('../../db');
+const { verifyPassword } = require('../../utils/PasswordHasher');
 
 // Mock the database pool
 jest.mock('../../db', () => ({
@@ -16,19 +17,19 @@ jest.mock('../../auth', () => ({
 // Mock the password hashing function
 jest.mock('../../utils/PasswordHasher', () => ({
     hashPassword: jest.fn().mockResolvedValue('hashed_password'),
-    comparePassword: jest.fn().mockResolvedValue(true)
+    verifyPassword: jest.fn().mockResolvedValue(true)
 }));
 
 describe('User Routes', () => {
     // Add server variable to store server instance
     let server;
+    let mockSessionData = {};
+    let mockSessionDestroy = jest.fn().mockImplementation(cb => cb());
 
     // Start server before all tests
     beforeAll(() => {
         server = app.listen();
     });
-
-    // Close server after all tests
     afterAll((done) => {
         if (server) {
             server.close(done);
