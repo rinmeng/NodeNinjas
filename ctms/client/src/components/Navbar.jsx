@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import IconButton from "./subcomponents/IconButton";
-import NotificationPanel from "./NotificationPanel";
 import {
   Bell,
   LayoutDashboard,
@@ -9,19 +7,28 @@ import {
   Info,
   User,
   MessageSquare,
+  Menu,
+  Moon,
 } from "lucide-react";
-import { Sheet, SheetTrigger } from "@/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetTrigger,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+} from "@/components/ui/sheet";
+import { Button } from "@/components/ui/button";
+import { Toggle } from "@/components/ui/toggle";
 import { useAuth } from "@/utils/AuthProvider";
 import {
   NavigationMenu,
-  NavigationMenuContent,
   NavigationMenuItem,
-  NavigationMenuLink,
   NavigationMenuList,
-  NavigationMenuTrigger,
   navigationMenuTriggerStyle,
 } from "@/components/ui/navigation-menu";
 import { cn } from "@/lib/utils";
+import NotificationPanel from "./NotificationPanel";
 
 function Navbar({
   showNavbar,
@@ -32,117 +39,191 @@ function Navbar({
 }) {
   const { user } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
   const location = useLocation();
 
-  const ListItem = React.forwardRef(
-    ({ className, icon: Icon, title, children, ...props }, ref) => {
-      return (
-        <NavigationMenuLink asChild>
-          <Link
-            ref={ref}
-            className={cn(
-              "block select-none space-y-1 rounded-md p-3 leading-none no-underline outline-none transition-colors hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground",
-              className,
-              location.pathname === props.to ? "bg-blue-600 text-white" : ""
-            )}
-            {...props}
-          >
-            <div className="flex items-center gap-2">
-              {Icon && <Icon size={16} />}
-              <div className="text-sm font-medium leading-none">{title}</div>
-            </div>
-            {children && (
-              <p className="line-clamp-2 text-sm leading-snug text-muted-foreground">
-                {children}
-              </p>
-            )}
-          </Link>
-        </NavigationMenuLink>
-      );
+  const isActive = (route) => location.pathname === route;
+
+  // Define navigation links based on user role and dev mode
+  const getLinks = () => {
+    const links = [];
+
+    if (user || devMode) {
+      links.push({ label: "Dashboard", route: "/", icon: LayoutDashboard });
+      if (user?.role === "admin" || devMode) {
+        links.push({ label: "Admin", route: "/admin", icon: Shield });
+      }
+      links.push({ label: "Message", route: "/message", icon: MessageSquare });
     }
+
+    links.push({ label: "About", route: "/about", icon: Info });
+    links.push({
+      label: user ? user.username : "Login",
+      route: "/login",
+      icon: User,
+    });
+
+    return links;
+  };
+
+  const links = getLinks();
+
+  const handleNavigation = (route) => {
+    setMobileMenuOpen(false);
+  };
+
+  // Notification bell with count
+  const NotificationBell = () => (
+    <Button
+      variant="secondary"
+      onClick={() => setNotificationOpen(true)}
+      className="relative p-2"
+    >
+      <Bell className="h-5 w-5" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 bg-destructive text-destructive-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+          {unreadCount}
+        </span>
+      )}
+    </Button>
   );
-  ListItem.displayName = "ListItem";
 
   return (
-    <nav
-      className={`${showNavbar ? "animate-fadein" : "animate-fadeout"} 
-      fixed left-0 top-0 w-screen bg-slate-950 p-4 z-10 h-auto border-b border-slate-800`}
-    >
-      <div className="container mx-auto flex justify-between items-center">
-        <div className="text-white text-xl">
-          <h1>
-            <Link to="/" className="hover:text-blue-500 transition-colors">
-              CTMS.
-            </Link>
-          </h1>
-        </div>
+    <NavigationMenu className="fixed top-0 left-0 bg-foreground p-4 flex justify-between min-w-full animate-fade-in z-10">
+      <NavigationMenuList className={"px-10"}>
+        {/* CTMS Logo inside NavigationMenu */}
+        <NavigationMenuItem>
+          <Button
+            variant="link"
+            className="text-primary-foreground font-bold text-4xl"
+            asChild
+          >
+            <Link to="/">CTMS.</Link>
+          </Button>
+        </NavigationMenuItem>
+      </NavigationMenuList>
 
-        <NavigationMenu>
-          <NavigationMenuList>
-            {(user || devMode) && (
-              <NavigationMenuItem>
-                <ListItem to="/" icon={LayoutDashboard} title="Dashboard" />
-              </NavigationMenuItem>
-            )}
-
-            {(user?.role === "admin" || devMode) && (
-              <NavigationMenuItem>
-                <ListItem to="/admin" icon={Shield} title="Admin" />
-              </NavigationMenuItem>
-            )}
-
-            <NavigationMenuItem>
-              <ListItem to="/about" icon={Info} title="About" />
+      <div className="px-10">
+        {/* Desktop Navigation - Main Links */}
+        <NavigationMenuList className="hidden md:flex">
+          {links.map((link) => (
+            <NavigationMenuItem key={link.route}>
+              <Button
+                variant="default"
+                asChild
+                className={cn(
+                  "transition-colors",
+                  isActive(link.route) &&
+                    "bg-accent text-accent-foreground font-medium"
+                )}
+                onClick={() => handleNavigation(link.route)}
+              >
+                <Link to={link.route} className="flex items-center gap-2">
+                  {link.icon && <link.icon className="h-4 w-4" />}
+                  {link.label}
+                </Link>
+              </Button>
             </NavigationMenuItem>
+          ))}
 
+          <NavigationMenuItem>
+            <Toggle
+              variant="secondary"
+              aria-label="Toggle dark mode"
+              onClick={() => document.documentElement.classList.toggle("dark")}
+            >
+              <Moon />
+            </Toggle>
+          </NavigationMenuItem>
+
+          {(user || devMode) && (
             <NavigationMenuItem>
-              <ListItem
-                to="/login"
-                icon={User}
-                title={user ? "Profile" : "Login"}
-              />
-            </NavigationMenuItem>
-
-            {(user || devMode) && (
-              <NavigationMenuItem>
-                <ListItem to="/message" icon={MessageSquare} title="Message" />
-              </NavigationMenuItem>
-            )}
-
-            {/* Notification Bell with Sheet */}
-            {(user || devMode) && (
-              <NavigationMenuItem>
-                <Sheet
+              <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
+                <SheetTrigger asChild>
+                  <NotificationBell />
+                </SheetTrigger>
+                <NotificationPanel
+                  notifications={notifications}
                   open={notificationOpen}
                   onOpenChange={setNotificationOpen}
-                >
-                  <SheetTrigger asChild>
-                    <div className="relative">
-                      <IconButton
-                        icon={<Bell size={24} />}
-                        color="hover:bg-blue-600 text-white"
-                      />
-                      {unreadCount > 0 && (
-                        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                          {unreadCount}
-                        </span>
-                      )}
-                    </div>
-                  </SheetTrigger>
-                  <NotificationPanel
-                    notifications={notifications}
-                    open={notificationOpen}
-                    onOpenChange={setNotificationOpen}
-                    setNotificationsNeedRefetch={setNotificationsNeedRefetch}
-                  />
-                </Sheet>
-              </NavigationMenuItem>
-            )}
-          </NavigationMenuList>
-        </NavigationMenu>
+                  setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+                />
+              </Sheet>
+            </NavigationMenuItem>
+          )}
+        </NavigationMenuList>
+
+        {/* Mobile Navigation Controls */}
+        <NavigationMenuList className="md:hidden">
+          {(user || devMode) && (
+            <NavigationMenuItem>
+              <Sheet open={notificationOpen} onOpenChange={setNotificationOpen}>
+                <SheetTrigger asChild>
+                  <NotificationBell />
+                </SheetTrigger>
+                <NotificationPanel
+                  notifications={notifications}
+                  open={notificationOpen}
+                  onOpenChange={setNotificationOpen}
+                  setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+                />
+              </Sheet>
+            </NavigationMenuItem>
+          )}
+
+          <NavigationMenuItem>
+            <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+              <SheetTrigger asChild>
+                <Button variant="default" size="icon">
+                  <Menu />
+                  <span className="sr-only">Toggle menu</span>
+                </Button>
+              </SheetTrigger>
+
+              <SheetContent side="right" className="w-[240px] sm:w-[300px]">
+                <SheetHeader>
+                  <SheetTitle>
+                    <div className="text-xl font-bold">CTMS</div>
+                  </SheetTitle>
+                  <SheetDescription>Navigation menu</SheetDescription>
+                </SheetHeader>
+
+                <nav className="flex flex-col items-center gap-4">
+                  {links.map((link) => (
+                    <Button
+                      key={link.route}
+                      variant="default"
+                      asChild
+                      className={`w-3/4`}
+                      onClick={() => handleNavigation(link.route)}
+                    >
+                      <Link to={link.route} className="flex items-center gap-2">
+                        {link.icon && <link.icon className="h-4 w-4" />}
+                        {link.label}
+                      </Link>
+                    </Button>
+                  ))}
+                </nav>
+
+                {/* Toggle dark/light mode */}
+                <div className="flex justify-center">
+                  <Toggle
+                    variant="secondary"
+                    aria-label="Toggle dark mode"
+                    onClick={() =>
+                      document.documentElement.classList.toggle("dark")
+                    }
+                  >
+                    <Moon className="h-4 w-4" />
+                  </Toggle>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </NavigationMenuItem>
+        </NavigationMenuList>
       </div>
-    </nav>
+    </NavigationMenu>
   );
 }
 
