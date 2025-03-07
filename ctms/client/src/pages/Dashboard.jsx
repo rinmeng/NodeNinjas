@@ -62,7 +62,15 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
     sortDateAsc: null,
     sortPriorityAsc: "",
     sortStatusAsc: "",
+    dateRange: { start: "", end: "" }, // New Date Range Filter
   });
+
+  const handleDateRangeChange = (type, value) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      dateRange: { ...prev.dateRange, [type]: value },
+    }));
+  };
 
   const handleSearch = useCallback(
     (criteria) => {
@@ -167,6 +175,17 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
             task.status.toLowerCase() ===
             filterOptions.sortStatusAsc.toLowerCase()
         );
+      }
+
+      // Apply date range filtering
+      if (filterOptions.dateRange.start && filterOptions.dateRange.end) {
+        const startDate = new Date(filterOptions.dateRange.start);
+        const endDate = new Date(filterOptions.dateRange.end);
+
+        tasksToSort = tasksToSort.filter((task) => {
+          const taskDate = new Date(task.date);
+          return taskDate >= startDate && taskDate <= endDate;
+        });
       }
 
       setTasks(tasksToSort);
@@ -500,6 +519,37 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        </div>
+
+        <div className="flex justify-center items-center gap-3 mt-4">
+          <span className="text-sm font-medium">Filter by Date Range:</span>
+          <Input
+            type="date"
+            value={filterOptions.dateRange.start}
+            onChange={(e) => handleDateRangeChange("start", e.target.value)}
+            className="w-40"
+            placeholder="Start Date"
+          />
+          <Input
+            type="date"
+            value={filterOptions.dateRange.end}
+            onChange={(e) => handleDateRangeChange("end", e.target.value)}
+            className="w-40"
+            placeholder="End Date"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() =>
+              setFilterOptions({
+                ...filterOptions,
+                dateRange: { start: "", end: "" },
+              })
+            }
+            className="ml-2"
+          >
+            <X size={18} />
+          </Button>
         </div>
 
         <div className="flex justify-center items-center gap-3">

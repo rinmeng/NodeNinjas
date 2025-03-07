@@ -1,5 +1,5 @@
-import React from "react";
-import { MailWarning, MailCheck, BellOff } from "lucide-react";
+import React, { useState } from "react";
+import { MailWarning, MailCheck, BellOff, Filter, Trash2 } from "lucide-react";
 import proxy from "../utils/proxy";
 import {
   Sheet,
@@ -25,10 +25,14 @@ const NotificationPanel = ({
   open,
   onOpenChange,
   setNotificationsNeedRefetch,
+  user,
 }) => {
-  const isNotificationRead = (notification) => {
-    return notification.status === "read";
-  };
+  const [showHistory, setShowHistory] = useState(false);
+  const [notificationHistory, setNotificationHistory] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [historyFilter, setHistoryFilter] = useState("all"); // "all" or "unread"
+
+  const isNotificationRead = (notification) => notification.status === "read";
 
   const handleReadNotification = (id, status) => async () => {
     const endpoint = status === "unread" ? "read" : "unread";
@@ -36,9 +40,7 @@ const NotificationPanel = ({
     try {
       await fetch(`${proxy}/notification/${endpoint}/${id}`, {
         method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
       });
       setNotificationsNeedRefetch(true);
     } catch (error) {
@@ -46,54 +48,68 @@ const NotificationPanel = ({
     }
   };
 
-  const getNotificationText = (type) => {
-    switch (type) {
-      case "task_assignment":
-        return `You have been assigned to a task`;
-      case "task_unassignment":
-        return `You have been unassigned from a task`;
-      case "alert":
-        return `Alert`;
-      case "message":
-        return `You have a new message`;
-      default:
-        return `New notification`;
+  const fetchNotificationHistory = async () => {
+    setLoadingHistory(true);
+    try {
+      const response = await fetch(
+        `${proxy}/notification/history/${user.id}?offset=${notificationHistory.length}&limit=10&status=${historyFilter}`
+      );
+      const data = await response.json();
+      setNotificationHistory((prevHistory) => [...prevHistory, ...data]);
+    } catch (error) {
+      console.error("Error fetching notification history:", error);
+    }
+    setLoadingHistory(false);
+  };
+
+  const toggleHistoryView = () => {
+    if (!showHistory) fetchNotificationHistory();
+    setShowHistory(!showHistory);
+  };
+
+  const toggleHistoryFilter = () => {
+    const newFilter = historyFilter === "all" ? "unread" : "all";
+    setHistoryFilter(newFilter);
+    setNotificationHistory([]);
+    fetchNotificationHistory();
+  };
+
+  const deleteNotification = async (id) => {
+    try {
+      await fetch(`${proxy}/notification/delete/${id}`, {
+        method: "DELETE",
+      });
+      setNotificationsNeedRefetch(true);
+      setNotificationHistory(notificationHistory.filter((n) => n.id !== id));
+    } catch (error) {
+      console.error("Error deleting notification:", error);
     }
   };
 
-  const getNotificationTypeVariant = (type) => {
-    switch (type) {
-      case "task_assignment":
-        return "default";
-      case "task_unassignment":
-        return "secondary";
-      case "alert":
-        return "destructive";
-      case "message":
-        return "outline";
-      default:
-        return "default";
+  const clearAllNotifications = async () => {
+    try {
+      await fetch(`${proxy}/notification/delete/all/${user.id}`, {
+        method: "DELETE",
+      });
+      setNotificationsNeedRefetch(true);
+      setNotificationHistory([]);
+    } catch (error) {
+      console.error("Error clearing notifications:", error);
     }
   };
 
   const dateToTimeAgo = (date) => {
     const now = new Date();
     const diff = now - date;
-
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) {
-      return `${days} day${days > 1 ? "s" : ""} ago`;
-    } else if (hours > 0) {
-      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-    } else if (minutes > 0) {
-      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-    } else {
-      return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
-    }
+    if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
   };
 
   return (
@@ -120,11 +136,48 @@ const NotificationPanel = ({
         <Separator />
 
         <ScrollArea className="flex-1 h-full">
-          {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2 h-[200px]">
-              <BellOff className="h-10 w-10 opacity-20" />
-              <p>No notifications</p>
-            </div>
+          {showHistory ? (
+            loadingHistory ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2">
+                <p>Loading history...</p>
+              </div>
+            ) : notificationHistory.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2">
+                <p>No older notifications</p>
+              </div>
+            ) : (
+              <div className="py-1">
+                {notificationHistory.map((notification) => (
+                  <Card key={notification.id} className="rounded-none border-t">
+                    <CardContent className="p-3 flex justify-between">
+                      <div>
+                        <p className="text-sm">{notification.message}</p>
+                        <div className="text-xs text-muted-foreground mt-1.5">
+                          {dateToTimeAgo(new Date(notification.created_at))}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteNotification(notification.id)}
+                      >
+                        <Trash2 size={16} className="text-red-500" />
+                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+                {notificationHistory.length > 0 && (
+                  <div className="text-center my-4">
+                    <Button
+                      onClick={fetchNotificationHistory}
+                      disabled={loadingHistory}
+                    >
+                      {loadingHistory ? "Loading..." : "Load More"}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            )
           ) : (
             <div className="py-1">
               {notifications.map((notification) => (
@@ -135,16 +188,18 @@ const NotificationPanel = ({
                       ? "bg-blue-50/50 dark:bg-blue-900/20"
                       : ""
                   } hover:bg-accent/10 transition-colors`}
-                  onClick={handleReadNotification(
-                    notification.id,
-                    notification.status
-                  )}
                 >
-                  <CardContent className="p-0">
+                  <CardContent className="p-0 flex justify-between">
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
-                          <div className="flex items-start gap-3 px-4">
+                          <div
+                            className="flex items-start gap-3 px-4"
+                            onClick={handleReadNotification(
+                              notification.id,
+                              notification.status
+                            )}
+                          >
                             {isNotificationRead(notification) ? (
                               <MailCheck
                                 size={18}
@@ -156,36 +211,7 @@ const NotificationPanel = ({
                                 className="mt-1 text-primary"
                               />
                             )}
-
-                            <div className="flex-1 text-left">
-                              <div className="flex items-center justify-between mb-1">
-                                <p
-                                  className={`text-sm ${
-                                    !isNotificationRead(notification)
-                                      ? "font-semibold"
-                                      : ""
-                                  }`}
-                                >
-                                  {getNotificationText(notification.type)}
-                                </p>
-                              </div>
-
-                              <p
-                                className={`text-sm ${
-                                  !isNotificationRead(notification)
-                                    ? "font-medium"
-                                    : "text-muted-foreground"
-                                }`}
-                              >
-                                "{notification.message}"
-                              </p>
-
-                              <div className="text-xs text-muted-foreground mt-1.5">
-                                {dateToTimeAgo(
-                                  new Date(notification.created_at)
-                                )}
-                              </div>
-                            </div>
+                            <p className="text-sm">{notification.message}</p>
                           </div>
                         </TooltipTrigger>
                         <TooltipContent>
@@ -195,12 +221,28 @@ const NotificationPanel = ({
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => deleteNotification(notification.id)}
+                    >
+                      <Trash2 size={16} className="text-red-500" />
+                    </Button>
                   </CardContent>
                 </Card>
               ))}
             </div>
           )}
         </ScrollArea>
+
+        <div className="px-4 py-2 border-t flex justify-between items-center">
+          <Button variant="ghost" onClick={toggleHistoryView}>
+            {showHistory ? "Back to Recent" : "View Notification History"}
+          </Button>
+          <Button variant="destructive" onClick={clearAllNotifications}>
+            Clear All
+          </Button>
+        </div>
       </SheetContent>
     </Sheet>
   );
