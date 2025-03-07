@@ -41,7 +41,8 @@ export default function DataTable({
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
   const [pageSize, setPageSize] = useState(initialPageSize);
-  const [pageIndex, setPageIndex] = useState(0); // Add state for page index
+  const [pageIndex, setPageIndex] = useState(0);
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
     data,
@@ -50,6 +51,21 @@ export default function DataTable({
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
+    globalFilterFn: (row, columnId, filterValue) => {
+      const searchableFields = ["username", "email", "id", "role"];
+
+      // If value is empty, return all rows
+      if (!filterValue) return true;
+
+      // Convert search term to lowercase for case-insensitive search
+      const searchTerm = filterValue.toLowerCase();
+
+      // Check if any searchable field in the row contains the search term
+      return searchableFields.some((field) => {
+        const value = row.getValue(field);
+        return value?.toString().toLowerCase().includes(searchTerm);
+      });
+    },
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
@@ -89,9 +105,11 @@ export default function DataTable({
       rowSelection,
       pagination: {
         pageSize: pageSize,
-        pageIndex: pageIndex, // Use the state variable
+        pageIndex: pageIndex,
       },
+      globalFilter,
     },
+    onGlobalFilterChange: setGlobalFilter,
   });
 
   useEffect(() => {
@@ -100,16 +118,19 @@ export default function DataTable({
     }
   }, [table, tableRef]);
 
+  useEffect(() => {
+    // Register a custom global filter function
+    table.setGlobalFilter(table.getState().globalFilter);
+  }, [table]);
+
   return (
     <Card className="w-full h-full">
       <CardContent className="p-4">
         <div className="flex items-center py-4 gap-2">
           <Input
-            placeholder="Filter emails..."
-            value={table.getColumn("email")?.getFilterValue() ?? ""}
-            onChange={(event) =>
-              table.getColumn("email")?.setFilterValue(event.target.value)
-            }
+            placeholder="Search users by username, email, id, or role..."
+            value={table.getState().globalFilter || ""}
+            onChange={(event) => table.setGlobalFilter(event.target.value)}
             className="max-w-sm"
           />
 
