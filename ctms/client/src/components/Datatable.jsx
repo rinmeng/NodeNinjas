@@ -15,6 +15,7 @@ import {
   DropdownMenuCheckboxItem,
   DropdownMenuContent,
   DropdownMenuTrigger,
+  DropdownMenuItem,
 } from "@/components/ui/dropdown-menu";
 import {
   Table,
@@ -26,11 +27,18 @@ import {
 } from "@/components/ui/table";
 import { ChevronDown } from "lucide-react";
 
-export default function DataTable({ columns = [], data = [] }) {
+export default function DataTable({
+  columns = [],
+  data = [],
+  loading = false,
+  initialPageSize = 10, // Default page size
+}) {
   const [sorting, setSorting] = useState([]);
   const [columnFilters, setColumnFilters] = useState([]);
   const [columnVisibility, setColumnVisibility] = useState({});
   const [rowSelection, setRowSelection] = useState({});
+  const [pageSize, setPageSize] = useState(initialPageSize);
+  const [pageIndex, setPageIndex] = useState(0); // Add state for page index
 
   const table = useReactTable({
     data,
@@ -43,17 +51,31 @@ export default function DataTable({ columns = [], data = [] }) {
     onColumnFiltersChange: setColumnFilters,
     onColumnVisibilityChange: setColumnVisibility,
     onRowSelectionChange: setRowSelection,
+    onPaginationChange: (updater) => {
+      // Handle pagination state changes
+      const newPaginationState =
+        typeof updater === "function"
+          ? updater(table.getState().pagination)
+          : updater;
+
+      setPageIndex(newPaginationState.pageIndex);
+      setPageSize(newPaginationState.pageSize);
+    },
     state: {
       sorting,
       columnFilters,
       columnVisibility,
       rowSelection,
+      pagination: {
+        pageSize: pageSize,
+        pageIndex: pageIndex, // Use the state variable
+      },
     },
   });
 
   return (
-    <div className="w-3/4 mx-auto">
-      <div className="flex items-center py-4">
+    <div className="w-full h-full rounded-lg p-4 bg-slate-900 border">
+      <div className="flex items-center py-4 gap-2">
         <Input
           placeholder="Filter emails..."
           value={table.getColumn("email")?.getFilterValue() ?? ""}
@@ -62,13 +84,12 @@ export default function DataTable({ columns = [], data = [] }) {
           }
           className="max-w-sm"
         />
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <div className="ml-auto ">
-              <Button variant="secondary" className="">
-                Columns <ChevronDown className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
+            <Button variant="secondary">
+              Columns <ChevronDown />
+            </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             {table
@@ -90,9 +111,31 @@ export default function DataTable({ columns = [], data = [] }) {
               })}
           </DropdownMenuContent>
         </DropdownMenu>
+
+        {/* Page Size Dropdown */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="secondary">
+              {pageSize} rows <ChevronDown />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            {[5, 10].map((size) => (
+              <DropdownMenuItem
+                key={size}
+                onClick={() => {
+                  setPageSize(size);
+                  table.setPageSize(size);
+                }}
+              >
+                {size} rows
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
-      <div className="rounded-md border">
+      <div className="rounded-md border overflow-hidden">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -111,31 +154,79 @@ export default function DataTable({ columns = [], data = [] }) {
             ))}
           </TableHeader>
           <TableBody>
-            {table.getRowModel().rows?.length ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  data-state={row.getIsSelected() && "selected"}
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext()
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
+            {loading ? (
               <TableRow>
                 <TableCell
                   colSpan={columns.length}
                   className="h-24 text-center"
                 >
-                  No results.
+                  Loading...
                 </TableCell>
               </TableRow>
+            ) : table.getRowModel().rows?.length ? (
+              <>
+                {table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    data-state={row.getIsSelected() && "selected"}
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id}>
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext()
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))}
+                {/* Add empty rows to maintain consistent height */}
+                {table.getRowModel().rows.length < pageSize &&
+                  Array(pageSize - table.getRowModel().rows.length)
+                    .fill(0)
+                    .map((_, index) => (
+                      <TableRow
+                        key={`empty-${index}`}
+                        className="h-12 border-none pointer-events-none"
+                      >
+                        {Array(columns.length)
+                          .fill(0)
+                          .map((_, cellIndex) => (
+                            <TableCell key={`empty-cell-${cellIndex}`}>
+                              &nbsp;
+                            </TableCell>
+                          ))}
+                      </TableRow>
+                    ))}
+              </>
+            ) : (
+              <>
+                <TableRow>
+                  <TableCell
+                    colSpan={columns.length}
+                    className="h-12 text-center"
+                  >
+                    No results.
+                  </TableCell>
+                </TableRow>
+                {/* Add empty rows when there are no results */}
+                {Array(pageSize - 1)
+                  .fill(0)
+                  .map((_, index) => (
+                    <TableRow
+                      key={`empty-${index}`}
+                      className="h-12 border-none pointer-events-none"
+                    >
+                      {Array(columns.length)
+                        .fill(0)
+                        .map((_, cellIndex) => (
+                          <TableCell key={`empty-cell-${cellIndex}`}>
+                            &nbsp;
+                          </TableCell>
+                        ))}
+                    </TableRow>
+                  ))}
+              </>
             )}
           </TableBody>
         </Table>
@@ -146,7 +237,11 @@ export default function DataTable({ columns = [], data = [] }) {
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
-        <div className="space-x-2">
+        <div className="space-x-2 flex items-center">
+          <span className="text-sm text-muted-foreground">
+            Page {table.getState().pagination.pageIndex + 1} of{" "}
+            {table.getPageCount()}
+          </span>
           <Button
             variant="secondary"
             size="sm"

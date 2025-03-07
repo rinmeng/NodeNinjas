@@ -1,5 +1,5 @@
 import { Checkbox } from "@/components/ui/checkbox";
-import { MoreHorizontal } from "lucide-react";
+import { MoreHorizontal, ArrowUpDown, RefreshCw, Trash2 } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,10 +11,16 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
 import DataTable from "../components/Datatable";
 import { Button } from "@/components/ui/button";
-import { ArrowUpDown } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 const proxy = "http://localhost:15000/";
 
@@ -22,11 +28,55 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isRefetching, setIsRefetching] = useState(false);
   const [nameOrder, setNameOrder] = useState(0);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
-    fetchUsers();
+    // Initial load without visual feedback
+    if (initialLoad) {
+      loadUsersInitially();
+    }
   }, []);
+
+  // Handle loading state and feedback only for user-initiated refreshes
+  useEffect(() => {
+    if (isRefetching && !initialLoad) {
+      const timer = setTimeout(() => {
+        setIsRefetching(false);
+        setIsLoading(false);
+        setFeedbackMessage({
+          title: "Success",
+          description: "User data has been successfully synced",
+        });
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [isRefetching, setFeedbackMessage, initialLoad]);
+
+  // Initial load function without visual feedback
+  const loadUsersInitially = () => {
+    fetch(proxy + "user/all", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "The users can't be loaded");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setUsersList(data);
+        setInitialLoad(false);
+      })
+      .catch((error) => {
+        console.error("Error fetching data:", error);
+        setUsersList([]);
+        setInitialLoad(false);
+      });
+  };
 
   if ((!sessionUser || sessionUser.role !== "admin") && !devMode) {
     return (
@@ -64,7 +114,13 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       enableSorting: false,
       enableHiding: false,
     },
-    { header: "User Id", accessorKey: "id" },
+    {
+      header: "ID",
+      accessorKey: "id",
+      cell: ({ row }) => (
+        <span className="font-mono text-xs">{row.getValue("id")}</span>
+      ),
+    },
     {
       accessorKey: "username",
       header: ({ column }) => {
@@ -89,7 +145,6 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
     },
     { header: "Email Address", accessorKey: "email" },
     { header: "Role", accessorKey: "role" },
-    // In your usersColumns definition, update the actions cell:
     {
       id: "actions",
       cell: ({ row }) => {
@@ -98,10 +153,10 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
         return (
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <div>
+              <Button variant="ghost" className="h-8 w-8 p-0">
                 <MoreHorizontal className="h-4 w-4" />
                 <span className="sr-only">Open menu</span>
-              </div>
+              </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuLabel>Actions</DropdownMenuLabel>
@@ -202,7 +257,10 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
     }
   };
 
+  // User-initiated fetch with loading indicators
   const fetchUsers = () => {
+    setIsLoading(true);
+    setIsRefetching(true);
     fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
@@ -215,6 +273,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       .then((data) => {
         console.log("Fetch list:", data);
         setUsersList(data);
+        // Loading indicator will be cleared by the useEffect
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -223,11 +282,15 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
           description: "Failed to load users",
         });
         setUsersList([]);
+        setIsLoading(false);
+        setIsRefetching(false);
       });
   };
 
   //Users will be sorted in ascending order(A-Z)
   const fetchAscUsers = () => {
+    setIsLoading(true);
+    setIsRefetching(true);
     fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
@@ -248,6 +311,11 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
 
         console.log("Fetch list:", sortAlph);
         setUsersList(sortAlph);
+        // Loading indicator will be cleared by the useEffect
+        setFeedbackMessage({
+          title: "Success",
+          description: "Users sorted A-Z",
+        });
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -256,11 +324,15 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
           description: "Failed to load users",
         });
         setUsersList([]);
+        setIsLoading(false);
+        setIsRefetching(false);
       });
   };
 
   //Users will be sorted in descending order(Z-A)
   const fetchDescUsers = () => {
+    setIsLoading(true);
+    setIsRefetching(true);
     fetch(proxy + "user/all", { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
@@ -281,6 +353,11 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
 
         console.log("Fetch list:", sortAlph);
         setUsersList(sortAlph);
+        // Loading indicator will be cleared by the useEffect
+        setFeedbackMessage({
+          title: "Success",
+          description: "Users sorted Z-A",
+        });
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -289,6 +366,8 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
           description: "Failed to load users",
         });
         setUsersList([]);
+        setIsLoading(false);
+        setIsRefetching(false);
       });
   };
 
@@ -308,6 +387,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   };
 
   const updateUserRole = (userId, newRole) => {
+    setIsRefetching(true);
     fetch(proxy + `user/updateRole/${userId}`, {
       method: "PUT",
       headers: {
@@ -336,6 +416,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
             user.id === userId ? { ...user, role: newRole } : user
           )
         );
+        setIsRefetching(false);
       })
       .catch((error) => {
         console.error("Error updating role:", error);
@@ -343,54 +424,85 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
           title: "Error",
           description: "Failed to update role: " + error.message,
         });
+        setIsRefetching(false);
       });
   };
 
   return (
-    <div className="mp5 my-16 animate-fadein bg-slate-700">
-      <h1 className="title text-center">Welcome to the Admin Dashboard!</h1>
+    <div className="flex justify-center py-16 my-8 animate-fadein">
+      <div className="space-y-4">
+        <Dialog>
+          <DialogTrigger asChild>
+            <Button className="mb-4">Manage Users</Button>
+          </DialogTrigger>
 
-      <section className="my-8 p-4">
-        <div className="bg-slate-900">
-          <div className="bg-slate-900 rounded-t-lg">
-            <h1 className="text-2xl font-bold text-center">
-              Manage Users, Tasks and Roles
-            </h1>
-          </div>
-          <div>
-            <DataTable
-              columns={usersColumns}
-              data={usersList.map((user) => {
-                const Ticked = chosenUserIds.includes(user.id);
-                return {
-                  ...user,
-                  selectUser: (
-                    <TickCheckbox
-                      userId={user.id}
-                      checked={Ticked}
-                      onChange={() => changeTable(user.id)}
-                    />
-                  ),
-                  changeRole: (
-                    <select
-                      value={user.role}
-                      onChange={(e) => updateUserRole(user.id, e.target.value)}
-                      className="bg-yellow-500 text-white rounded-md p-1 focus:outline-none focus:ring-2 focus:ring-yellow-600"
-                      disabled={isDeleting}
-                    >
-                      <option value="admin">Admin</option>
-                      <option value="team_member">team_member</option>
-                    </select>
-                  ),
-                };
-              })}
-              loading={false}
-            />
-          </div>
+          {/* Make the dialog much larger */}
+          <DialogContent className="min-w-[900px]">
+            <DialogHeader>
+              <DialogTitle className="flex gap-4 text-xl text-black">
+                Manage Users
+                <Button
+                  variant="default"
+                  size="sm"
+                  onClick={fetchUsers}
+                  disabled={isLoading}
+                >
+                  <RefreshCw
+                    className={`h-4 w-4 mr-1 ${
+                      isLoading || isRefetching ? "animate-spin" : ""
+                    }`}
+                  />
+                  Sync Users
+                </Button>
+              </DialogTitle>
+              <DialogDescription>
+                View and manage all users in the system
+              </DialogDescription>
+            </DialogHeader>
 
-          <div className="rounded-sm mt-5 bg-slate-900 rounded-b-lg p-2"></div>
-        </div>
-      </section>
+            {chosenUserIds.length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      `Delete ${chosenUserIds.length} selected users?`
+                    )
+                  ) {
+                    deleteUsers();
+                  }
+                }}
+                disabled={isDeleting || isRefetching}
+              >
+                <Trash2
+                  className={`h-4 w-4 mr-1 ${isDeleting ? "animate-spin" : ""}`}
+                />
+                Delete Selected ({chosenUserIds.length})
+              </Button>
+            )}
+
+            {/* Table wrapper with proper spacing */}
+            <div className="w-full">
+              <DataTable
+                columns={usersColumns}
+                data={usersList}
+                loading={isLoading && !initialLoad}
+                initialPageSize={5}
+              />
+            </div>
+
+            {/* Footer with selected count and clear selection button */}
+            {chosenUserIds.length > 0 && (
+              <div className="border-t mt-4 pt-4 flex justify-end">
+                <Button variant="ghost" size="sm" onClick={resetSelection}>
+                  Clear Selection ({chosenUserIds.length})
+                </Button>
+              </div>
+            )}
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };
