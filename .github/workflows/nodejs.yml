@@ -14,32 +14,32 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
-      
+
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: 'ctms/client/package-lock.json'
-      
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: "ctms/client/package-lock.json"
+
       - name: Debug - List directory structure
         run: |
           ls -la
           ls -la ctms/client
-      
+
       - name: Install dependencies
         run: |
           cd ctms/client
           npm install 
           npm install --save react-router-dom
           npm install --save-dev @testing-library/jest-dom @testing-library/react @babel/plugin-proposal-private-property-in-object
-          
+
       - name: Verify installation
         run: |
           cd ctms/client
           ls -la node_modules/react-router-dom || echo "react-router-dom not found!"
-          
+
       - name: Run tests
         run: |
-          cd ctms/client
+          cd ctms/server
           CI=true npm test
