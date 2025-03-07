@@ -21,7 +21,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-
+import { Card, CardContent } from "@/components/ui/card";
 import proxy from "@/src/utils/proxy";
 
 const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
@@ -356,45 +356,75 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="flex justify-center py-16 my-8 animate-fadein">
-      <div className="space-y-4">
-        <Dialog>
-          <DialogTrigger asChild>
-            <Button className="mb-4">Manage Users</Button>
-          </DialogTrigger>
+    <div className="container py-16 my-8 animate-fadein">
+      <Card className="max-w-lg mx-auto">
+        <CardContent className="p-8 flex flex-col items-center">
+          <h2 className="text-2xl font-semibold mb-6">User Administration</h2>
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-full">Manage Users</Button>
+            </DialogTrigger>
 
-          {/* Make the dialog much larger */}
-          <DialogContent className="min-w-[900px]">
-            <DialogHeader>
-              <DialogTitle className="flex gap-4 text-xl">
-                Manage Users
-                <Button
-                  variant="default"
-                  size="sm"
-                  onClick={fetchUsers}
-                  disabled={isLoading}
-                >
-                  <RefreshCw
-                    className={`h-4 w-4 mr-1 ${
-                      isLoading || isRefetching ? "animate-spin" : ""
-                    }`}
-                  />
-                  Sync Users
-                </Button>
-              </DialogTitle>
-              <DialogDescription>
-                View and manage all users in the system
-              </DialogDescription>
-            </DialogHeader>
-            <DataTable
-              columns={usersColumns}
-              data={usersList}
-              loading={isLoading && !initialLoad}
-              initialPageSize={5}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
+            {/* Make the dialog much larger */}
+            <DialogContent className="min-w-[900px]">
+              <DialogHeader>
+                <DialogTitle className="flex items-center gap-4 text-xl">
+                  Manage Users
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={fetchUsers}
+                    disabled={isLoading}
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 mr-1 ${
+                        isLoading || isRefetching ? "animate-spin" : ""
+                      }`}
+                    />
+                    Sync Users
+                  </Button>
+                </DialogTitle>
+                <DialogDescription>
+                  View and manage all users in the system
+                </DialogDescription>
+              </DialogHeader>
+
+              {chosenUserIds.length > 0 && (
+                <div className="flex items-center gap-2 mb-4">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={() => {
+                      if (
+                        window.confirm(
+                          "Are you sure you want to delete the selected users?"
+                        )
+                      ) {
+                        deleteUsers();
+                      }
+                    }}
+                    disabled={isDeleting}
+                    className="flex items-center"
+                  >
+                    <Trash2 className="h-4 w-4 mr-1" />
+                    Delete Selected ({chosenUserIds.length})
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={resetSelection}>
+                    Clear Selection
+                  </Button>
+                </div>
+              )}
+
+              <DataTable
+                columns={usersColumns}
+                data={usersList}
+                loading={isLoading && !initialLoad}
+                initialPageSize={5}
+              />
+            </DialogContent>
+          </Dialog>
+        </CardContent>
+      </Card>
     </div>
   );
 };
