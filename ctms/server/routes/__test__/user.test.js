@@ -8,7 +8,7 @@ jest.mock('../../db', () => ({
 }));
 
 // Mock the authentication middleware
-jest.mock('../../middleware/auth', () => ({
+jest.mock('../../auth', () => ({
     isAuthAsAdmin: (req, res, next) => next(),
     isAuthenticated: (req, res, next) => next()
 }));
