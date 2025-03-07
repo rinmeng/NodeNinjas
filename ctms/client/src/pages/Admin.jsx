@@ -30,7 +30,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
-  const [nameOrder, setNameOrder] = useState(0);
+  const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
   const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
@@ -91,6 +91,28 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
     );
   }
 
+  // Sort users based on current sort direction
+  const sortUsers = () => {
+    // Toggle sort direction
+    const newDirection =
+      sortDirection === "none" || sortDirection === "desc" ? "asc" : "desc";
+    setSortDirection(newDirection);
+
+    // Create a new sorted array without modifying the original data
+    const sortedUsers = [...usersList].sort((a, b) => {
+      const useA = a.username.toLowerCase();
+      const useB = b.username.toLowerCase();
+
+      if (newDirection === "asc") {
+        return useA < useB ? -1 : useA > useB ? 1 : 0;
+      } else {
+        return useA > useB ? -1 : useA < useB ? 1 : 0;
+      }
+    });
+
+    setUsersList(sortedUsers);
+  };
+
   const usersColumns = [
     {
       id: "select",
@@ -125,18 +147,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       accessorKey: "username",
       header: ({ column }) => {
         return (
-          <Button
-            variant="ghost"
-            onClick={() => {
-              if (nameOrder === 0) {
-                fetchAscUsers();
-                setNameOrder(1);
-              } else {
-                fetchDescUsers();
-                setNameOrder(0);
-              }
-            }}
-          >
+          <Button variant="ghost" onClick={sortUsers}>
             Username
             <ArrowUpDown className="ml-2 h-4 w-4" />
           </Button>
@@ -272,91 +283,8 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
       .then((data) => {
         console.log("Fetch list:", data);
         setUsersList(data);
+        setSortDirection("none"); // Reset sort direction when fetching new data
         // Loading indicator will be cleared by the useEffect
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setFeedbackMessage({
-          title: "Error",
-          description: "Failed to load users",
-        });
-        setUsersList([]);
-        setIsLoading(false);
-        setIsRefetching(false);
-      });
-  };
-
-  //Users will be sorted in ascending order(A-Z)
-  const fetchAscUsers = () => {
-    setIsLoading(true);
-    setIsRefetching(true);
-    fetch(proxy + "user/all", { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.message || "The users can't be loaded");
-          });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const sortAlph = data.sort((a, b) => {
-          const useA = a.username;
-          const useB = b.username;
-          if (useA < useB) return -1;
-          if (useA > useB) return 1;
-          return 0;
-        });
-
-        console.log("Fetch list:", sortAlph);
-        setUsersList(sortAlph);
-        // Loading indicator will be cleared by the useEffect
-        setFeedbackMessage({
-          title: "Success",
-          description: "Users sorted A-Z",
-        });
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setFeedbackMessage({
-          title: "Error",
-          description: "Failed to load users",
-        });
-        setUsersList([]);
-        setIsLoading(false);
-        setIsRefetching(false);
-      });
-  };
-
-  //Users will be sorted in descending order(Z-A)
-  const fetchDescUsers = () => {
-    setIsLoading(true);
-    setIsRefetching(true);
-    fetch(proxy + "user/all", { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.message || "The users can't be loaded");
-          });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        const sortAlph = data.sort((a, b) => {
-          const useA = a.username;
-          const useB = b.username;
-          if (useA < useB) return 1;
-          if (useA > useB) return -1;
-          return 0;
-        });
-
-        console.log("Fetch list:", sortAlph);
-        setUsersList(sortAlph);
-        // Loading indicator will be cleared by the useEffect
-        setFeedbackMessage({
-          title: "Success",
-          description: "Users sorted Z-A",
-        });
       })
       .catch((error) => {
         console.error("Error fetching data:", error);
@@ -438,7 +366,7 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
           {/* Make the dialog much larger */}
           <DialogContent className="min-w-[900px]">
             <DialogHeader>
-              <DialogTitle className="flex gap-4 text-xl text-black">
+              <DialogTitle className="flex gap-4 text-xl">
                 Manage Users
                 <Button
                   variant="default"
@@ -458,47 +386,12 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
                 View and manage all users in the system
               </DialogDescription>
             </DialogHeader>
-
-            {chosenUserIds.length > 0 && (
-              <Button
-                variant="destructive"
-                size="sm"
-                onClick={() => {
-                  if (
-                    window.confirm(
-                      `Delete ${chosenUserIds.length} selected users?`
-                    )
-                  ) {
-                    deleteUsers();
-                  }
-                }}
-                disabled={isDeleting || isRefetching}
-              >
-                <Trash2
-                  className={`h-4 w-4 mr-1 ${isDeleting ? "animate-spin" : ""}`}
-                />
-                Delete Selected ({chosenUserIds.length})
-              </Button>
-            )}
-
-            {/* Table wrapper with proper spacing */}
-            <div className="w-full">
-              <DataTable
-                columns={usersColumns}
-                data={usersList}
-                loading={isLoading && !initialLoad}
-                initialPageSize={5}
-              />
-            </div>
-
-            {/* Footer with selected count and clear selection button */}
-            {chosenUserIds.length > 0 && (
-              <div className="border-t mt-4 pt-4 flex justify-end">
-                <Button variant="ghost" size="sm" onClick={resetSelection}>
-                  Clear Selection ({chosenUserIds.length})
-                </Button>
-              </div>
-            )}
+            <DataTable
+              columns={usersColumns}
+              data={usersList}
+              loading={isLoading && !initialLoad}
+              initialPageSize={5}
+            />
           </DialogContent>
         </Dialog>
       </div>
