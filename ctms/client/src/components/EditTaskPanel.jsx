@@ -5,7 +5,6 @@ import getDateWithRelativeTime from "../utils/getDateWithRelativeTime";
 
 // Import Shadcn UI components
 import {
-  Dialog,
   DialogContent,
   DialogDescription,
   DialogFooter,
@@ -25,6 +24,14 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 const EditTaskPanel = ({
   taskToEdit,
@@ -141,133 +148,136 @@ const EditTaskPanel = ({
   };
 
   return (
-    <DialogContent className="sm:max-w-[900px] max-h-[100vh] bg-slate-900 text-white border-slate-600 overflow-y-auto">
+    <DialogContent className="sm:max-w-[900px] max-h-[100vh] overflow-y-auto">
       <DialogHeader>
-        <DialogTitle className="text-xl font-semibold flex justify-between items-center">
-          Edit Task
+        <DialogTitle>
+          <h1 className="text-primary">Edit Task</h1>
         </DialogTitle>
-        <DialogDescription className="text-slate-400">
+        <DialogDescription>
           Make changes to your task details below
         </DialogDescription>
       </DialogHeader>
 
-      {/* Rest of the component remains the same as before */}
       {/* Task Information */}
-      <div className="bg-slate-800 p-4 rounded-lg">
-        <h2 className="text-lg font-semibold text-white">
-          Task: {taskToEdit.name}
-        </h2>
-        <p className="text-slate-300 text-sm truncate">
-          {taskToEdit.description}
-        </p>
-        <p className="text-slate-400 text-sm mt-2">
-          Created by:{" "}
-          <span className="text-white">
-            @{taskToEdit.owner_username} ({taskToEdit.owner_display_name})
-          </span>
-        </p>
-        <p className="text-slate-400 text-sm">
-          Created on:{" "}
-          <span className="text-white">
-            {getDateWithRelativeTime(taskToEdit.created_at)}
-          </span>
-        </p>
-      </div>
+      <Card>
+        <CardContent>
+          <CardTitle>
+            <h2 className="text-lg font-semibold">Task: {taskToEdit.name}</h2>
+          </CardTitle>
+          <CardDescription>
+            <p className="text-sm truncate">{taskToEdit.description}</p>
+          </CardDescription>
+          <CardDescription>
+            <p className="text-sm">
+              Created by:{" "}
+              <span>
+                @{taskToEdit.owner_username} ({taskToEdit.owner_display_name})
+              </span>
+            </p>
+            <p className="text-sm">
+              Created on:{" "}
+              <span>{getDateWithRelativeTime(taskToEdit.created_at)}</span>
+            </p>
+          </CardDescription>
+        </CardContent>
+      </Card>
 
       {/* Form Fields */}
-      <div className="space-y-4 py-4">
-        <div className="space-y-2">
-          <Label htmlFor="name">Task Title</Label>
-          <Input
-            id="name"
-            name="name"
-            value={taskAfterEdit?.name || ""}
-            onChange={handleInputChange}
-            className="bg-slate-800 border-slate-700 text-white"
-            placeholder="Enter task title"
-            maxLength={255}
-          />
-        </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h3 className="text-md">Task Details</h3>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Task Title</Label>
+              <Input
+                id="name"
+                name="name"
+                value={taskAfterEdit?.name || ""}
+                onChange={handleInputChange}
+                placeholder="Enter task title"
+                maxLength={255}
+              />
+            </div>
 
-        <div className="space-y-2 w-full">
-          <Label htmlFor="description">Description</Label>
-          <Textarea
-            id="description"
-            name="description"
-            value={taskAfterEdit?.description || ""}
-            onChange={handleInputChange}
-            className="w-full bg-slate-800 resize-none border-slate-700 text-white min-h-[120px]"
-            placeholder="Provide a detailed description of the task "
-          />
-        </div>
+            <div className="space-y-2 w-full">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                name="description"
+                value={taskAfterEdit?.description || ""}
+                onChange={handleInputChange}
+                className="w-full resize-none min-h-[120px]"
+                placeholder="Provide a detailed description of the task"
+              />
+            </div>
 
-        <div className="flex flex-row justify-start space-x-4">
-          <div className="space-y-2 ">
-            <Label htmlFor="date">Due Date</Label>
-            <Input
-              id="date"
-              name="date"
-              type="date"
-              value={getDateFromDateString(taskAfterEdit?.date)}
-              onChange={handleInputChange}
-              className="flex justify-center  bg-slate-800 border-slate-700 text-white"
-            />
+            <div className="flex flex-row justify-start space-x-4">
+              <div className="space-y-2">
+                <Label htmlFor="date">Due Date</Label>
+                <Input
+                  id="date"
+                  name="date"
+                  type="date"
+                  value={getDateFromDateString(taskAfterEdit?.date)}
+                  onChange={handleInputChange}
+                  className="flex justify-center"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="priority">Priority</Label>
+                <Select
+                  value={taskAfterEdit?.priority || "low"}
+                  onValueChange={(value) =>
+                    handleSelectChange("priority", value)
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select priority" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Low</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="high">High</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select
+                  value={taskAfterEdit?.status || "pending"}
+                  onValueChange={(value) => handleSelectChange("status", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="in_progress">In Progress</SelectItem>
+                    <SelectItem value="completed">Completed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
+        </CardContent>
+      </Card>
 
-          <div className="space-y-2">
-            <Label htmlFor="priority">Priority</Label>
-            <Select
-              value={taskAfterEdit?.priority || "low"}
-              onValueChange={(value) => handleSelectChange("priority", value)}
-            >
-              <SelectTrigger className="w-full bg-slate-800 border-slate-700 text-white">
-                <SelectValue placeholder="Select priority" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="status">Status</Label>
-            <Select
-              value={taskAfterEdit?.status || "pending"}
-              onValueChange={(value) => handleSelectChange("status", value)}
-            >
-              <SelectTrigger className="bg-slate-800 border-slate-700 text-white">
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent className="bg-slate-800 border-slate-700 text-white">
-                <SelectItem value="pending">Pending</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
-      </div>
-
-      <Separator className="bg-slate-600" />
+      <Separator />
 
       <DialogFooter>
         <DialogClose asChild>
-          <Button
-            variant="outline"
-            className="text-white bg-transparent border-slate-600 hover:bg-slate-700"
-          >
-            Cancel
-          </Button>
+          <Button variant="outline">Cancel</Button>
         </DialogClose>
         <DialogClose asChild>
-          <Button
-            className="bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={handleUpdateTask}
-          >
+          <Button onClick={handleUpdateTask}>
             Save Changes
-            <Save className="h-4 w-4" />
+            <Save className="h-4 w-4 ml-1" />
           </Button>
         </DialogClose>
       </DialogFooter>
