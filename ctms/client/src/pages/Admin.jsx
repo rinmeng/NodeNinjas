@@ -156,6 +156,10 @@ const Admin = ({ sessionUser, devMode, setFeedbackMessage }) => {
   };
   //updating the user's role
   const updateUserRole = (userId, newRole) => {
+    if (newRole==="admin"){
+      setFeedbackMessage("You can't change a user to an admin");
+      return;
+    }
     fetch(proxy + `user/updateRole/${userId}`, {
       method: "PUT",
       headers: {
