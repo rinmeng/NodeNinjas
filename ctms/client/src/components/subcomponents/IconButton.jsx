@@ -14,7 +14,7 @@ const IconButton = ({
   const displayIcon = isHovering && hoverIcon ? hoverIcon : icon;
 
   return (
-    <div className="relative inline-block">
+    <div className="relative inline-block ">
       <button
         onClick={onClick}
         onMouseEnter={() => setIsHovering(true)}

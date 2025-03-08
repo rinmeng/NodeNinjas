@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Navigate } from "react-router-dom";
 import Chat from "./Chat";
+import {
   Search,
   Filter,
   RefreshCw,
@@ -30,7 +31,13 @@ import Chat from "./Chat";
 import TaskItem from "../components/subcomponents/TaskItem";
 import Chat from "./Chat";
 
-const Home = ({ sessionUser, devMode, notifications, setNotifications,setNotificationToAdd }) => {
+const Home = ({
+  sessionUser,
+  devMode,
+  notifications,
+  setNotifications,
+  setNotificationToAdd,
+}) => {
   // Create dummy tasks
   const [tasks, setTasks] = useState([
     {
@@ -172,9 +179,7 @@ const Home = ({ sessionUser, devMode, notifications, setNotifications,setNotific
       timestamp: new Date().toISOString(),
       read: false,
     };
-    setNotificationToAdd((prev)=>[getNotification,...prev]);
-
-
+    setNotificationToAdd((prev) => [getNotification, ...prev]);
 
     // Reset the form
     setTaskTitle("");
@@ -577,9 +582,9 @@ const Home = ({ sessionUser, devMode, notifications, setNotifications,setNotific
         </div>
       </div>
       <div className="mt-10">
-      <h2 className="text-2xl font-bold text-white mb-4">Live Chat</h2>
-      <Chat />
-    </div>
+        <h2 className="text-2xl font-bold text-white mb-4">Live Chat</h2>
+        <Chat />
+      </div>
     </div>
   );
 };

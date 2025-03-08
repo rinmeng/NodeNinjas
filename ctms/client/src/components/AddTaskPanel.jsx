@@ -1,20 +1,40 @@
-import { ListPlus, X } from "lucide-react";
+import { ListPlus } from "lucide-react";
 import React, { useState } from "react";
-import IconizedButton from "./subcomponents/IconizedButton";
+
+import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 import proxy from "../utils/proxy";
-import IconButton from "./subcomponents/IconButton";
+import { Separator } from "@/components/ui/separator";
 
-const AddTaskPanel = ({
-  showAddTaskPanel,
-  setShowAddTaskPanel,
-  setFeedbackMessage,
-  sessionUser,
-  setNeedsRefetch,
-  notifications,
-  setNotifications,
-  setNotificationToAdd,
-}) => {
+const AddTaskPanel = ({ setFeedbackMessage, user, setNeedsRefetch }) => {
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
     title: "",
@@ -23,28 +43,40 @@ const AddTaskPanel = ({
     status: "pending",
     priority: "low",
   });
+  const [open, setOpen] = useState(false);
 
   const handleAddTask = async (e) => {
     e.preventDefault();
+
+    // First check the basic validation before sending network request
+    if (!task.title || !task.date || !task.priority || !task.status) {
+      setFeedbackMessage({
+        title: "Missing Required Fields",
+        description: "Please fill in all required fields.",
+      });
+      return; // Don't close dialog or proceed with API call
+    }
     try {
       await addTaskToDatabase();
+      setOpen(false);
     } catch (error) {
-      console.error("Failed to add task:", error);
-      setFeedbackMessage(error.message || "Failed to add task.");
+      console.error("Error adding task:", error);
+      setFeedbackMessage({
+        title: "Failed to Add Task",
+        description: error.message,
+      });
     }
   };
 
   const addTaskToDatabase = async () => {
-    if (!task.title || !task.date || !task.priority || !task.status) {
-      throw new Error("Please fill in all required fields.");
-    }
     const assignedUserIDs = [];
     // check if user is signed in
-    if (sessionUser) {
-      assignedUserIDs.push(sessionUser.id);
+    if (user) {
+      assignedUserIDs.push(user.id);
     }
+
     // make post request to add task to database
-    fetch(`${proxy}/task/add`, {
+    const response = await fetch(`${proxy}/task/add`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -56,132 +88,169 @@ const AddTaskPanel = ({
         priority: task.priority,
         status: task.status,
         assigned_users: assignedUserIDs,
-        owner_id: sessionUser ? sessionUser.id : null,
+        owner_id: user ? user.id : null,
       }),
       credentials: "include",
-    })
-      .then((addResponse) => {
-        if (!addResponse.ok) {
-          return addResponse.json().then((err) => {
-            throw new Error(err.message || "Failed to add task.");
-          });
-        }
-        return addResponse.json();
-      })
-      .then(() => {
-        setTask({
-          title: "",
-          description: "",
-          date: today,
-          priority: "low",
-          status: "pending",
-        });
-        if (!sessionUser) {
-          setFeedbackMessage(
-            "Task will be added with no asignees, please sign in to assign users to the task."
-          );
-        } else {
-          setFeedbackMessage("Task added successfully!");
-        }
+    });
 
-        setNeedsRefetch(true);
-        setShowAddTaskPanel(false);
-      })
-      .catch((err) => {
-        setFeedbackMessage(err.message);
-        // dont close the add task panel
+    // Parse the response body
+    const data = await response.json();
+
+    // If response is not ok, throw the error and STOP EXECUTION
+    if (!response.ok) {
+      throw new Error(data.message || "Failed to add task");
+    }
+
+    // Only reach here if successful
+    // Update task state and provide feedback
+    setTask({
+      title: "",
+      description: "",
+      date: today,
+      priority: "low",
+      status: "pending",
+    });
+
+    if (!user) {
+      setFeedbackMessage({
+        title: "Task added successfully!",
+        description:
+          "Task will be added with no asignees, please sign in to assign users to the task.",
       });
+    } else {
+      setFeedbackMessage({
+        title: "Task added successfully!",
+        description: "Task has been added to your list.",
+      });
+    }
+
+    setNeedsRefetch(true);
+    return data;
   };
+
   return (
-    <div
-      className={`${
-        showAddTaskPanel ? "block" : "hidden"
-      } fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 z-50`}
-    >
-      <div
-        className="fixed top-1/2 left-1/2 transform -translate-x-1/2 
-        -translate-y-1/2 bg-slate-900 
-      rounded-xl p-8 w-1/2 h-auto flex flex-col space-y-4 border-2 border-slate-600"
-      >
-        <div className="flex flex-row justify-between items-center">
-          <div className="title-sm">Add Task</div>
-          <IconButton
-            icon={<X size={30} />}
-            onClick={() => setShowAddTaskPanel(false)}
-            color="hover:bg-white hover:text-slate-950"
-          />
-        </div>
-        <div className="border-b border-slate-600 my-4"></div>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button variant="default">
+          Add Task
+          <ListPlus />
+        </Button>
+      </DialogTrigger>
+      <DialogContent className="sm:max-w-[600px]">
+        <DialogHeader>
+          <DialogTitle>
+            <div className="text-xl text-primary font-semibold">Add Task</div>
+          </DialogTitle>
+          <DialogDescription>
+            Create a new task to track your work.
+          </DialogDescription>
+        </DialogHeader>
 
-        <form className="flex flex-col space-y-4">
-          <h1 className="text-md">Title</h1>
-          <input
-            type="text"
-            placeholder="Task Title"
-            className="forms text-left"
-            value={task.title}
-            onChange={(e) => setTask({ ...task, title: e.target.value })}
-            maxLength="255"
-          />
+        <Card>
+          <CardHeader>
+            <CardTitle>
+              <h3 className="text-md">Task Details</h3>
+            </CardTitle>
+            <CardDescription>Enter information about your task</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form className="grid gap-4 py-2">
+              <div className="grid gap-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  placeholder="Task Title"
+                  value={task.title}
+                  onChange={(e) => setTask({ ...task, title: e.target.value })}
+                  maxLength="255"
+                />
+              </div>
 
-          <h1 className="text-md">Description</h1>
-          <textarea
-            placeholder="Task Description"
-            className="forms text-left"
-            value={task.description}
-            onChange={(e) => setTask({ ...task, description: e.target.value })}
-          />
+              <div className="grid gap-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="Task Description"
+                  className="resize-none min-h-[100px]"
+                  value={task.description}
+                  onChange={(e) =>
+                    setTask({ ...task, description: e.target.value })
+                  }
+                />
+              </div>
 
-          <div className="flex flex-row justify-between space-x-4">
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Due Date</h1>
-              <input
-                type="date"
-                className="forms"
-                value={task.date}
-                onChange={(e) => setTask({ ...task, date: e.target.value })}
-              />
-            </div>
+              <div className="flex flex-row space-x-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="date">Due Date</Label>
+                  <Input
+                    id="date"
+                    type="date"
+                    value={task.date}
+                    onChange={(e) => setTask({ ...task, date: e.target.value })}
+                  />
+                </div>
 
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Priority</h1>
-              <select
-                className="forms"
-                value={task.priority}
-                onChange={(e) => setTask({ ...task, priority: e.target.value })}
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </select>
-            </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="priority">Priority</Label>
+                  <Select
+                    value={task.priority}
+                    onValueChange={(value) =>
+                      setTask({ ...task, priority: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select priority" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="medium">Medium</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
 
-            <div className="flex flex-col space-y-2 w-full">
-              <h1 className="text-md">Status</h1>
-              <select
-                className="forms"
-                value={task.status}
-                onChange={(e) => setTask({ ...task, status: e.target.value })}
-              >
-                <option value="pending">Pending</option>
-                <option value="in_progress">In Progress</option>
-                <option value="completed">Completed</option>
-              </select>
-            </div>
-          </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select
+                    value={task.status}
+                    onValueChange={(value) =>
+                      setTask({ ...task, status: value })
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectGroup>
+                        <SelectItem value="pending">Pending</SelectItem>
+                        <SelectItem value="in_progress">In Progress</SelectItem>
+                        <SelectItem value="completed">Completed</SelectItem>
+                      </SelectGroup>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </form>
+          </CardContent>
+        </Card>
 
-          <div className="border-b border-slate-600"></div>
-          <div className="flex justify-center items-center">
-            <IconizedButton
-              icon={<ListPlus size={24} className="ml-2" />}
-              text="Add Task"
-              onClick={handleAddTask}
-              btnStyle="btn-blue"
-            />
-          </div>
-        </form>
-      </div>
-    </div>
+        <Separator />
+
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+          </DialogClose>
+          <Button onClick={handleAddTask}>
+            Add Task
+            <ListPlus className="h-4 w-4 ml-1" />
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 
