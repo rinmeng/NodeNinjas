@@ -294,7 +294,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
   }
 
   return (
-    <Card className="w-full mt-16">
+    <Card className="w-full mt-16 animate-fade-in">
       <CardHeader className={"space-y-4"}>
         {/* Search and Filter Section */}
         <div className="w-1/2 mx-auto">
