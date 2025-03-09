@@ -470,13 +470,13 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <CardContent className="grid grid-rows-1 grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex w-full h-auto flex-col col-span-1 justify-center">
             <Analytics />
             <Analytics />
           </div>
 
-          <div className="row-span-2 col-span-2">
+          <div className="col-span-2">
             <Analytics />
           </div>
         </CardContent>

@@ -98,7 +98,7 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
   }
 
   return (
-    <NavigationMenu className="fixed top-0 left-0 p-4 flex justify-between min-w-full z-10">
+    <NavigationMenu className="fixed top-0 left-0 p-4 flex justify-between min-w-full z-10 bg-background border">
       <NavigationMenuList className={"px-10"}>
         {/* CTMS Logo inside NavigationMenu */}
         <NavigationMenuItem>
