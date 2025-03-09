@@ -18,6 +18,7 @@ import {
   Filter,
   ArrowDownZA,
   CircleCheck,
+  Loader2,
 } from "lucide-react";
 import TaskCard from "@/src/components/subcomponents/TaskCard";
 import AddTaskPanel from "@/src/components/AddTaskPanel";
@@ -528,41 +529,57 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
             Refetching tasks...
           </CardDescription>
         )}
+
+        {!isLoading && (
+          <CardDescription className="text-center">
+            Showing {taskList.length} tasks
+          </CardDescription>
+        )}
       </CardHeader>
 
       <Separator />
 
       <CardContent>
-        {taskList.length === 0 ? (
+        {isLoading && (
           <div className="flex w-full flex-col items-center justify-center py-8 text-muted-foreground">
-            <ClipboardList size={48} className="mb-4" />
-            <p className="text-lg">No tasks available</p>
-            <p className="text-sm mt-2">
-              Click 'Create Task' to add your first task
-            </p>
-          </div>
-        ) : (
-          <div>
-            <CardTitle className="text-center text-muted-foreground mb-6">
-              {taskList.length} tasks found
-            </CardTitle>
-            <div className="flex flex-col gap-4 w-1/2 mx-auto">
-              {taskList.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  user={user}
-                  setNeedsRefetch={setNeedsRefetch}
-                  notifications={notifications}
-                  setNotifications={setNotifications}
-                  setFeedbackMessage={setFeedbackMessage}
-                  devMode={devMode}
-                  setNotificationToAdd={setNotificationToAdd}
-                />
-              ))}
-            </div>
+            <Loader2 size={48} className="animate-spin mb-4" />
+            <p className="text-lg">Loading tasks...</p>
           </div>
         )}
+
+        <div>
+          <CardTitle className="text-center text-muted-foreground mb-6">
+            {taskList.length === 0 && !isLoading && (
+              <div className="flex w-full flex-col items-center justify-center py-8 text-muted-foreground">
+                <ClipboardList size={48} className="mb-4" />
+                <p className="text-lg">
+                  No tasks available matching<br></br>
+                  {searchCriteria && `\"${searchCriteria}\"`}
+                </p>
+                {!searchCriteria && (
+                  <p className="text-sm mt-2">
+                    Click 'Create Task' to add your first task
+                  </p>
+                )}
+              </div>
+            )}
+          </CardTitle>
+          <div className="flex flex-col gap-4 w-1/2 mx-auto">
+            {taskList.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                user={user}
+                setNeedsRefetch={setNeedsRefetch}
+                notifications={notifications}
+                setNotifications={setNotifications}
+                setFeedbackMessage={setFeedbackMessage}
+                devMode={devMode}
+                setNotificationToAdd={setNotificationToAdd}
+              />
+            ))}
+          </div>
+        </div>
       </CardContent>
 
       <CardFooter>
