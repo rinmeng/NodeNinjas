@@ -46,16 +46,16 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
   const { user, notifications, setNotifications } = useAuth();
   const [searchCriteria, setSearchCriteria] = useState("");
 
-  const [showAddTaskPanel, setShowAddTaskPanel] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
 
   // Initialize with empty array to prevent filter errors
   const [allTasks, setAllTasks] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [showEditTaskPanel, setShowEditTaskPanel] = useState(false);
 
-  const [needsRefetch, setNeedsRefetch] = useState(false);
+  const [needsRefetch, setNeedsRefetch] = useState(false); // Refetch tasks from database
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [filterOptions, setFilterOptions] = useState({
     sortTitleAsc: null,
@@ -86,6 +86,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
 
   const fetchTaskFromDatabase = useCallback(async () => {
     try {
+      setIsLoading(true);
       const response = await fetch(`${proxy}/task/assignedto/user/${user.id}`);
       const data = await response.json();
       console.log("Fetched tasks from database:", data);
@@ -98,104 +99,10 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
       console.error("Error fetching tasks from database:", error.message);
       setAllTasks([]);
       setTasks([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [user, devMode]);
-
-  useEffect(() => {
-    if (needsRefetch) {
-      fetchTaskFromDatabase();
-      setNeedsRefetch(false);
-    }
-  }, [needsRefetch, fetchTaskFromDatabase]);
-
-  useEffect(() => {
-    fetchTaskFromDatabase();
-  }, [fetchTaskFromDatabase]);
-
-  useEffect(() => {
-    handleSearch(searchCriteria);
-  }, [searchCriteria, handleSearch]);
-
-  // Sort tasks based on filter options
-  useEffect(() => {
-    const sortTasks = () => {
-      // Guard against null/undefined allTasks
-      let tasksToSort = Array.isArray(allTasks) ? [...allTasks] : [];
-
-      // Apply search filter
-      if (searchCriteria) {
-        tasksToSort = tasksToSort.filter(
-          (task) =>
-            task.name.toLowerCase().includes(searchCriteria.toLowerCase()) ||
-            task.description
-              .toLowerCase()
-              .includes(searchCriteria.toLowerCase())
-        );
-      }
-
-      // Apply title sort
-      if (filterOptions.sortTitleAsc !== null) {
-        tasksToSort.sort((a, b) => {
-          return filterOptions.sortTitleAsc
-            ? a.name.localeCompare(b.name)
-            : b.name.localeCompare(a.name);
-        });
-      }
-
-      // Apply date sort
-      if (filterOptions.sortDateAsc !== null) {
-        tasksToSort.sort((a, b) => {
-          return filterOptions.sortDateAsc
-            ? new Date(a.date) - new Date(b.date)
-            : new Date(b.date) - new Date(a.date);
-        });
-      }
-
-      // Apply priority filter
-      if (filterOptions.sortPriorityAsc !== "") {
-        tasksToSort = tasksToSort.filter(
-          (task) =>
-            task.priority.toLowerCase() ===
-            filterOptions.sortPriorityAsc.toLowerCase()
-        );
-      }
-
-      // Apply status filter
-      if (filterOptions.sortStatusAsc !== "") {
-        tasksToSort = tasksToSort.filter(
-          (task) =>
-            task.status.toLowerCase() ===
-            filterOptions.sortStatusAsc.toLowerCase()
-        );
-      }
-
-      setTasks(tasksToSort);
-    };
-
-    sortTasks();
-  }, [filterOptions, allTasks, searchCriteria]);
-
-  // Dashboard UI functions from TaskDashboard
-
-  const refetchTaskClicked = () => {
-    setIsRefetching(true);
-    setNeedsRefetch(true);
-  };
-
-  useEffect(() => {
-    if (!needsRefetch) {
-      // set time out for 1 second to simulate refetching
-      setTimeout(() => {
-        setIsRefetching(false);
-        if (isRefetching) {
-          setFeedbackMessage({
-            title: "Success",
-            description: "Tasks have been successfully synced",
-          });
-        }
-      }, 1000);
-    }
-  }, [needsRefetch, setFeedbackMessage, isRefetching]);
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -277,6 +184,100 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
 
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
+
+  const refetchTaskClicked = () => {
+    setIsRefetching(true);
+    setNeedsRefetch(true);
+  };
+
+  useEffect(() => {
+    if (needsRefetch) {
+      fetchTaskFromDatabase();
+      setNeedsRefetch(false);
+    }
+  }, [needsRefetch, fetchTaskFromDatabase]);
+
+  useEffect(() => {
+    fetchTaskFromDatabase();
+  }, [fetchTaskFromDatabase]);
+
+  useEffect(() => {
+    handleSearch(searchCriteria);
+  }, [searchCriteria, handleSearch]);
+
+  // Sort tasks based on filter options
+  useEffect(() => {
+    const sortTasks = () => {
+      // Guard against null/undefined allTasks
+      let tasksToSort = Array.isArray(allTasks) ? [...allTasks] : [];
+
+      // Apply search filter
+      if (searchCriteria) {
+        tasksToSort = tasksToSort.filter(
+          (task) =>
+            task.name.toLowerCase().includes(searchCriteria.toLowerCase()) ||
+            task.description
+              .toLowerCase()
+              .includes(searchCriteria.toLowerCase())
+        );
+      }
+
+      // Apply title sort
+      if (filterOptions.sortTitleAsc !== null) {
+        tasksToSort.sort((a, b) => {
+          return filterOptions.sortTitleAsc
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        });
+      }
+
+      // Apply date sort
+      if (filterOptions.sortDateAsc !== null) {
+        tasksToSort.sort((a, b) => {
+          return filterOptions.sortDateAsc
+            ? new Date(a.date) - new Date(b.date)
+            : new Date(b.date) - new Date(a.date);
+        });
+      }
+
+      // Apply priority filter
+      if (filterOptions.sortPriorityAsc !== "") {
+        tasksToSort = tasksToSort.filter(
+          (task) =>
+            task.priority.toLowerCase() ===
+            filterOptions.sortPriorityAsc.toLowerCase()
+        );
+      }
+
+      // Apply status filter
+      if (filterOptions.sortStatusAsc !== "") {
+        tasksToSort = tasksToSort.filter(
+          (task) =>
+            task.status.toLowerCase() ===
+            filterOptions.sortStatusAsc.toLowerCase()
+        );
+      }
+
+      setTasks(tasksToSort);
+    };
+
+    sortTasks();
+  }, [filterOptions, allTasks, searchCriteria]);
+
+  useEffect(() => {
+    if (!needsRefetch) {
+      // set time out for 1 second to simulate refetching
+      setTimeout(() => {
+        setIsRefetching(false);
+        if (isRefetching) {
+          setFeedbackMessage({
+            title: "Success",
+            description: "Tasks have been successfully synced",
+          });
+        }
+      }, 1000);
+    }
+  }, [needsRefetch, setFeedbackMessage, isRefetching]);
 
   if (!user && !devMode) {
     return (
