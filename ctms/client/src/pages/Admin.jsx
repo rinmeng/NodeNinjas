@@ -371,7 +371,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="container py-20 mx-auto animate-fade-in">
+    <div className="container my-24 mx-auto animate-fade-in">
       {/* Admin Button Row */}
       <Card className="mb-8">
         <CardHeader>
