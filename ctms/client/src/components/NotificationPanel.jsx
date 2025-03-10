@@ -1,5 +1,5 @@
-import React from "react";
-import { MailWarning, MailCheck, BellOff } from "lucide-react";
+import React, { useState } from "react";
+import { MailWarning, MailCheck, BellOff, RefreshCw } from "lucide-react";
 import proxy from "../utils/proxy";
 import {
   Sheet,
@@ -19,13 +19,17 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/utils/ToastProvider";
 
 const NotificationPanel = ({
   notifications,
   open,
   onOpenChange,
   setNotificationsNeedRefetch,
+  notificationsNeedRefetch,
 }) => {
+  const { setFeedbackMessage } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const isNotificationRead = (notification) => {
     return notification.status === "read";
   };
@@ -117,14 +121,26 @@ const NotificationPanel = ({
               Click on notifications to toggle read/unread status
             </SheetDescription>
             <Button
-              variant="outline"
+              variant="default"
               size="sm"
               className="w-full mt-2"
               onClick={() => {
+                setIsRefreshing(true);
                 setNotificationsNeedRefetch(true);
+                // Keep spinning for at least 750ms for better visual feedback
+                setTimeout(() => {
+                  setIsRefreshing(false);
+                  setFeedbackMessage({
+                    title: "Notifications Synced Successfully",
+                    description: "Notifications have been refreshed",
+                  });
+                }, 750);
               }}
             >
-              Refresh Notifications
+              {(isRefreshing || notificationsNeedRefetch) && (
+                <RefreshCw className="animate-spin" />
+              )}
+              Sync Notifications
             </Button>
           </SheetHeader>
 

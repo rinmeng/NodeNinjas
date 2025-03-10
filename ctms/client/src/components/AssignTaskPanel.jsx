@@ -34,13 +34,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-const AssignTaskPanel = ({
-  task,
-  setNeedsRefetch,
-  setFeedbackMessage,
-  setNotificationToAdd,
-  user,
-}) => {
+import { useToast } from "@/utils/ToastProvider";
+import { useNotification } from "@/utils/NotificationProvider";
+
+const AssignTaskPanel = ({ task, setNeedsRefetch, user }) => {
+  const { setFeedbackMessage } = useToast();
+  const { setNotificationToAdd } = useNotification();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [preAssignedUsers, setPreAssignedUsers] = useState([]);

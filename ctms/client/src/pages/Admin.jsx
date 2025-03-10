@@ -33,12 +33,13 @@ import {
 } from "@/components/ui/card";
 import proxy from "@/src/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
-import DBTable from "./testing/subcomp/DBTable";
-import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
-import { PieChart } from "../components/PieChart";
+import { useToast } from "@/utils/ToastProvider";
 
-const Admin = ({ devMode, setFeedbackMessage }) => {
+const Admin = ({ devMode }) => {
   const { user } = useAuth();
+  const { setFeedbackMessage } = useToast();
+
+  // State for managing users
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
