@@ -32,15 +32,13 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { useToast } from "@/utils/ToastProvider";
+import { useNotification } from "@/utils/NotificationProvider";
 
-const EditTaskPanel = ({
-  taskToEdit,
-  setNeedsRefetch,
-  setFeedbackMessage,
-  setNotificationToAdd,
-  user,
-}) => {
+const EditTaskPanel = ({ taskToEdit, setNeedsRefetch, user }) => {
   const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit || {});
+  const { setFeedbackMessage } = useToast();
+  const { setNotificationToAdd } = useNotification();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;

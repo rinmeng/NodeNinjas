@@ -42,9 +42,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/utils/AuthProvider";
+import { useNotification } from "@/utils/NotificationProvider";
+import { useToast } from "@/utils/ToastProvider";
 
-function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
-  const { user, notifications, setNotifications } = useAuth();
+function Dashboard({ devMode }) {
+  const { user } = useAuth();
+  const { notifications, setNotifications, setNotificationToAdd } =
+    useNotification();
+  const { setFeedbackMessage } = useToast();
   const [searchCriteria, setSearchCriteria] = useState("");
 
   const [isRefetching, setIsRefetching] = useState(false);
@@ -505,11 +510,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
         </div>
 
         <div className="flex justify-center items-center gap-3">
-          <AddTaskPanel
-            setFeedbackMessage={setFeedbackMessage}
-            user={user}
-            setNeedsRefetch={setNeedsRefetch}
-          />
+          <AddTaskPanel user={user} setNeedsRefetch={setNeedsRefetch} />
 
           <Button
             variant="outline"
@@ -571,11 +572,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
                 task={task}
                 user={user}
                 setNeedsRefetch={setNeedsRefetch}
-                notifications={notifications}
-                setNotifications={setNotifications}
-                setFeedbackMessage={setFeedbackMessage}
                 devMode={devMode}
-                setNotificationToAdd={setNotificationToAdd}
               />
             ))}
           </div>

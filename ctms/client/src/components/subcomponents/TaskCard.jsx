@@ -42,18 +42,14 @@ import { Separator } from "@/components/ui/separator";
 
 import getDateWithRelativeTime from "@/src/utils/getDateWithRelativeTime";
 
-const TaskCard = ({
-  task,
-  user,
-  setNeedsRefetch,
-  setFeedbackMessage,
-  setNotificationToAdd,
-  devMode,
-}) => {
-  const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
+import { useToast } from "@/utils/ToastProvider";
+import { useNotification } from "@/utils/NotificationProvider";
+
+const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
   const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
-  const [showAssignTaskPanel, setShowAssignTaskPanel] = useState(false);
+  const { setFeedbackMessage } = useToast();
+  const { setNotificationToAdd } = useNotification();
 
   const isTaskOwner = task.owner_id === user.id;
 
@@ -231,10 +227,6 @@ const TaskCard = ({
       });
   };
 
-  const handleAssignTask = () => {
-    setShowAssignTaskPanel(!showAssignTaskPanel);
-  };
-
   return (
     <Card
       className={`w-full ${isTaskLocked ? "border border-destructive" : ""}`}
@@ -336,8 +328,6 @@ const TaskCard = ({
                   user={user}
                   taskToEdit={task}
                   setNeedsRefetch={setNeedsRefetch}
-                  setNotificationToAdd={setNotificationToAdd}
-                  setFeedbackMessage={setFeedbackMessage}
                 />
               )}
             </Dialog>
@@ -370,8 +360,6 @@ const TaskCard = ({
                 <AssignTaskPanel
                   task={task}
                   setNeedsRefetch={setNeedsRefetch}
-                  setFeedbackMessage={setFeedbackMessage}
-                  setNotificationToAdd={setNotificationToAdd}
                   user={user}
                 />
               )}

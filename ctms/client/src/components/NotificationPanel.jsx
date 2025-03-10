@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { useToast } from "@/utils/ToastProvider";
 
 const NotificationPanel = ({
   notifications,
@@ -26,6 +27,7 @@ const NotificationPanel = ({
   onOpenChange,
   setNotificationsNeedRefetch,
 }) => {
+  const { setFeedbackMessage } = useToast();
   const isNotificationRead = (notification) => {
     return notification.status === "read";
   };
@@ -122,6 +124,10 @@ const NotificationPanel = ({
               className="w-full mt-2"
               onClick={() => {
                 setNotificationsNeedRefetch(true);
+                setFeedbackMessage({
+                  title: "Notifications Synced Successfully",
+                  description: "Notifications have been refreshed",
+                });
               }}
             >
               Refresh Notifications

@@ -30,14 +30,19 @@ import { cn } from "@/lib/utils";
 import NotificationPanel from "./NotificationPanel";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/contexts/ThemeProvider";
+import { useToast } from "@/utils/ToastProvider";
+import { useNotification } from "@/utils/NotificationProvider";
 
-function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
+function Navbar({ devMode }) {
+  const { notifications, setNotificationToAdd, setNotificationsNeedRefetch } =
+    useNotification();
   const { user } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
+  const { setFeedbackMessage } = useToast();
 
   function ThemeToggle() {
     return (
