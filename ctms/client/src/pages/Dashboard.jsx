@@ -194,6 +194,15 @@ function Dashboard({ devMode }) {
   const refetchTaskClicked = () => {
     setIsRefetching(true);
     setNeedsRefetch(true);
+
+    // Set timeout for 750ms to ensure animation is visible
+    setTimeout(() => {
+      setIsRefetching(false);
+      setFeedbackMessage({
+        title: "Success",
+        description: "Tasks have been successfully synced",
+      });
+    }, 750);
   };
 
   useEffect(() => {
@@ -269,21 +278,6 @@ function Dashboard({ devMode }) {
 
     sortTasks();
   }, [filterOptions, allTasks, searchCriteria]);
-
-  useEffect(() => {
-    if (!needsRefetch) {
-      // set time out for 1 second to simulate refetching
-      setTimeout(() => {
-        setIsRefetching(false);
-        if (isRefetching) {
-          setFeedbackMessage({
-            title: "Success",
-            description: "Tasks have been successfully synced",
-          });
-        }
-      }, 1000);
-    }
-  }, [needsRefetch, setFeedbackMessage, isRefetching]);
 
   if (!user && !devMode) {
     return (
@@ -518,10 +512,8 @@ function Dashboard({ devMode }) {
             disabled={isRefetching}
             className="flex gap-2"
           >
+            {isRefetching && <RefreshCw className="animate-spin" />}
             Sync Tasks
-            <RefreshCw
-              className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
-            />
           </Button>
         </div>
 
