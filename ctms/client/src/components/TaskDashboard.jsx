@@ -62,22 +62,16 @@ const TaskDashboard = ({
   const refetchTaskClicked = () => {
     setIsRefetching(true);
     setNeedsRefetch(true);
-  };
 
-  useEffect(() => {
-    if (!needsRefetch) {
-      // set time out for 1 second to simulate refetching
-      setTimeout(() => {
-        setIsRefetching(false);
-        if (isRefetching) {
-          setFeedbackMessage({
-            title: "Success",
-            description: "Tasks have been successfully synced",
-          });
-        }
-      }, 1000);
-    }
-  }, [needsRefetch, setNeedsRefetch, setFeedbackMessage, isRefetching]);
+    // Set timeout for 750ms to ensure animation is visible
+    setTimeout(() => {
+      setIsRefetching(false);
+      setFeedbackMessage({
+        title: "Success",
+        description: "Tasks have been successfully synced",
+      });
+    }, 750);
+  };
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -383,18 +377,10 @@ const TaskDashboard = ({
             disabled={isRefetching}
             className="flex gap-2"
           >
+            <RefreshCw className={`${isRefetching ? "animate-spin" : ""}`} />
             Sync Tasks
-            <RefreshCw
-              className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
-            />
           </Button>
         </div>
-
-        {isRefetching && (
-          <CardDescription className="text-center mt-2">
-            Refetching tasks...
-          </CardDescription>
-        )}
       </CardHeader>
 
       <Separator />

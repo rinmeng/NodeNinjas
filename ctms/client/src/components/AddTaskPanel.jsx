@@ -33,8 +33,10 @@ import {
 
 import proxy from "../utils/proxy";
 import { Separator } from "@/components/ui/separator";
+import { useToast } from "@/utils/ToastProvider";
 
-const AddTaskPanel = ({ setFeedbackMessage, user, setNeedsRefetch }) => {
+const AddTaskPanel = ({ user, setNeedsRefetch }) => {
+  const { setFeedbackMessage } = useToast();
   const today = new Date().toISOString().split("T")[0];
   const [task, setTask] = useState({
     title: "",
