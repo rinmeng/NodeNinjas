@@ -479,7 +479,7 @@ const AssignTaskPanel = ({
                 <div className="flex flex-wrap gap-2">
                   {filteredUsers.map((user) => (
                     <Badge
-                      key={user.id}
+                      key={`available-${user.id || "temp"}-${user.username}`}
                       variant={getUserBadgeVariant(user)}
                       className={`flex items-center gap-2 rounded-full px-3 py-2 text-sm font-medium border-2${
                         isTaskOwner(user.id)
@@ -522,7 +522,7 @@ const AssignTaskPanel = ({
                 <div className="flex flex-wrap gap-2">
                   {filteredSelectedUsers.map((user) => (
                     <Badge
-                      key={user.id}
+                      key={`selected-${user.id || "temp"}-${user.username}`} // Updated key
                       variant={
                         user.id === task.owner_id ? "secondary" : "default"
                       }
@@ -563,19 +563,20 @@ const AssignTaskPanel = ({
       <Separator />
 
       <DialogFooter>
-        <DialogClose asChild>
-          <div>
-            <Button variant={"outline"}>
-              {user.role === "admin" ? "Cancel" : "Close"}
-            </Button>
-          </div>
-        </DialogClose>
-        {user.role === "admin" && (
+        {user.role === "admin" ? (
           <DialogClose asChild>
             <div>
               <Button onClick={handleManageUsers}>
                 Update Assignments
                 <UserRoundCheck className="h-4 w-4 ml-1" />
+              </Button>
+            </div>
+          </DialogClose>
+        ) : (
+          <DialogClose asChild>
+            <div>
+              <Button variant={"outline"}>
+                {user.role === "admin" ? "Cancel" : "Close"}
               </Button>
             </div>
           </DialogClose>

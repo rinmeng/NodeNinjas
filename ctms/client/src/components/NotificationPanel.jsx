@@ -19,6 +19,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { toast, Toaster } from "sonner";
 
 const NotificationPanel = ({
   notifications,
@@ -97,112 +98,126 @@ const NotificationPanel = ({
   };
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent
-        className="w-[360px] sm:w-[400px] p-0 flex flex-col gap-0"
-        side="right"
-      >
-        <SheetHeader>
-          <div className="flex items-center gap-1">
-            <SheetTitle>Notifications</SheetTitle>
-            {notifications.length > 0 && (
-              <Badge variant="default" className="ml-2">
-                {notifications.filter((n) => n.status === "unread").length}{" "}
-                unread
-              </Badge>
-            )}
-          </div>
-          <SheetDescription className="text-xs">
-            Click on notifications to toggle read/unread status
-          </SheetDescription>
-        </SheetHeader>
-
-        <Separator />
-
-        <ScrollArea className="flex-1 h-full">
-          {notifications.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2 h-[200px]">
-              <BellOff className="h-10 w-10 opacity-20" />
-              <p>No notifications</p>
+    <>
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <SheetContent
+          className="w-[360px] sm:w-[400px] p-0 flex flex-col gap-0"
+          side="right"
+        >
+          <SheetHeader>
+            <div className="flex items-center gap-1">
+              <SheetTitle>Notifications</SheetTitle>
+              {notifications.length > 0 && (
+                <Badge variant="default" className="ml-2">
+                  {notifications.filter((n) => n.status === "unread").length}{" "}
+                  unread
+                </Badge>
+              )}
             </div>
-          ) : (
-            <div className="py-1">
-              {notifications.map((notification) => (
-                <Card
-                  key={notification.id}
-                  className={`rounded-none border-l-0 border-r-0 border-t-0 border-b ${
-                    !isNotificationRead(notification)
-                      ? "bg-blue-50/50 dark:bg-blue-900/20"
-                      : ""
-                  } hover:bg-accent/10 transition-colors`}
-                  onClick={handleReadNotification(
-                    notification.id,
-                    notification.status
-                  )}
-                >
-                  <CardContent className="p-0">
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <div className="flex items-start gap-3 px-4">
-                            {isNotificationRead(notification) ? (
-                              <MailCheck
-                                size={18}
-                                className="mt-1 text-muted-foreground"
-                              />
-                            ) : (
-                              <MailWarning
-                                size={18}
-                                className="mt-1 text-primary"
-                              />
-                            )}
+            <SheetDescription className="text-xs">
+              Click on notifications to toggle read/unread status
+            </SheetDescription>
+            <Button
+              variant="outline"
+              size="sm"
+              className="w-full mt-2"
+              onClick={() => {
+                setNotificationsNeedRefetch(true);
+                toast.success("Notifications refreshed");
+              }}
+            >
+              Refresh Notifications
+            </Button>
+          </SheetHeader>
 
-                            <div className="flex-1 text-left">
-                              <div className="flex items-center justify-between mb-1">
+          <Separator />
+
+          <ScrollArea className="flex-1 h-full">
+            {notifications.length === 0 ? (
+              <div className="flex flex-col items-center justify-center p-8 text-center text-muted-foreground gap-2 h-[200px]">
+                <BellOff className="h-10 w-10 opacity-20" />
+                <p>No notifications</p>
+              </div>
+            ) : (
+              <div className="py-1">
+                {notifications.map((notification) => (
+                  <Card
+                    key={notification.id}
+                    className={`rounded-none border-l-0 border-r-0 border-t-0 border-b ${
+                      !isNotificationRead(notification)
+                        ? "bg-blue-50/50 dark:bg-blue-900/20"
+                        : ""
+                    } hover:bg-accent/10 transition-colors`}
+                    onClick={handleReadNotification(
+                      notification.id,
+                      notification.status
+                    )}
+                  >
+                    <CardContent className="p-0">
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex items-start gap-3 px-4">
+                              {isNotificationRead(notification) ? (
+                                <MailCheck
+                                  size={18}
+                                  className="mt-1 text-muted-foreground"
+                                />
+                              ) : (
+                                <MailWarning
+                                  size={18}
+                                  className="mt-1 text-primary"
+                                />
+                              )}
+
+                              <div className="flex-1 text-left">
+                                <div className="flex items-center justify-between mb-1">
+                                  <p
+                                    className={`text-sm ${
+                                      !isNotificationRead(notification)
+                                        ? "font-semibold"
+                                        : ""
+                                    }`}
+                                  >
+                                    {getNotificationText(notification.type)}
+                                  </p>
+                                </div>
+
                                 <p
                                   className={`text-sm ${
                                     !isNotificationRead(notification)
-                                      ? "font-semibold"
-                                      : ""
+                                      ? "font-medium"
+                                      : "text-muted-foreground"
                                   }`}
                                 >
-                                  {getNotificationText(notification.type)}
+                                  "{notification.message}"
                                 </p>
-                              </div>
 
-                              <p
-                                className={`text-sm ${
-                                  !isNotificationRead(notification)
-                                    ? "font-medium"
-                                    : "text-muted-foreground"
-                                }`}
-                              >
-                                "{notification.message}"
-                              </p>
-
-                              <div className="text-xs text-muted-foreground mt-1.5">
-                                {dateToTimeAgo(
-                                  new Date(notification.created_at)
-                                )}
+                                <div className="text-xs text-muted-foreground mt-1.5">
+                                  {dateToTimeAgo(
+                                    new Date(notification.created_at)
+                                  )}
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {isNotificationRead(notification)
-                            ? "Mark as unread"
-                            : "Mark as read"}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </ScrollArea>
-      </SheetContent>
-    </Sheet>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {isNotificationRead(notification)
+                              ? "Mark as unread"
+                              : "Mark as read"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+      <Toaster />
+    </>
   );
 };
 
