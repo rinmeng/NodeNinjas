@@ -69,13 +69,11 @@ const TaskDashboard = ({
       // set time out for 1 second to simulate refetching
       setTimeout(() => {
         setIsRefetching(false);
-        if (isRefetching) {
-          setFeedbackMessage({
-            title: "Success",
-            description: "Tasks have been successfully synced",
-          });
-        }
-      }, 1000);
+        setFeedbackMessage({
+          title: "Success",
+          description: "Tasks have been successfully synced",
+        });
+      }, 750);
     }
   }, [needsRefetch, setNeedsRefetch, setFeedbackMessage, isRefetching]);
 

@@ -34,15 +34,17 @@ import { useToast } from "@/utils/ToastProvider";
 import { useNotification } from "@/utils/NotificationProvider";
 
 function Navbar({ devMode }) {
-  const { notifications, setNotificationToAdd, setNotificationsNeedRefetch } =
-    useNotification();
+  const {
+    notifications,
+    setNotificationsNeedRefetch,
+    notificationsNeedRefetch,
+  } = useNotification();
   const { user } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
   const location = useLocation();
-  const { theme, toggleTheme } = useTheme();
-  const { setFeedbackMessage } = useToast();
+  const { toggleTheme } = useTheme();
 
   function ThemeToggle() {
     return (
@@ -157,6 +159,7 @@ function Navbar({ devMode }) {
                   open={notificationOpen}
                   onOpenChange={setNotificationOpen}
                   setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+                  notificationsNeedRefetch={notificationsNeedRefetch}
                 />
               </Sheet>
             </NavigationMenuItem>
