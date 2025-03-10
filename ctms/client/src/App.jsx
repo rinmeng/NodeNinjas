@@ -11,6 +11,7 @@ import ChatWidget from "@/src/components/ChatWidget";
 import { CircleAlert, CircleCheck } from "lucide-react";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
+import { ThemeProvider } from "@/contexts/ThemeProvider";
 
 function AppContent() {
   const { user, notifications, setNotificationsNeedRefetch } = useAuth();
@@ -98,9 +99,11 @@ function AppContent() {
 
 function App() {
   return (
-    <AuthProvider>
-      <AppContent />
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <AppContent />
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 
