@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { AuthProvider, useAuth } from "@/utils/AuthProvider";
+import { AuthProvider } from "@/utils/AuthProvider";
+import {
+  NotificationProvider,
+  useNotification,
+} from "@/utils/NotificationProvider";
 import Navbar from "@/src/components/Navbar";
 import About from "@/src/pages/About";
 import Admin from "@/src/pages/Admin";
@@ -12,19 +16,18 @@ import { CircleAlert, CircleCheck } from "lucide-react";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
-import proxy from "@/src/utils/proxy";
 
 function AppContent() {
-  const { notifications, setNotificationsNeedRefetch } = useAuth();
+  const { notifications, setNotificationToAdd, setNotificationsNeedRefetch } =
+    useNotification();
   const [devMode] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [feedbackMessage, setFeedbackMessage] = useState({
     title: "",
     description: "",
   });
-  const [notificationToAdd, setNotificationToAdd] = useState("");
 
-  // Apply dark theme
+  // Apply theme
   useEffect(() => {
     document.documentElement.classList.add("light");
   }, []);
@@ -52,41 +55,6 @@ function AppContent() {
       setFeedbackMessage("");
     }
   }, [feedbackMessage]);
-
-  // Add this useEffect to your AppContent function
-  useEffect(() => {
-    const sendNotification = async () => {
-      if (
-        notificationToAdd &&
-        notificationToAdd.user_ids &&
-        notificationToAdd.user_ids.length > 0
-      ) {
-        try {
-          const response = await fetch(`${proxy}/notification/add/:ids`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-            body: JSON.stringify(notificationToAdd),
-          });
-
-          if (response.ok) {
-            // Reset the notification state after successful send
-            setNotificationToAdd("");
-            // Trigger a refresh of notifications for the current user
-            setNotificationsNeedRefetch(true);
-          } else {
-            console.error("Failed to add notification");
-          }
-        } catch (error) {
-          console.error("Error sending notification:", error);
-        }
-      }
-    };
-
-    sendNotification();
-  }, [notificationToAdd]);
 
   return (
     <Router>
@@ -137,7 +105,9 @@ function App() {
   return (
     <ThemeProvider>
       <AuthProvider>
-        <AppContent />
+        <NotificationProvider>
+          <AppContent />
+        </NotificationProvider>
       </AuthProvider>
     </ThemeProvider>
   );
