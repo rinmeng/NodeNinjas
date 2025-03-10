@@ -12,6 +12,7 @@ import { CircleAlert, CircleCheck } from "lucide-react";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
+import proxy from "@/src/utils/proxy";
 
 function AppContent() {
   const { user, notifications, setNotificationsNeedRefetch } = useAuth();
@@ -51,6 +52,41 @@ function AppContent() {
       setFeedbackMessage("");
     }
   }, [feedbackMessage]);
+
+  // Add this useEffect to your AppContent function
+  useEffect(() => {
+    const sendNotification = async () => {
+      if (
+        notificationToAdd &&
+        notificationToAdd.user_ids &&
+        notificationToAdd.user_ids.length > 0
+      ) {
+        try {
+          const response = await fetch(`${proxy}/notification/add/:ids`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+            body: JSON.stringify(notificationToAdd),
+          });
+
+          if (response.ok) {
+            // Reset the notification state after successful send
+            setNotificationToAdd("");
+            // Trigger a refresh of notifications for the current user
+            setNotificationsNeedRefetch(true);
+          } else {
+            console.error("Failed to add notification");
+          }
+        } catch (error) {
+          console.error("Error sending notification:", error);
+        }
+      }
+    };
+
+    sendNotification();
+  }, [notificationToAdd]);
 
   return (
     <Router>
