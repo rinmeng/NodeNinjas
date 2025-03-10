@@ -374,9 +374,16 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="container my-24 mx-auto animate-fade-in">
-      {/* Admin Button Row */}
-      <Card className="mb-8">
+    <div className="w-full my-30 animate-fadein ">
+      189-admins-can-see-a-graph-displaying-tasks-in-progress-not-done-or-completed
+      <h2 className="text-2xl font-bold mb-4 text-center ">User Analytics</h2>
+      <section className="flex justify-center">
+        <Analytics />
+      </section>
+      <section className="flex justify-center m-10">
+        <PieChart />
+      </section>
+      <Card className="max-w-lg mx-auto">
         <CardHeader>
           <CardTitle>
             <h2 className="text-2xl font-semibold">Admin Functionality</h2>
@@ -461,7 +468,6 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
           <Button className="w-full md:w-auto">To Be Added</Button>
         </CardContent>
       </Card>
-
       {/* Analytics Grid */}
       <Card>
         <CardHeader>
