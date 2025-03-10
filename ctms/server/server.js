@@ -16,7 +16,12 @@ const notification = require('./routes/notification');
 
 const PORT = 5001;
 const app = express();
-const allowedOrigins = ['http://localhost:3000', 'http://localhost:13000'];
+const allowedOrigins = [
+    'http://localhost:13000',    // Docker frontend external port
+    'http://localhost:3000',     // Direct frontend dev server
+    'http://192.168.1.134:13000', // IP access to Docker frontend 
+    'http://192.168.1.134:3000'   // IP access to direct frontend
+];
 
 // Create HTTP server
 const server = http.createServer(app);
@@ -70,7 +75,8 @@ app.use(session({
     cookie: {
         httpOnly: true,
         secure: false,  // Set to true if using HTTPS
-        sameSite: 'lax'
+        sameSite: 'lax',
+
     },
     name: 'CTMS_sessionID'
 }));

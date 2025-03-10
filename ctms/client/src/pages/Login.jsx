@@ -236,7 +236,7 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="animate-fadein">
+    <div className="animate-fade-in">
       <div className="grid grid-cols-2 h-screen">
         <Card className="flex flex-col justify-center p-5 bg-primary-foreground/20 border-0 rounded-none">
           <CardHeader>
