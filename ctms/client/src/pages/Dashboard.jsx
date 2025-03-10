@@ -517,13 +517,7 @@ function Dashboard({ devMode }) {
           </Button>
         </div>
 
-        {isRefetching && (
-          <CardDescription className="text-center">
-            Refetching tasks...
-          </CardDescription>
-        )}
-
-        {!isLoading && (
+        {!isRefetching && (
           <CardDescription className="text-center">
             Showing {taskList.length} tasks
           </CardDescription>
