@@ -19,7 +19,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
-import { toast, Toaster } from "sonner";
 
 const NotificationPanel = ({
   notifications,
@@ -123,7 +122,6 @@ const NotificationPanel = ({
               className="w-full mt-2"
               onClick={() => {
                 setNotificationsNeedRefetch(true);
-                toast.success("Notifications refreshed");
               }}
             >
               Refresh Notifications
@@ -216,7 +214,6 @@ const NotificationPanel = ({
           </ScrollArea>
         </SheetContent>
       </Sheet>
-      <Toaster />
     </>
   );
 };

@@ -15,7 +15,7 @@ import { ThemeProvider } from "@/contexts/ThemeProvider";
 import proxy from "@/src/utils/proxy";
 
 function AppContent() {
-  const { user, notifications, setNotificationsNeedRefetch } = useAuth();
+  const { notifications, setNotificationsNeedRefetch } = useAuth();
   const [devMode] = useState(false);
   const [showNavbar, setShowNavbar] = useState(true);
   const [feedbackMessage, setFeedbackMessage] = useState({
