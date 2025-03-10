@@ -24,7 +24,13 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardTitle,
+  CardHeader,
+  CardDescription,
+} from "@/components/ui/card";
 import proxy from "@/src/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 
@@ -365,21 +371,23 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="w-full my-30 animate-fadein ">
-      <Card className="max-w-lg mx-auto">
+    <div className="container my-24 mx-auto animate-fade-in">
+      {/* Admin Button Row */}
+      <Card className="mb-8">
         <CardHeader>
           <CardTitle>
-            <h2 className="text-2xl font-semibold">User Administration</h2>
+            <h2 className="text-2xl font-semibold">Admin Functionality</h2>
           </CardTitle>
+          <CardDescription>Manage users, roles, and more.</CardDescription>
         </CardHeader>
-        <CardContent className=" flex flex-col items-center">
+        <CardContent className={"flex flex-col md:flex-row gap-4"}>
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="w-full">Manage Users</Button>
+              <Button className="w-full md:w-auto">Manage Users</Button>
             </DialogTrigger>
 
             {/* Make the dialog much larger */}
-            <DialogContent className="min-w-[900px]">
+            <DialogContent className="min-w-[90vw] md:min-w-[900px]">
               <DialogHeader>
                 <DialogTitle className="text-primary flex items-center gap-4 text-xl">
                   Manage Users
@@ -444,12 +452,35 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          <Button className="w-full md:w-auto">To Be Added</Button>
+
+          <Button className="w-full md:w-auto">To Be Added</Button>
         </CardContent>
       </Card>
-      <h2 className="text-2xl font-bold mb-4 text-center ">User Analytics</h2>
-      <section className="flex justify-center">
-        <Analytics />
-      </section>
+
+      {/* Analytics Grid */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            <h2 className="text-4xl font-semibold">Analytics</h2>
+          </CardTitle>
+          <CardDescription>
+            Here's a quick overview of what's going on.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="grid grid-rows-1 grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="flex w-full h-auto flex-col col-span-1 justify-center">
+            <Analytics />
+            <Analytics />
+          </div>
+
+          <div className="col-span-2">
+            <Analytics />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

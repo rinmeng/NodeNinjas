@@ -18,6 +18,7 @@ import {
   Filter,
   ArrowDownZA,
   CircleCheck,
+  Loader2,
 } from "lucide-react";
 import TaskCard from "@/src/components/subcomponents/TaskCard";
 import AddTaskPanel from "@/src/components/AddTaskPanel";
@@ -46,16 +47,16 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
   const { user, notifications, setNotifications } = useAuth();
   const [searchCriteria, setSearchCriteria] = useState("");
 
-  const [showAddTaskPanel, setShowAddTaskPanel] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
 
   // Initialize with empty array to prevent filter errors
   const [allTasks, setAllTasks] = useState([]);
   const [tasks, setTasks] = useState([]);
-  const [showEditTaskPanel, setShowEditTaskPanel] = useState(false);
 
-  const [needsRefetch, setNeedsRefetch] = useState(false);
+  const [needsRefetch, setNeedsRefetch] = useState(false); // Refetch tasks from database
+
+  const [isLoading, setIsLoading] = useState(false);
 
   const [filterOptions, setFilterOptions] = useState({
     sortTitleAsc: null,
@@ -86,6 +87,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
 
   const fetchTaskFromDatabase = useCallback(async () => {
     try {
+      setIsLoading(true);
       const response = await fetch(`${proxy}/task/assignedto/user/${user.id}`);
       const data = await response.json();
       console.log("Fetched tasks from database:", data);
@@ -98,104 +100,10 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
       console.error("Error fetching tasks from database:", error.message);
       setAllTasks([]);
       setTasks([]);
+    } finally {
+      setIsLoading(false);
     }
   }, [user, devMode]);
-
-  useEffect(() => {
-    if (needsRefetch) {
-      fetchTaskFromDatabase();
-      setNeedsRefetch(false);
-    }
-  }, [needsRefetch, fetchTaskFromDatabase]);
-
-  useEffect(() => {
-    fetchTaskFromDatabase();
-  }, [fetchTaskFromDatabase]);
-
-  useEffect(() => {
-    handleSearch(searchCriteria);
-  }, [searchCriteria, handleSearch]);
-
-  // Sort tasks based on filter options
-  useEffect(() => {
-    const sortTasks = () => {
-      // Guard against null/undefined allTasks
-      let tasksToSort = Array.isArray(allTasks) ? [...allTasks] : [];
-
-      // Apply search filter
-      if (searchCriteria) {
-        tasksToSort = tasksToSort.filter(
-          (task) =>
-            task.name.toLowerCase().includes(searchCriteria.toLowerCase()) ||
-            task.description
-              .toLowerCase()
-              .includes(searchCriteria.toLowerCase())
-        );
-      }
-
-      // Apply title sort
-      if (filterOptions.sortTitleAsc !== null) {
-        tasksToSort.sort((a, b) => {
-          return filterOptions.sortTitleAsc
-            ? a.name.localeCompare(b.name)
-            : b.name.localeCompare(a.name);
-        });
-      }
-
-      // Apply date sort
-      if (filterOptions.sortDateAsc !== null) {
-        tasksToSort.sort((a, b) => {
-          return filterOptions.sortDateAsc
-            ? new Date(a.date) - new Date(b.date)
-            : new Date(b.date) - new Date(a.date);
-        });
-      }
-
-      // Apply priority filter
-      if (filterOptions.sortPriorityAsc !== "") {
-        tasksToSort = tasksToSort.filter(
-          (task) =>
-            task.priority.toLowerCase() ===
-            filterOptions.sortPriorityAsc.toLowerCase()
-        );
-      }
-
-      // Apply status filter
-      if (filterOptions.sortStatusAsc !== "") {
-        tasksToSort = tasksToSort.filter(
-          (task) =>
-            task.status.toLowerCase() ===
-            filterOptions.sortStatusAsc.toLowerCase()
-        );
-      }
-
-      setTasks(tasksToSort);
-    };
-
-    sortTasks();
-  }, [filterOptions, allTasks, searchCriteria]);
-
-  // Dashboard UI functions from TaskDashboard
-
-  const refetchTaskClicked = () => {
-    setIsRefetching(true);
-    setNeedsRefetch(true);
-  };
-
-  useEffect(() => {
-    if (!needsRefetch) {
-      // set time out for 1 second to simulate refetching
-      setTimeout(() => {
-        setIsRefetching(false);
-        if (isRefetching) {
-          setFeedbackMessage({
-            title: "Success",
-            description: "Tasks have been successfully synced",
-          });
-        }
-      }, 1000);
-    }
-  }, [needsRefetch, setFeedbackMessage, isRefetching]);
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -278,6 +186,100 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
   // Ensure tasks is always an array
   const taskList = Array.isArray(tasks) ? tasks : [];
 
+  const refetchTaskClicked = () => {
+    setIsRefetching(true);
+    setNeedsRefetch(true);
+  };
+
+  useEffect(() => {
+    if (needsRefetch) {
+      fetchTaskFromDatabase();
+      setNeedsRefetch(false);
+    }
+  }, [needsRefetch, fetchTaskFromDatabase]);
+
+  useEffect(() => {
+    fetchTaskFromDatabase();
+  }, [fetchTaskFromDatabase]);
+
+  useEffect(() => {
+    handleSearch(searchCriteria);
+  }, [searchCriteria, handleSearch]);
+
+  // Sort tasks based on filter options
+  useEffect(() => {
+    const sortTasks = () => {
+      // Guard against null/undefined allTasks
+      let tasksToSort = Array.isArray(allTasks) ? [...allTasks] : [];
+
+      // Apply search filter
+      if (searchCriteria) {
+        tasksToSort = tasksToSort.filter(
+          (task) =>
+            task.name.toLowerCase().includes(searchCriteria.toLowerCase()) ||
+            task.description
+              .toLowerCase()
+              .includes(searchCriteria.toLowerCase())
+        );
+      }
+
+      // Apply title sort
+      if (filterOptions.sortTitleAsc !== null) {
+        tasksToSort.sort((a, b) => {
+          return filterOptions.sortTitleAsc
+            ? a.name.localeCompare(b.name)
+            : b.name.localeCompare(a.name);
+        });
+      }
+
+      // Apply date sort
+      if (filterOptions.sortDateAsc !== null) {
+        tasksToSort.sort((a, b) => {
+          return filterOptions.sortDateAsc
+            ? new Date(a.date) - new Date(b.date)
+            : new Date(b.date) - new Date(a.date);
+        });
+      }
+
+      // Apply priority filter
+      if (filterOptions.sortPriorityAsc !== "") {
+        tasksToSort = tasksToSort.filter(
+          (task) =>
+            task.priority.toLowerCase() ===
+            filterOptions.sortPriorityAsc.toLowerCase()
+        );
+      }
+
+      // Apply status filter
+      if (filterOptions.sortStatusAsc !== "") {
+        tasksToSort = tasksToSort.filter(
+          (task) =>
+            task.status.toLowerCase() ===
+            filterOptions.sortStatusAsc.toLowerCase()
+        );
+      }
+
+      setTasks(tasksToSort);
+    };
+
+    sortTasks();
+  }, [filterOptions, allTasks, searchCriteria]);
+
+  useEffect(() => {
+    if (!needsRefetch) {
+      // set time out for 1 second to simulate refetching
+      setTimeout(() => {
+        setIsRefetching(false);
+        if (isRefetching) {
+          setFeedbackMessage({
+            title: "Success",
+            description: "Tasks have been successfully synced",
+          });
+        }
+      }, 1000);
+    }
+  }, [needsRefetch, setFeedbackMessage, isRefetching]);
+
   if (!user && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
@@ -292,7 +294,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
   }
 
   return (
-    <Card className="w-full mt-16">
+    <Card className="container mx-auto w-full my-24 animate-fade-in">
       <CardHeader className={"space-y-4"}>
         {/* Search and Filter Section */}
         <div className="w-1/2 mx-auto">
@@ -527,41 +529,57 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
             Refetching tasks...
           </CardDescription>
         )}
+
+        {!isLoading && (
+          <CardDescription className="text-center">
+            Showing {taskList.length} tasks
+          </CardDescription>
+        )}
       </CardHeader>
 
       <Separator />
 
       <CardContent>
-        {taskList.length === 0 ? (
+        {isLoading && (
           <div className="flex w-full flex-col items-center justify-center py-8 text-muted-foreground">
-            <ClipboardList size={48} className="mb-4" />
-            <p className="text-lg">No tasks available</p>
-            <p className="text-sm mt-2">
-              Click 'Create Task' to add your first task
-            </p>
-          </div>
-        ) : (
-          <div>
-            <CardTitle className="text-center text-muted-foreground mb-6">
-              {taskList.length} tasks found
-            </CardTitle>
-            <div className="flex flex-col gap-4 w-1/2 mx-auto">
-              {taskList.map((task) => (
-                <TaskCard
-                  key={task.id}
-                  task={task}
-                  user={user}
-                  setNeedsRefetch={setNeedsRefetch}
-                  notifications={notifications}
-                  setNotifications={setNotifications}
-                  setFeedbackMessage={setFeedbackMessage}
-                  devMode={devMode}
-                  setNotificationToAdd={setNotificationToAdd}
-                />
-              ))}
-            </div>
+            <Loader2 size={48} className="animate-spin mb-4" />
+            <p className="text-lg">Loading tasks...</p>
           </div>
         )}
+
+        <div>
+          <CardTitle className="text-center text-muted-foreground mb-6">
+            {taskList.length === 0 && !isLoading && (
+              <div className="flex w-full flex-col items-center justify-center py-8 text-muted-foreground">
+                <ClipboardList size={48} className="mb-4" />
+                <p className="text-lg">
+                  No tasks available matching<br></br>
+                  {searchCriteria && `\"${searchCriteria}\"`}
+                </p>
+                {!searchCriteria && (
+                  <p className="text-sm mt-2">
+                    Click 'Create Task' to add your first task
+                  </p>
+                )}
+              </div>
+            )}
+          </CardTitle>
+          <div className="flex flex-col gap-4 w-1/2 mx-auto">
+            {taskList.map((task) => (
+              <TaskCard
+                key={task.id}
+                task={task}
+                user={user}
+                setNeedsRefetch={setNeedsRefetch}
+                notifications={notifications}
+                setNotifications={setNotifications}
+                setFeedbackMessage={setFeedbackMessage}
+                devMode={devMode}
+                setNotificationToAdd={setNotificationToAdd}
+              />
+            ))}
+          </div>
+        </div>
       </CardContent>
 
       <CardFooter>
