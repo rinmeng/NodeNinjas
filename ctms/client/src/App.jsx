@@ -13,7 +13,7 @@ import NotFound from "@/src/pages/NotFound";
 import Dashboard from "@/src/pages/Dashboard";
 import ChatWidget from "@/src/components/ChatWidget";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
-import Message from "@/src/pages/Message";
+import Chat from "@/src/pages/Chat";
 import { ToastProvider, useToast } from "@/utils/ToastProvider";
 
 function AppContent() {
@@ -21,11 +21,6 @@ function AppContent() {
     useNotification();
   const { setFeedbackMessage } = useToast();
   const [devMode] = useState(false);
-
-  // Apply theme
-  useEffect(() => {
-    document.documentElement.classList.add("light");
-  }, []);
 
   return (
     <Router>
@@ -44,6 +39,7 @@ function AppContent() {
             />
           }
         />
+        <Route path="/chat" element={<Chat />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatWidget />
