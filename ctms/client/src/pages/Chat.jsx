@@ -4,6 +4,7 @@
 // const socket = io('http://localhost:15000'); // Backend URL
 
 const Chat = ({ sessionUser }) => {
+  return <></>;
   //   const [messages, setMessages] = useState([]);
   //   const [newMessage, setNewMessage] = useState('');
   //   const [recipient, setRecipient] = useState(''); // Recipient ID
