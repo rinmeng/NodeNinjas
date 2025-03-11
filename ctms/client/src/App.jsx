@@ -17,9 +17,6 @@ import Chat from "@/src/pages/Chat";
 import { ToastProvider, useToast } from "@/utils/ToastProvider";
 
 function AppContent() {
-  const { notifications, setNotificationToAdd, setNotificationsNeedRefetch } =
-    useNotification();
-  const { setFeedbackMessage } = useToast();
   const [devMode] = useState(false);
 
   return (
@@ -30,15 +27,7 @@ function AppContent() {
         <Route path="/" element={<Dashboard devMode={devMode} />} />
         <Route path="/admin" element={<Admin devMode={devMode} />} />
         <Route path="/about" element={<About />} />
-        <Route
-          path="/login"
-          element={
-            <Login
-              setShowNavbar={setShowNavbar}
-              setFeedbackMessage={setFeedbackMessage}
-            />
-          }
-        />
+        <Route path="/login" element={<Login />} />
         <Route path="/chat" element={<Chat />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
