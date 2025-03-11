@@ -72,8 +72,8 @@ function Navbar({ devMode }) {
         links.push({ label: "Admin", route: "/admin", icon: Shield });
       }
       links.push({
-        label: "Messages",
-        route: "/messages",
+        label: "Chat",
+        route: "/chat",
         icon: MessageSquare,
       });
     }
