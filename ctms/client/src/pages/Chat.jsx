@@ -2,21 +2,29 @@ import React, { useState, useEffect, useRef } from "react";
 import io from "socket.io-client";
 import proxy from "@/src/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+
 const socket = io(proxy);
 
 const Chat = () => {
   const { user } = useAuth();
+
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [recipient, setRecipient] = useState(""); // Recipient ID
-  const [onlineUsers, setOnlineUsers] = useState([]); // Online users list
+  const [recipient, setRecipient] = useState("");
+  const [onlineUsers, setOnlineUsers] = useState([]);
   const chatRef = useRef(null);
+
   // Fetch message history when a recipient is selected
   useEffect(() => {
     if (recipient) {
       fetchMessageHistory(user.id, recipient);
     }
   }, [recipient]);
+
   // Connect to Socket.IO and handle real-time updates
   useEffect(() => {
     if (user) {
@@ -39,10 +47,12 @@ const Chat = () => {
       socket.disconnect();
     };
   }, [user]);
+
   // Scroll to the bottom of the chat when messages update
   useEffect(() => {
     chatRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
+
   // Fetch message history from the backend
   const fetchMessageHistory = async (userId1, userId2) => {
     try {
@@ -55,6 +65,7 @@ const Chat = () => {
       console.error("Error fetching message history:", err);
     }
   };
+
   // Send a new message
   const sendMessage = () => {
     if (newMessage.trim() !== "" && recipient.trim() !== "") {
@@ -68,79 +79,87 @@ const Chat = () => {
       setNewMessage(""); // Clear input
     }
   };
+
   return (
-    <div className="flex h-screen bg-gray-100 text-black">
-      {/* Sidebar for Online Users */}
-      <div className="w-1/4 bg-gray-200 text-black p-4 border-r">
-        <h2 className="text-xl font-semibold mb-4">Online Users</h2>
-        {onlineUsers.map((userId, index) => (
-          <div
-            key={index}
-            onClick={() => setRecipient(userId)}
-            className={`p-3 mb-2 rounded-lg cursor-pointer ${
-              recipient === userId
-                ? "bg-blue-500 text-white"
-                : "bg-gray-300 text-black"
-            }`}
-          >
-            User {userId}
-          </div>
-        ))}
-      </div>
-      {/* Chat Panel */}
-      <div className="w-3/4 flex flex-col bg-white">
-        {/* Chat Header */}
-        <div className="bg-blue-500 text-white p-4 text-lg font-semibold">
-          {recipient ? `Chat with User ${recipient}` : "Select a chat"}
-        </div>
-        {/* Messages Area */}
-        <div className="flex-1 p-4 overflow-y-auto space-y-2">
-          {messages
-            .filter(
-              (msg) =>
-                (msg.sender_id === user.id && msg.recipient_id === recipient) ||
-                (msg.sender_id === recipient && msg.recipient_id === user.id)
-            )
-            .map((msg, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  msg.sender_id === user.id ? "justify-end" : "justify-start"
-                }`}
-              >
-                <div
-                  className={`max-w-xs p-3 rounded-lg ${
-                    msg.sender_id === user.id
-                      ? "bg-blue-500 text-white" // Sent messages
-                      : "bg-gray-300 text-black" // Received messages
-                  }`}
+    <div className="flex h-screen bg-background">
+      {/* Sidebar */}
+      <div className="w-80 border-r">
+        <div className="p-4">
+          <h2 className="text-xl font-semibold mb-4">Online Users</h2>
+          <ScrollArea className="h-[calc(100vh-8rem)]">
+            <div className="space-y-2">
+              {onlineUsers.map((userId, index) => (
+                <Button
+                  key={index}
+                  variant={recipient === userId ? "default" : "secondary"}
+                  className="w-full justify-start"
+                  onClick={() => setRecipient(userId)}
                 >
-                  <p className="text-sm">{msg.text}</p>
-                  <p className="text-xs text-gray-700 text-right mt-1">
-                    {new Date(msg.sent_at).toLocaleTimeString()}{" "}
-                    {/* Timestamp */}
-                  </p>
-                </div>
-              </div>
-            ))}
-          <div ref={chatRef}></div>
+                  User {userId}
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
         </div>
+      </div>
+
+      {/* Chat Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Chat Header */}
+        <div className="p-4 border-b">
+          <h2 className="text-lg font-semibold">
+            {recipient ? `Chat with User ${recipient}` : "Select a chat"}
+          </h2>
+        </div>
+
+        {/* Messages */}
+        <ScrollArea className="flex-1 p-4">
+          <div className="space-y-4">
+            {messages
+              .filter(
+                (msg) =>
+                  (msg.sender_id === user.id &&
+                    msg.recipient_id === recipient) ||
+                  (msg.sender_id === recipient && msg.recipient_id === user.id)
+              )
+              .map((msg, index) => (
+                <div
+                  key={index}
+                  className={cn("flex", {
+                    "justify-end": msg.sender_id === user.id,
+                    "justify-start": msg.sender_id !== user.id,
+                  })}
+                >
+                  <div
+                    className={cn("max-w-[80%] rounded-lg p-3 text-sm", {
+                      "bg-primary text-primary-foreground":
+                        msg.sender_id === user.id,
+                      "bg-muted": msg.sender_id !== user.id,
+                    })}
+                  >
+                    <p>{msg.text}</p>
+                    <p className="text-xs opacity-70 text-right mt-1">
+                      {new Date(msg.sent_at).toLocaleTimeString()}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            <div ref={chatRef} />
+          </div>
+        </ScrollArea>
+
         {/* Message Input */}
-        <div className="p-4 border-t bg-gray-100 flex">
-          <input
-            type="text"
-            className="flex-1 p-2 border rounded-lg text-black bg-white"
-            value={newMessage}
-            onChange={(e) => setNewMessage(e.target.value)}
-            onKeyPress={(e) => e.key === "Enter" && sendMessage()}
-            placeholder="Type a message..."
-          />
-          <button
-            onClick={sendMessage}
-            className="bg-blue-500 text-white px-4 py-2 rounded-lg ml-2"
-          >
-            Send
-          </button>
+        <div className="p-4 border-t">
+          <div className="flex gap-2">
+            <Input
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={(e) => e.key === "Enter" && sendMessage()}
+              placeholder="Type a message..."
+              className="flex-1"
+            />
+            <Button onClick={sendMessage}>Send</Button>
+          </div>
         </div>
       </div>
     </div>

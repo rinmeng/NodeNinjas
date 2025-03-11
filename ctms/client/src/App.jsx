@@ -8,12 +8,13 @@ import {
 import Navbar from "@/src/components/Navbar";
 import About from "@/src/pages/About";
 import Admin from "@/src/pages/Admin";
+import Chat from "@/src/pages/Chat";
 import Login from "@/src/pages/Login";
 import NotFound from "@/src/pages/NotFound";
 import Dashboard from "@/src/pages/Dashboard";
 import ChatWidget from "@/src/components/ChatWidget";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
-import Chat from "@/src/pages/Chat";
+
 import { ToastProvider } from "@/utils/ToastProvider";
 
 function AppContent() {
