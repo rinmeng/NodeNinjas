@@ -189,7 +189,7 @@ const Chat = () => {
       </Card>
 
       {/* Chat Area Card */}
-      <Card className="flex flex-col w-3/4 rounded-none border-l-0 p-0">
+      <Card className="flex flex-col w-3/4 rounded-none border-l-0 p-0 gap-0">
         <CardHeader className="border-b">
           <CardTitle className="text-lg my-4">
             {recipient
@@ -198,7 +198,7 @@ const Chat = () => {
           </CardTitle>
         </CardHeader>
 
-        <CardContent className=" p-0">
+        <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-20rem)]">
             <div className="space-y-4 p-4">
               {Array.isArray(messages) &&
