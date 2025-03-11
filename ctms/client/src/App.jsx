@@ -12,6 +12,7 @@ import { CircleAlert, CircleCheck } from "lucide-react";
 import { Toaster } from "sonner";
 import { toast } from "sonner";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
+import Message from "@/src/pages/Message";
 
 function AppContent() {
   const { user, notifications, setNotificationsNeedRefetch } = useAuth();
@@ -89,6 +90,7 @@ function AppContent() {
             />
           }
         />
+        <Route path="/messages" element={<Message />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatWidget />

@@ -64,7 +64,11 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
       if (user?.role === "admin" || devMode) {
         links.push({ label: "Admin", route: "/admin", icon: Shield });
       }
-      links.push({ label: "Message", route: "/message", icon: MessageSquare });
+      links.push({
+        label: "Messages",
+        route: "/messages",
+        icon: MessageSquare,
+      });
     }
 
     links.push({ label: "About", route: "/about", icon: Info });
