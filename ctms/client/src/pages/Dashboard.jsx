@@ -42,9 +42,14 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/utils/AuthProvider";
+import { useNotification } from "@/utils/NotificationProvider";
+import { useToast } from "@/utils/ToastProvider";
 
-function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
-  const { user, notifications, setNotifications } = useAuth();
+function Dashboard({ devMode }) {
+  const { user } = useAuth();
+  const { notifications, setNotifications, setNotificationToAdd } =
+    useNotification();
+  const { setFeedbackMessage } = useToast();
   const [searchCriteria, setSearchCriteria] = useState("");
 
   const [isRefetching, setIsRefetching] = useState(false);
@@ -189,6 +194,15 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
   const refetchTaskClicked = () => {
     setIsRefetching(true);
     setNeedsRefetch(true);
+
+    // Set timeout for 750ms to ensure animation is visible
+    setTimeout(() => {
+      setIsRefetching(false);
+      setFeedbackMessage({
+        title: "Success",
+        description: "Tasks have been successfully synced",
+      });
+    }, 750);
   };
 
   useEffect(() => {
@@ -264,21 +278,6 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
 
     sortTasks();
   }, [filterOptions, allTasks, searchCriteria]);
-
-  useEffect(() => {
-    if (!needsRefetch) {
-      // set time out for 1 second to simulate refetching
-      setTimeout(() => {
-        setIsRefetching(false);
-        if (isRefetching) {
-          setFeedbackMessage({
-            title: "Success",
-            description: "Tasks have been successfully synced",
-          });
-        }
-      }, 1000);
-    }
-  }, [needsRefetch, setFeedbackMessage, isRefetching]);
 
   if (!user && !devMode) {
     return (
@@ -505,11 +504,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
         </div>
 
         <div className="flex justify-center items-center gap-3">
-          <AddTaskPanel
-            setFeedbackMessage={setFeedbackMessage}
-            user={user}
-            setNeedsRefetch={setNeedsRefetch}
-          />
+          <AddTaskPanel user={user} setNeedsRefetch={setNeedsRefetch} />
 
           <Button
             variant="outline"
@@ -517,20 +512,12 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
             disabled={isRefetching}
             className="flex gap-2"
           >
+            {isRefetching && <RefreshCw className="animate-spin" />}
             Sync Tasks
-            <RefreshCw
-              className={`h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
-            />
           </Button>
         </div>
 
-        {isRefetching && (
-          <CardDescription className="text-center">
-            Refetching tasks...
-          </CardDescription>
-        )}
-
-        {!isLoading && (
+        {!isRefetching && (
           <CardDescription className="text-center">
             Showing {taskList.length} tasks
           </CardDescription>
@@ -571,11 +558,7 @@ function Dashboard({ devMode, setFeedbackMessage, setNotificationToAdd }) {
                 task={task}
                 user={user}
                 setNeedsRefetch={setNeedsRefetch}
-                notifications={notifications}
-                setNotifications={setNotifications}
-                setFeedbackMessage={setFeedbackMessage}
                 devMode={devMode}
-                setNotificationToAdd={setNotificationToAdd}
               />
             ))}
           </div>

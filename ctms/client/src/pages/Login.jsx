@@ -47,6 +47,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
+import { useToast } from "@/utils/ToastProvider";
 
 import proxy from "@/src/utils/proxy";
 
@@ -82,8 +83,9 @@ const registerSchema = z
     }
   );
 
-const Login = ({ setShowNavbar, setFeedbackMessage }) => {
+const Login = () => {
   const { user, login, logout } = useAuth();
+  const { setFeedbackMessage } = useToast();
   const [open, setOpen] = useState(false);
 
   // Replace your login submit handler with:
@@ -124,13 +126,6 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
       manager_username: "",
     },
   });
-
-  useEffect(() => {
-    setShowNavbar(!open);
-    return () => {
-      setShowNavbar(true);
-    };
-  }, [open, setShowNavbar]);
 
   const onRegisterSubmit = async (data) => {
     try {
@@ -236,7 +231,7 @@ const Login = ({ setShowNavbar, setFeedbackMessage }) => {
   };
 
   return (
-    <div className="animate-fadein">
+    <div className="animate-fade-in">
       <div className="grid grid-cols-2 h-screen">
         <Card className="flex flex-col justify-center p-5 bg-primary-foreground/20 border-0 rounded-none">
           <CardHeader>
