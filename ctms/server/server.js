@@ -20,7 +20,8 @@ const allowedOrigins = [
     'http://localhost:13000',    // Docker frontend external port
     'http://localhost:3000',     // Direct frontend dev server
     'http://192.168.1.134:13000', // IP access to Docker frontend 
-    'http://192.168.1.134:3000'   // IP access to direct frontend
+    'http://192.168.1.134:3000',   // IP access to direct frontend
+    'http://142.231.95.212:3000', // IP access to direct frontend
 ];
 
 // Comment out Socket.IO setup
