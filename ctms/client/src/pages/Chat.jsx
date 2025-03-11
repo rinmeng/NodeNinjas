@@ -14,28 +14,55 @@ const Chat = () => {
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [recipient, setRecipient] = useState("");
+  const [recipient, setRecipient] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
 
   if (!user) {
     window.location.href = "/login";
   }
 
+  useEffect(() => {
+    fetch(`${proxy}/user/under/${user.manager_id}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Error: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        console.log("Users fetched:", data); // Add logging to debug
+        setOnlineUsers(data);
+      })
+      .catch((err) => {
+        console.error("Error fetching users:", err);
+        // Add user feedback for errors
+        setOnlineUsers([]);
+      });
+  }, [user?.manager_id]);
+
   return (
-    <div className="flex h-screen bg-background">
+    <div className="flex h-screen bg-background my-18">
       {/* Sidebar */}
-      <div className="w-80 border-r">
-        <div className="p-4">
+      <div className="w-80 ">
+        <div className="p-4 border-r">
           <h2 className="text-xl font-semibold mb-4">Online Users</h2>
           <ScrollArea className="h-[calc(100vh-8rem)]">
             <div className="space-y-2">
-              {onlineUsers.map((userId, index) => (
+              {onlineUsers.map((onlineUser) => (
                 <Button
-                  key={index}
-                  variant={recipient === userId ? "default" : "secondary"}
+                  key={onlineUser.id}
+                  variant={
+                    recipient?.id === onlineUser.id ? "default" : "secondary"
+                  }
                   className="w-full justify-start"
+                  onClick={() => setRecipient(onlineUser)}
                 >
-                  User {userId}
+                  <span className="truncate">
+                    {onlineUser.display_name} &nbsp;{" "}
+                    <span className="text-muted-foreground">
+                      (@{onlineUser.username})
+                    </span>
+                  </span>
                 </Button>
               ))}
             </div>
@@ -48,7 +75,9 @@ const Chat = () => {
         {/* Chat Header */}
         <div className="p-4 border-b">
           <h2 className="text-lg font-semibold">
-            {recipient ? `Chat with User ${recipient}` : "Select a chat"}
+            {recipient
+              ? `Chat with ${recipient.display_name || recipient.username}`
+              : "Select a chat"}
           </h2>
         </div>
 
@@ -59,8 +88,9 @@ const Chat = () => {
               .filter(
                 (msg) =>
                   (msg.sender_id === user.id &&
-                    msg.recipient_id === recipient) ||
-                  (msg.sender_id === recipient && msg.recipient_id === user.id)
+                    msg.recipient_id === recipient?.id) ||
+                  (msg.sender_id === recipient?.id &&
+                    msg.recipient_id === user.id)
               )
               .map((msg, index) => (
                 <div
