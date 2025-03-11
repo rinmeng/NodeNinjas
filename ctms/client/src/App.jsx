@@ -8,23 +8,17 @@ import {
 import Navbar from "@/src/components/Navbar";
 import About from "@/src/pages/About";
 import Admin from "@/src/pages/Admin";
+import Chat from "./pages/Chat";
 import Login from "@/src/pages/Login";
 import NotFound from "@/src/pages/NotFound";
 import Dashboard from "@/src/pages/Dashboard";
 import ChatWidget from "@/src/components/ChatWidget";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
-import { ToastProvider, useToast } from "@/utils/ToastProvider";
+
+import { ToastProvider } from "@/utils/ToastProvider";
 
 function AppContent() {
-  const { notifications, setNotificationToAdd, setNotificationsNeedRefetch } =
-    useNotification();
-  const { setFeedbackMessage } = useToast();
   const [devMode] = useState(false);
-
-  // Apply theme
-  useEffect(() => {
-    document.documentElement.classList.add("light");
-  }, []);
 
   return (
     <Router>
@@ -35,6 +29,8 @@ function AppContent() {
         <Route path="/admin" element={<Admin devMode={devMode} />} />
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/chat" element={<Chat />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatWidget />
