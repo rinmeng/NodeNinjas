@@ -30,6 +30,7 @@ const Chat = () => {
 
   // Fetch users under manager
   useEffect(() => {
+    if (!user?.manager_id) return;
     fetch(`${proxy}/user/under/${user.manager_id}`)
       .then((res) => {
         if (!res.ok) {
@@ -38,7 +39,11 @@ const Chat = () => {
         return res.json();
       })
       .then((data) => {
-        setOnlineUsers(data);
+        // Filter out the current user from the online users list
+        const filteredUsers = data.filter(
+          (onlineUser) => onlineUser.id !== user.id
+        );
+        setOnlineUsers(filteredUsers);
       })
       .catch((err) => {
         console.error("Error fetching users:", err);
@@ -199,7 +204,7 @@ const Chat = () => {
         </CardHeader>
 
         <CardContent className="p-0">
-          <ScrollArea className="h-[calc(100vh-20rem)]">
+          <ScrollArea className="h-[calc(100vh-18rem)]">
             <div className="space-y-4 p-4">
               {Array.isArray(messages) &&
                 messages
