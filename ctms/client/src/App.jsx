@@ -8,7 +8,7 @@ import {
 import Navbar from "@/src/components/Navbar";
 import About from "@/src/pages/About";
 import Admin from "@/src/pages/Admin";
-import Chat from "@/src/pages/Chat";
+import Chat from "./pages/Chat";
 import Login from "@/src/pages/Login";
 import NotFound from "@/src/pages/NotFound";
 import Dashboard from "@/src/pages/Dashboard";
@@ -30,6 +30,7 @@ function AppContent() {
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route path="/chat" element={<Chat />} />
+
         <Route path="*" element={<NotFound />} />
       </Routes>
       <ChatWidget />
