@@ -12,6 +12,7 @@ import {
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { Analytics } from "./Graphs";
+import { PieChart } from "../components/PieChart";
 
 import DataTable from "@/src/components/DataTable";
 import { Button } from "@/components/ui/button";
@@ -382,7 +383,7 @@ const Admin = ({ devMode }) => {
         <Analytics />
       </section>
       <section className="flex justify-center m-10">
-        <PieChart />
+        <PieChart width={400} height={400} />
       </section>
       <Card className="max-w-lg mx-auto">
         <CardHeader>

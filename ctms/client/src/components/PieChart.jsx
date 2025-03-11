@@ -1,7 +1,8 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
-import { LabelList, Pie, PieChart } from "recharts";
+import { LabelList, Pie, PieChart, Tooltip, Cell } from "recharts";
+import { useState, useEffect } from "react";
 
 import {
   Card,
@@ -16,41 +17,57 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-const chartData = [
-  { browser: "chrome", visitors: 275, fill: "var(--color-chrome)" },
-  { browser: "safari", visitors: 200, fill: "var(--color-safari)" },
-  { browser: "firefox", visitors: 187, fill: "var(--color-firefox)" },
-  { browser: "edge", visitors: 173, fill: "var(--color-edge)" },
-  { browser: "other", visitors: 90, fill: "var(--color-other)" },
-];
-
-const chartConfig = {
-  visitors: {
-    label: "Visitors",
-  },
-  chrome: {
-    label: "Chrome",
-    color: "hsl(var(--chart-1))",
-  },
-  safari: {
-    label: "Safari",
-    color: "hsl(var(--chart-2))",
-  },
-  firefox: {
-    label: "Firefox",
-    color: "hsl(var(--chart-3))",
-  },
-  edge: {
-    label: "Edge",
-    color: "hsl(var(--chart-4))",
-  },
-  other: {
-    label: "Other",
-    color: "hsl(var(--chart-5))",
-  },
-};
 
 export function Component() {
+  const [chartData, setChartData] = useState([]);
+  useEffect(() => {
+    fetch("http://localhost:15000/task/all", { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "Tasks can't be loaded");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        const taskStatusCounting = data.reduce(
+          (count, task) => {
+            if (task.status === "completed") {
+              count.completed++;
+            } else if (task.status === "in_progress") {
+              count.inProg++;
+            } else if (task.status === "pending") {
+              count.pending++;
+            }
+            return count;
+          },
+          { inProg: 0, pending: 0, completed: 0 }
+        );
+
+        console.log("Task Status Counts: ", taskStatusCounting);
+
+        setChartData([
+          {
+            status: "Pending",
+            count: taskStatusCounting.pending,
+            fill: "var(--ring)",
+          },
+          {
+            status: "In Progress",
+            count: taskStatusCounting.inProg,
+            fill: "var(--chart-5)",
+          },
+          {
+            status: "Completed",
+            count: taskStatusCounting.completed,
+            fill: "var(--chart-2)",
+          },
+        ]);
+      })
+      .catch((error) => console.error("Error fetching tasks: ", error));
+  }, []);
+
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
@@ -59,22 +76,23 @@ export function Component() {
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
-          config={chartConfig}
+          config={setChartData}
           className="mx-auto aspect-square max-h-[250px] [&_.recharts-text]:fill-background"
         >
           <PieChart>
             <ChartTooltip
               content={<ChartTooltipContent nameKey="visitors" hideLabel />}
             />
-            <Pie data={chartData} dataKey="visitors">
+            <Pie data={chartData} dataKey="count">
               <LabelList
-                dataKey="browser"
+                dataKey="status"
                 className="fill-background"
                 stroke="none"
                 fontSize={12}
-                formatter={(value) => chartConfig[value]?.label}
+                formatter={(count) => count}
               />
             </Pie>
+            <Tooltip />
           </PieChart>
         </ChartContainer>
       </CardContent>
