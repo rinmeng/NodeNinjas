@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef } from "react";
-// import io from "socket.io-client"; // Commented out Socket.IO
 import proxy from "@/src/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -15,18 +14,17 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 
-// const socket = io(proxy); // Commented out Socket.IO initialization
-
 const Chat = () => {
   const { user } = useAuth();
   const scrollRef = useRef(null);
-  const pollInterval = useRef(null); // Add ref for polling interval
+  const pollInterval = useRef(null);
+  const prevMessagesLengthRef = useRef(0); // Add ref to track previous message count
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [recipient, setRecipient] = useState(null);
   const [onlineUsers, setOnlineUsers] = useState([]);
-  const [isLoading, setIsLoading] = useState(false); // Add this near other state declarations
+  const [isLoading, setIsLoading] = useState(false);
 
   // Fetch users under manager
   useEffect(() => {
@@ -59,6 +57,9 @@ const Chat = () => {
 
       // Set up polling
       pollInterval.current = setInterval(fetchMessages, 3000);
+
+      // When changing recipients, reset prevMessagesLengthRef
+      prevMessagesLengthRef.current = 0;
 
       // Cleanup
       return () => {
@@ -93,9 +94,22 @@ const Chat = () => {
       });
   };
 
-  // Add scroll to bottom effect when messages change
+  // Modified scroll effect - only scroll when necessary
   useEffect(() => {
-    scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    const currentMessagesLength = messages.length;
+
+    // Only scroll if:
+    // 1. There are new messages (length increased)
+    // 2. This is the initial load for a recipient (prevLength was 0)
+    if (
+      currentMessagesLength > prevMessagesLengthRef.current ||
+      (prevMessagesLengthRef.current === 0 && currentMessagesLength > 0)
+    ) {
+      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Update the ref with current length for next comparison
+    prevMessagesLengthRef.current = currentMessagesLength;
   }, [messages]);
 
   // Add send message handler
@@ -156,6 +170,8 @@ const Chat = () => {
       return `${hours} hour${hours > 1 ? "s" : ""} ago`;
     } else if (minutes > 0) {
       return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    } else if (seconds === 0 || seconds < 10) {
+      return "Just now";
     } else {
       return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
     }
