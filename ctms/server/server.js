@@ -92,9 +92,10 @@ app.use('/notification', notification);
 // });
 
 // Use app.listen instead of server.listen
-app.listen(PORT, () => {
-    console.log('Server is running on port ' + PORT);
-    console.log('Visit it at: http://localhost:' + PORT);
-});
+if (process.env.NODE_ENV !== 'test') {
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
+    });
+}
 
 module.exports = { app }; // Remove io from exports
