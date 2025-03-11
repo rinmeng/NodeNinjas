@@ -14,7 +14,7 @@ import Dashboard from "@/src/pages/Dashboard";
 import ChatWidget from "@/src/components/ChatWidget";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
 import Chat from "@/src/pages/Chat";
-import { ToastProvider, useToast } from "@/utils/ToastProvider";
+import { ToastProvider } from "@/utils/ToastProvider";
 
 function AppContent() {
   const [devMode] = useState(false);
