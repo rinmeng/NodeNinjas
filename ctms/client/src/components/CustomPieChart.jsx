@@ -18,7 +18,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 
-export function Component() {
+export function CustomPieChart({ height }) {
   const [chartData, setChartData] = useState([]);
   useEffect(() => {
     fetch("http://localhost:15000/task/all", { credentials: "include" })
@@ -69,15 +69,16 @@ export function Component() {
   }, []);
 
   return (
-    <Card className="flex flex-col">
-      <CardHeader className="items-center pb-0">
+    <Card>
+      <CardHeader>
         <CardTitle>Status of Tasks</CardTitle>
         <CardDescription>March 2025</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
           config={setChartData}
-          className="mx-auto aspect-square max-h-[250px] [&_.recharts-text]:fill-background"
+          className={`mx-auto aspect-square max-h-[${height}]
+           [&_.recharts-text]:fill-background`}
         >
           <PieChart>
             <ChartTooltip
@@ -97,9 +98,10 @@ export function Component() {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col gap-2 text-sm">
-        <div className="flex items-center gap-2 font-medium leading-none">
-          Statuses of All Tasks{" "}
+      <CardFooter className="flex-col items-start gap-2 text-sm">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={16} />
+          <span>Statuses of All Tasks</span>
         </div>
         <div className="leading-none text-muted-foreground">
           Showing status of tasks for the this month
@@ -108,5 +110,3 @@ export function Component() {
     </Card>
   );
 }
-
-export { Component as PieChart };
