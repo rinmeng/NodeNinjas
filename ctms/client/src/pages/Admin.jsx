@@ -366,8 +366,8 @@ const Admin = ({ devMode }) => {
   };
 
   return (
-    <div className="w-full my-30 animate-fade-in">
-      <Card className="max-w-lg mx-auto">
+    <div className=" w-full my-30 animate-fade-in ">
+      <Card className="container mx-auto flex flex-col items-center">
         <CardHeader>
           <CardTitle>
             <h2 className="text-2xl font-semibold">Admin Functionality</h2>
