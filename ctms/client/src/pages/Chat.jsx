@@ -248,7 +248,16 @@ const Chat = () => {
                         })}
                       >
                         <p>{msg.text}</p>
-                        <p className="text-xs opacity-70 text-right mt-1">
+                        <p
+                          className={`
+                          text-xs opacity-70 mt-1
+                          ${
+                            msg.sender_id === user?.id
+                              ? "text-right"
+                              : "text-left"
+                          }
+                          `}
+                        >
                           {dateToTimeAgo(new Date(msg.sent_at))}
                         </p>
                       </div>
