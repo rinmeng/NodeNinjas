@@ -226,19 +226,19 @@ async function setupMessages() {
             CREATE TABLE messages (
                 id SERIAL PRIMARY KEY, -- Unique message ID
                 sender_id INT NOT NULL,
-                receiver_id INT,
+                recipient_id INT,
                 task_id INT,
-                message TEXT NOT NULL,
+                text TEXT NOT NULL,
                 sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
-                FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE SET NULL,
+                FOREIGN KEY (recipient_id) REFERENCES users (id) ON DELETE SET NULL,
                 FOREIGN KEY (task_id) REFERENCES task (id) ON DELETE SET NULL
             );
 
             -- Indexes for faster lookups
             CREATE INDEX idx_messages_sender_id ON messages (sender_id);
-            CREATE INDEX idx_messages_receiver_id ON messages (receiver_id);
+            CREATE INDEX idx_messages_recipient_id ON messages (recipient_id);
             CREATE INDEX idx_messages_task_id ON messages (task_id);
         `);
 

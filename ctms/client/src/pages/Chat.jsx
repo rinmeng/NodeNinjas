@@ -1,145 +1,285 @@
-// import React, { useState, useEffect, useRef } from 'react';
-// import io from 'socket.io-client';
+import React, { useState, useEffect, useRef } from "react";
+import proxy from "@/src/utils/proxy";
+import { useAuth } from "@/utils/AuthProvider";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { cn } from "@/lib/utils";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardFooter,
+} from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
 
-// const socket = io('http://localhost:15000'); // Backend URL
+const Chat = () => {
+  const { user } = useAuth();
+  const scrollRef = useRef(null);
+  const pollInterval = useRef(null);
+  const prevMessagesLengthRef = useRef(0); // Add ref to track previous message count
 
-const Chat = ({ sessionUser }) => {
-  //   const [messages, setMessages] = useState([]);
-  //   const [newMessage, setNewMessage] = useState('');
-  //   const [recipient, setRecipient] = useState(''); // Recipient ID
-  //   const [onlineUsers, setOnlineUsers] = useState([]); // Online users list
-  //   const chatRef = useRef(null);
-  //   // Fetch message history when a recipient is selected
-  //   useEffect(() => {
-  //     if (recipient) {
-  //       fetchMessageHistory(sessionUser.id, recipient);
-  //     }
-  //   }, [recipient]);
-  //   // Connect to Socket.IO and handle real-time updates
-  //   useEffect(() => {
-  //     if (sessionUser) {
-  //       socket.emit('join', sessionUser.id); // Send user ID to backend
-  //     }
-  //     // Listen for online users updates
-  //     socket.on('updateUsers', (users) => {
-  //       console.log('Online users:', users);
-  //       setOnlineUsers(users);
-  //     });
-  //     // Listen for new messages
-  //     socket.on('receiveMessage', (messageData) => {
-  //       console.log('New message received:', messageData);
-  //       setMessages((prev) => [...prev, messageData]);
-  //     });
-  //     // Cleanup on unmount
-  //     return () => {
-  //       socket.off('updateUsers');
-  //       socket.off('receiveMessage');
-  //       socket.disconnect();
-  //     };
-  //   }, [sessionUser]);
-  //   // Scroll to the bottom of the chat when messages update
-  //   useEffect(() => {
-  //     chatRef.current?.scrollIntoView({ behavior: 'smooth' });
-  //   }, [messages]);
-  //   // Fetch message history from the backend
-  //   const fetchMessageHistory = async (userId1, userId2) => {
-  //     try {
-  //       const response = await fetch(
-  //         `http://localhost:15000/message/history/${userId1}/${userId2}`
-  //       );
-  //       const data = await response.json();
-  //       setMessages(data); // Update the messages state
-  //     } catch (err) {
-  //       console.error('Error fetching message history:', err);
-  //     }
-  //   };
-  //   // Send a new message
-  //   const sendMessage = () => {
-  //     if (newMessage.trim() !== '' && recipient.trim() !== '') {
-  //       const messageData = {
-  //         sender: sessionUser.id, // Sender ID
-  //         recipient, // Recipient ID
-  //         text: newMessage, // Message content
-  //       };
-  //       console.log('Sending message:', messageData);
-  //       socket.emit('sendMessage', messageData); // Send message to backend
-  //       setNewMessage(''); // Clear input
-  //     }
-  //   };
-  //   return (
-  //     <div className="flex h-screen bg-gray-100 text-black">
-  //       {/* Sidebar for Online Users */}
-  //       <div className="w-1/4 bg-gray-200 text-black p-4 border-r">
-  //         <h2 className="text-xl font-semibold mb-4">Online Users</h2>
-  //         {onlineUsers.map((userId, index) => (
-  //           <div
-  //             key={index}
-  //             onClick={() => setRecipient(userId)}
-  //             className={`p-3 mb-2 rounded-lg cursor-pointer ${
-  //               recipient === userId ? 'bg-blue-500 text-white' : 'bg-gray-300 text-black'
-  //             }`}
-  //           >
-  //             User {userId}
-  //           </div>
-  //         ))}
-  //       </div>
-  //       {/* Chat Panel */}
-  //       <div className="w-3/4 flex flex-col bg-white">
-  //         {/* Chat Header */}
-  //         <div className="bg-blue-500 text-white p-4 text-lg font-semibold">
-  //           {recipient ? `Chat with User ${recipient}` : 'Select a chat'}
-  //         </div>
-  //         {/* Messages Area */}
-  //         <div className="flex-1 p-4 overflow-y-auto space-y-2">
-  //           {messages
-  //             .filter(
-  //               (msg) =>
-  //                 (msg.sender_id === sessionUser.id && msg.recipient_id === recipient) ||
-  //                 (msg.sender_id === recipient && msg.recipient_id === sessionUser.id)
-  //             )
-  //             .map((msg, index) => (
-  //               <div
-  //                 key={index}
-  //                 className={`flex ${
-  //                   msg.sender_id === sessionUser.id ? 'justify-end' : 'justify-start'
-  //                 }`}
-  //               >
-  //                 <div
-  //                   className={`max-w-xs p-3 rounded-lg ${
-  //                     msg.sender_id === sessionUser.id
-  //                       ? 'bg-blue-500 text-white' // Sent messages
-  //                       : 'bg-gray-300 text-black' // Received messages
-  //                   }`}
-  //                 >
-  //                   <p className="text-sm">{msg.text}</p>
-  //                   <p className="text-xs text-gray-700 text-right mt-1">
-  //                     {new Date(msg.sent_at).toLocaleTimeString()} {/* Timestamp */}
-  //                   </p>
-  //                 </div>
-  //               </div>
-  //             ))}
-  //           <div ref={chatRef}></div>
-  //         </div>
-  //         {/* Message Input */}
-  //         <div className="p-4 border-t bg-gray-100 flex">
-  //           <input
-  //             type="text"
-  //             className="flex-1 p-2 border rounded-lg text-black bg-white"
-  //             value={newMessage}
-  //             onChange={(e) => setNewMessage(e.target.value)}
-  //             onKeyPress={(e) => e.key === 'Enter' && sendMessage()}
-  //             placeholder="Type a message..."
-  //           />
-  //           <button
-  //             onClick={sendMessage}
-  //             className="bg-blue-500 text-white px-4 py-2 rounded-lg ml-2"
-  //           >
-  //             Send
-  //           </button>
-  //         </div>
-  //       </div>
-  //     </div>
-  //   );
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [recipient, setRecipient] = useState(null);
+  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
+
+  // Fetch users under manager
+  useEffect(() => {
+    if (!user?.manager_id) return;
+    fetch(`${proxy}/user/under/${user.manager_id}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Error: ${res.status}`);
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // Filter out the current user from the online users list
+        const filteredUsers = data.filter(
+          (onlineUser) => onlineUser.id !== user.id
+        );
+        setOnlineUsers(filteredUsers);
+      })
+      .catch((err) => {
+        console.error("Error fetching users:", err);
+        setOnlineUsers([]);
+      });
+  }, [user?.manager_id]);
+
+  // Poll for new messages every 3 seconds when a recipient is selected
+  useEffect(() => {
+    if (user && recipient) {
+      // Initial fetch
+      fetchMessages();
+
+      // Set up polling
+      pollInterval.current = setInterval(fetchMessages, 3000);
+
+      // When changing recipients, reset prevMessagesLengthRef
+      prevMessagesLengthRef.current = 0;
+
+      // Cleanup
+      return () => {
+        if (pollInterval.current) {
+          clearInterval(pollInterval.current);
+        }
+      };
+    }
+  }, [recipient, user]);
+
+  // Function to fetch messages
+  const fetchMessages = () => {
+    if (!user?.id || !recipient?.id) return;
+
+    setIsLoading(true);
+    fetch(`${proxy}/message/${user.id}/${recipient.id}`)
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        // Ensure data is an array
+        const messageArray = Array.isArray(data) ? data : [];
+        setMessages(messageArray);
+      })
+      .catch((err) => {
+        console.error("Error fetching messages:", err);
+        setMessages([]); // Reset to empty array on error
+      })
+      .finally(() => {
+        setIsLoading(false);
+      });
+  };
+
+  // Modified scroll effect - only scroll when necessary
+  useEffect(() => {
+    const currentMessagesLength = messages.length;
+
+    // Only scroll if:
+    // 1. There are new messages (length increased)
+    // 2. This is the initial load for a recipient (prevLength was 0)
+    if (
+      currentMessagesLength > prevMessagesLengthRef.current ||
+      (prevMessagesLengthRef.current === 0 && currentMessagesLength > 0)
+    ) {
+      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+    }
+
+    // Update the ref with current length for next comparison
+    prevMessagesLengthRef.current = currentMessagesLength;
+  }, [messages]);
+
+  // Add send message handler
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || !recipient) return;
+
+    const messageData = {
+      sender_id: user.id,
+      recipient_id: recipient.id,
+      text: newMessage.trim(),
+    };
+
+    try {
+      const response = await fetch(`${proxy}/message`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(messageData),
+      });
+
+      if (!response.ok) throw new Error("Failed to send message");
+
+      const savedMessage = await response.json();
+
+      // Update local messages immediately
+      setMessages((prev) => [...prev, savedMessage]);
+      setNewMessage("");
+    } catch (error) {
+      console.error("Error sending message:", error);
+    }
+  };
+
+  // Add keypress handler for Enter key
+  const handleKeyPress = (e) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault();
+      handleSendMessage();
+    }
+  };
+
+  if (!user) {
+    window.location.href = "/login";
+  }
+
+  const dateToTimeAgo = (date) => {
+    const now = new Date();
+    const diff = now - date;
+
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+
+    if (days > 0) {
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+    } else if (hours > 0) {
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    } else if (minutes > 0) {
+      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    } else if (seconds === 0 || seconds < 10) {
+      return "Just now";
+    } else {
+      return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+    }
+  };
+
+  return (
+    <div className="flex h-[calc(100vh-5rem)] bg-background mt-18">
+      {/* Sidebar Card */}
+      <Card className="w-1/4 border-r rounded-none gap-0">
+        <CardHeader>
+          <CardTitle>Online Users</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0">
+          <ScrollArea className="h-[calc(100vh-12rem)]">
+            <div className="space-y-2 p-4">
+              {onlineUsers.map((onlineUser) => (
+                <Button
+                  key={onlineUser.id}
+                  variant={
+                    recipient?.id === onlineUser.id ? "default" : "secondary"
+                  }
+                  className="w-full justify-start"
+                  onClick={() => setRecipient(onlineUser)}
+                >
+                  <span className="truncate">
+                    {onlineUser.display_name} &nbsp;{" "}
+                    <span className="text-muted-foreground">
+                      (@{onlineUser.username})
+                    </span>
+                  </span>
+                </Button>
+              ))}
+            </div>
+          </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* Chat Area Card */}
+      <Card className="flex flex-col w-3/4 rounded-none border-l-0 p-0 gap-0">
+        <CardHeader className="border-b">
+          <CardTitle className="text-lg my-4">
+            {recipient
+              ? `Chat with ${recipient.display_name || recipient.username}`
+              : "Select a chat"}
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="p-0">
+          <ScrollArea className="h-[calc(100vh-18rem)]">
+            <div className="space-y-4 p-4">
+              {Array.isArray(messages) &&
+                messages
+                  .filter(
+                    (msg) =>
+                      msg &&
+                      ((msg.sender_id === user?.id &&
+                        msg.recipient_id === recipient?.id) ||
+                        (msg.sender_id === recipient?.id &&
+                          msg.recipient_id === user?.id))
+                  )
+                  .map((msg, index) => (
+                    <div
+                      key={msg.id || index}
+                      className={cn("flex", {
+                        "justify-end": msg.sender_id === user?.id,
+                        "justify-start": msg.sender_id !== user?.id,
+                      })}
+                    >
+                      <div
+                        className={cn("max-w-[80%] rounded-lg p-3 text-sm", {
+                          "bg-primary text-primary-foreground":
+                            msg.sender_id === user?.id,
+                          "bg-muted": msg.sender_id !== user?.id,
+                        })}
+                      >
+                        <p>{msg.text}</p>
+                        <p className="text-xs opacity-70 text-right mt-1">
+                          {dateToTimeAgo(new Date(msg.sent_at))}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+              <div ref={scrollRef} />
+            </div>
+          </ScrollArea>
+        </CardContent>
+
+        <CardFooter className="border-t p-4">
+          <div className="flex gap-2 w-full">
+            <Textarea
+              value={newMessage}
+              onChange={(e) => setNewMessage(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder="Type a message..."
+              className="flex-1 h-24"
+              disabled={!recipient}
+            />
+            <Button
+              onClick={handleSendMessage}
+              disabled={!recipient || !newMessage.trim()}
+            >
+              Send
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+    </div>
+  );
 };
 
 export default Chat;

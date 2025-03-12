@@ -4,8 +4,8 @@ const pool = require('./db');
 const cors = require('cors');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-const http = require('http'); // Import HTTP module
-const { Server } = require('socket.io'); // Import Socket.IO
+// const http = require('http'); // Comment out
+// const { Server } = require('socket.io'); // Comment out
 
 const home = require('./routes/home');
 const setup = require('./routes/setup');
@@ -20,26 +20,20 @@ const allowedOrigins = [
     'http://localhost:13000',    // Docker frontend external port
     'http://localhost:3000',     // Direct frontend dev server
     'http://192.168.1.134:13000', // IP access to Docker frontend 
-    'http://192.168.1.134:3000'   // IP access to direct frontend
+    'http://192.168.1.134:3000',   // IP access to direct frontend
+    'http://142.231.95.212:3000', // IP access to direct frontend
+    'http://142.231.95.212:15000',
+    'http://142.231.95.212:13000'
 ];
 
-// Create HTTP server
-const server = http.createServer(app);
-
-// Set up Socket.IO with CORS (void app.listen and use server.listen instead)
-// Why Not Just Use app.listen(PORT)?
-// Normally, when using Express alone, you'd start the server like this:
-// app.listen(PORT, () => {
-//     console.log(`Server is running on port ${PORT}`);
+// Comment out Socket.IO setup
+// const server = http.createServer(app);
+// const io = new Server(server, {
+//     cors: {
+//         origin: allowedOrigins,
+//         methods: ['GET', 'POST']
+//     }
 // });
-// This works fine for a basic API, but it does not support WebSockets(Socket.IO).
-
-const io = new Server(server, {
-    cors: {
-        origin: allowedOrigins,
-        methods: ['GET', 'POST']
-    }
-});
 
 // Session store
 const sessionStore = new pgSession({
@@ -88,39 +82,22 @@ app.use('/task', task);
 app.use('/message', message);
 app.use('/notification', notification);
 
-// 🔴 Socket.IO Logic 🔴
+// Comment out Socket.IO Logic
 // io.on('connection', (socket) => {
 //     console.log('A user connected:', socket.id);
-
-//     // Handling notifications
-//     socket.on('sendNotification', async (data) => {
-//         console.log('New notification:', data);
-
-//         const { user_id, message, type } = data;
-//         try {
-//             await pool.query(
-//                 `INSERT INTO notifications (user_id, message, type) VALUES ($1, $2, $3)`,
-//                 [user_id, message, type]
-//             );
-
-//             // Send notification to the specific user
-//             io.emit(`notification:${user_id}`, data);
-//         } catch (err) {
-//             console.error('Error saving notification:', err);
-//         }
+//     socket.on('message', (message) => {
+//         io.emit('message', message);
 //     });
-
 //     socket.on('disconnect', () => {
 //         console.log('User disconnected:', socket.id);
 //     });
 // });
 
-// Start server
+// Use app.listen instead of server.listen
 if (process.env.NODE_ENV !== 'test') {
-    server.listen(PORT, () => {
-        console.log('Server is running on port ' + PORT);
-        console.log('Visit it at: http://localhost:' + PORT);
+    app.listen(PORT, () => {
+        console.log(`Server running on port ${PORT}`);
     });
 }
 
-module.exports = { app, io };
+module.exports = { app }; // Remove io from exports

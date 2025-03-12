@@ -315,17 +315,6 @@ const Admin = ({ devMode }) => {
       });
   };
 
-  const changeTable = (userId) => {
-    setChosenUserIds((prev) => {
-      if (!Array.isArray(prev)) {
-        return [userId];
-      }
-      return prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId];
-    });
-  };
-
   const resetSelection = () => {
     setChosenUserIds([]);
     if (tableRef.current) {

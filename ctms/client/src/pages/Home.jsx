@@ -3,13 +3,7 @@ import { Navigate } from "react-router-dom";
 import Chat from "./Chat";
 import {
   Search,
-  Filter,
-  RefreshCw,
-  CircleGauge,
   ClockAlert,
-  Pickaxe,
-  AlarmClockCheck,
-  CalendarClock,
   ClockArrowDown,
   ClockArrowUp,
   Clock,
@@ -17,24 +11,19 @@ import {
   CircleDotDashed,
   CircleDot,
   CircleEllipsis,
-  SquarePen,
-  Trash,
   ArrowDownAZ,
   ArrowUpAZ,
   CalendarArrowDown,
   CalendarArrowUp,
   FilterX,
   ChevronsUpDown,
-  Cross,
   X,
 } from "lucide-react";
 import TaskItem from "../components/subcomponents/TaskItem";
-import Chat from "./Chat";
 
 const Home = ({
   sessionUser,
   devMode,
-  notifications,
   setNotifications,
   setNotificationToAdd,
 }) => {
@@ -82,7 +71,7 @@ const Home = ({
     },
   ]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [searchCriteria, setSearchCriteria] = useState("priority"); // Default search by priority
+
   const [taskTitle, setTaskTitle] = useState("");
   const [taskDescription, setTaskDescription] = useState("");
   const [taskPriority, setTaskPirioty] = useState("");
@@ -580,10 +569,6 @@ const Home = ({
             </div>
           </form>
         </div>
-      </div>
-      <div className="mt-10">
-        <h2 className="text-2xl font-bold text-white mb-4">Live Chat</h2>
-        <Chat />
       </div>
     </div>
   );

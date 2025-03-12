@@ -71,7 +71,11 @@ function Navbar({ devMode }) {
       if (user?.role === "admin" || devMode) {
         links.push({ label: "Admin", route: "/admin", icon: Shield });
       }
-      links.push({ label: "Message", route: "/message", icon: MessageSquare });
+      links.push({
+        label: "Chat",
+        route: "/chat",
+        icon: MessageSquare,
+      });
     }
 
     links.push({ label: "About", route: "/about", icon: Info });
