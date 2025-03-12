@@ -51,12 +51,12 @@ export function CustomPieChart({ height }) {
           {
             status: "Pending",
             count: taskStatusCounting.pending,
-            fill: "var(--ring)",
+            fill: "var(--chart-1)",
           },
           {
             status: "In-Progress",
             count: taskStatusCounting.inProg,
-            fill: "var(--chart-5)",
+            fill: "var(--chart-3)",
           },
           {
             status: "Completed",
@@ -87,7 +87,6 @@ export function CustomPieChart({ height }) {
             <Pie data={chartData} dataKey="count" nameKey="status">
               <LabelList
                 dataKey="status"
-                fill="black"
                 className="fill-background"
                 stroke="none"
                 fontSize={12}
