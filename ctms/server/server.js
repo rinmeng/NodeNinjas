@@ -22,6 +22,8 @@ const allowedOrigins = [
     'http://192.168.1.134:13000', // IP access to Docker frontend 
     'http://192.168.1.134:3000',   // IP access to direct frontend
     'http://142.231.95.212:3000', // IP access to direct frontend
+    'http://142.231.95.212:15000',
+    'http://142.231.95.212:13000'
 ];
 
 // Comment out Socket.IO setup
