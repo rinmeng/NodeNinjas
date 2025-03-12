@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Bell,
@@ -30,7 +30,6 @@ import { cn } from "@/lib/utils";
 import NotificationPanel from "./NotificationPanel";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/contexts/ThemeProvider";
-import { useToast } from "@/utils/ToastProvider";
 import { useNotification } from "@/utils/NotificationProvider";
 
 function Navbar({ devMode }) {
@@ -45,21 +44,6 @@ function Navbar({ devMode }) {
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
   const location = useLocation();
   const { toggleTheme } = useTheme();
-
-  function ThemeToggle() {
-    return (
-      <Button
-        role="outline"
-        className="p-2 outline rounded-xl flex"
-        onClick={() => toggleTheme()}
-      >
-        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
-        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
-        <span className="sr-only">Toggle theme</span>
-      </Button>
-    );
-  }
-
   const isActive = (route) => location.pathname === route;
 
   // Define navigation links based on user role and dev mode
@@ -88,6 +72,20 @@ function Navbar({ devMode }) {
     return links;
   };
 
+  function ThemeToggle() {
+    return (
+      <Button
+        role="outline"
+        className="p-2 outline rounded-xl flex"
+        onClick={() => toggleTheme()}
+      >
+        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+    );
+  }
+
   const links = getLinks();
 
   const handleNavigation = (route) => {
@@ -107,6 +105,15 @@ function Navbar({ devMode }) {
       </Button>
     );
   }
+
+  useEffect(() => {
+    const intervalId = setInterval(
+      () => setNotificationsNeedRefetch(true),
+      3000
+    );
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
     <NavigationMenu className="fixed top-0 left-0 p-4 flex justify-between min-w-full z-10 bg-background border">
@@ -192,6 +199,7 @@ function Navbar({ devMode }) {
                   open={notificationOpen}
                   onOpenChange={setNotificationOpen}
                   setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+                  notificationsNeedRefetch={notificationsNeedRefetch}
                 />
               </Sheet>
             </NavigationMenuItem>
