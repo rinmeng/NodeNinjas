@@ -127,7 +127,6 @@ const NotificationPanel = ({
               onClick={() => {
                 setIsRefreshing(true);
                 setNotificationsNeedRefetch(true);
-                // Keep spinning for at least 750ms for better visual feedback
                 setTimeout(() => {
                   setIsRefreshing(false);
                   setFeedbackMessage({
@@ -137,9 +136,7 @@ const NotificationPanel = ({
                 }, 750);
               }}
             >
-              {(isRefreshing || notificationsNeedRefetch) && (
-                <RefreshCw className="animate-spin" />
-              )}
+              {isRefreshing && <RefreshCw className="animate-spin" />}
               Sync Notifications
             </Button>
           </SheetHeader>
