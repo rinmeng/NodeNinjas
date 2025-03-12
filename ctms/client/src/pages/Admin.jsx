@@ -11,7 +11,8 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import { Analytics } from "./Graphs";
+import { CustomBarChart } from "@/src/components/CustomBarChart";
+import { CustomPieChart } from "@/src/components/CustomPieChart";
 
 import DataTable from "@/src/components/DataTable";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ import {
 import proxy from "@/src/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 import { useToast } from "@/utils/ToastProvider";
+import { Separator } from "@/components/ui/separator";
 
 const Admin = ({ devMode }) => {
   const { user } = useAuth();
@@ -364,16 +366,15 @@ const Admin = ({ devMode }) => {
   };
 
   return (
-    <div className="container my-24 mx-auto animate-fade-in">
-      {/* Admin Button Row */}
-      <Card className="mb-8">
+    <div className=" w-full my-30 animate-fade-in ">
+      <Card className="container mx-auto flex flex-col items-center">
         <CardHeader>
           <CardTitle>
             <h2 className="text-2xl font-semibold">Admin Functionality</h2>
           </CardTitle>
           <CardDescription>Manage users, roles, and more.</CardDescription>
         </CardHeader>
-        <CardContent className={"flex flex-col md:flex-row gap-4"}>
+        <CardContent className="flex flex-col md:flex-row gap-4">
           <Dialog>
             <DialogTrigger asChild>
               <Button className="w-full md:w-auto">Manage Users</Button>
@@ -452,8 +453,10 @@ const Admin = ({ devMode }) => {
         </CardContent>
       </Card>
 
+      <Separator className="my-10" />
+
       {/* Analytics Grid */}
-      <Card>
+      <Card className="container mx-auto">
         <CardHeader>
           <CardTitle>
             <h2 className="text-4xl font-semibold">Analytics</h2>
@@ -463,14 +466,15 @@ const Admin = ({ devMode }) => {
           </CardDescription>
         </CardHeader>
 
-        <CardContent className="grid grid-rows-1 grid-cols-1 md:grid-cols-3 gap-4">
-          <div className="flex w-full h-auto flex-col col-span-1 justify-center">
-            <Analytics />
-            <Analytics />
+        <CardContent className="h-auto grid grid-cols-2 gap-4">
+          <div className=" flex flex-col w-full gap-4">
+            <CustomPieChart height="300px" />
+
+            <CustomPieChart height="300px" />
           </div>
 
-          <div className="col-span-2">
-            <Analytics />
+          <div className="w-full h-full">
+            <CustomBarChart height="100%" width="100%" />
           </div>
         </CardContent>
       </Card>

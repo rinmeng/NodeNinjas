@@ -18,9 +18,8 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useEffect, useState } from "react";
-import { AspectRatio } from "@/components/ui/aspect-ratio";
 
-export function Analytics() {
+export function CustomBarChart({ height, width }) {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
@@ -54,43 +53,44 @@ export function Analytics() {
   }, []);
 
   return (
-    <AspectRatio>
-      <Card>
-        <CardHeader>
-          <CardTitle>Admin User Distribution</CardTitle>
-          <CardDescription>
-            Total Users:{" "}
-            {chartData.reduce((sum, admin) => sum + admin.users, 0)}
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <ChartContainer config={ChartConfig}>
-            <BarChart width={10} height={40} data={chartData}>
-              <CartesianGrid vertical={false} />
-              <XAxis
-                dataKey="name"
-                tickLine={false}
-                tickMargin={10}
-                axisLine={false}
-              />
-              <ChartTooltip
-                cursor={false}
-                content={<ChartTooltipContent hideLabel />}
-              />
-              <Bar dataKey="users" fill="var(--primary)" radius={8} />
-            </BarChart>
-          </ChartContainer>
-        </CardContent>
-        <CardFooter className="flex-col items-start gap-2 text-sm">
-          <div className="flex items-center gap-2">
-            <TrendingUp size={16} />
-            <span>Admin User Distribution</span>
-          </div>
-          <div className="leading-none text-muted-foreground">
-            Showing user distribution under specific admins
-          </div>
-        </CardFooter>
-      </Card>
-    </AspectRatio>
+    <Card>
+      <CardHeader>
+        <CardTitle>User Distribution</CardTitle>
+        <CardDescription>
+          Total Users: {chartData.reduce((sum, admin) => sum + admin.users, 0)}
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <ChartContainer
+          config={ChartConfig}
+          className={`mx-auto aspect-square max-h-[${height}] w-[${width}]
+           [&_.recharts-text]:fill-background`}
+        >
+          <BarChart data={chartData}>
+            <CartesianGrid vertical={false} />
+            <XAxis
+              dataKey="name"
+              tickLine={false}
+              tickMargin={10}
+              axisLine={false}
+            />
+            <ChartTooltip
+              cursor={false}
+              content={<ChartTooltipContent hideLabel />}
+            />
+            <Bar dataKey="users" fill="var(--primary)" radius={8} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className="flex-col items-start gap-2 text-sm">
+        <div className="flex items-center gap-2">
+          <TrendingUp size={16} />
+          <span>Admin-User Distribution</span>
+        </div>
+        <div className="leading-none text-muted-foreground">
+          Showing user distribution under specific admins
+        </div>
+      </CardFooter>
+    </Card>
   );
 }
