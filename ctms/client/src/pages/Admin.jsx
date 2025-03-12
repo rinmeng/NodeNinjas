@@ -377,14 +377,9 @@ const Admin = ({ devMode }) => {
 
   return (
     <div className="w-full my-30 animate-fadein ">
-      189-admins-can-see-a-graph-displaying-tasks-in-progress-not-done-or-completed
       <h2 className="text-2xl font-bold mb-4 text-center ">User Analytics</h2>
-      <section className="flex justify-center">
-        <Analytics />
-      </section>
-      <section className="flex justify-center m-10">
-        <PieChart width={400} height={400} />
-      </section>
+      <section className="flex justify-center"></section>
+      <section className="flex justify-center m-10"></section>
       <Card className="max-w-lg mx-auto">
         <CardHeader>
           <CardTitle>
@@ -483,7 +478,7 @@ const Admin = ({ devMode }) => {
 
         <CardContent className="grid grid-rows-1 grid-cols-1 md:grid-cols-3 gap-4">
           <div className="flex w-full h-auto flex-col col-span-1 justify-center">
-            <Analytics />
+            <PieChart width={400} height={400} />
             <Analytics />
           </div>
 

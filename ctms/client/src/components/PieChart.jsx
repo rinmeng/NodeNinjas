@@ -54,7 +54,7 @@ export function Component() {
             fill: "var(--ring)",
           },
           {
-            status: "In Progress",
+            status: "In-Progress",
             count: taskStatusCounting.inProg,
             fill: "var(--chart-5)",
           },
@@ -71,8 +71,8 @@ export function Component() {
   return (
     <Card className="flex flex-col">
       <CardHeader className="items-center pb-0">
-        <CardTitle>Number of Tasks</CardTitle>
-        <CardDescription>January - June 2024</CardDescription>
+        <CardTitle>Status of Tasks</CardTitle>
+        <CardDescription>March 2025</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -81,15 +81,16 @@ export function Component() {
         >
           <PieChart>
             <ChartTooltip
-              content={<ChartTooltipContent nameKey="visitors" hideLabel />}
+              content={<ChartTooltipContent nameKey="status" hideLabel />}
             />
-            <Pie data={chartData} dataKey="count">
+            <Pie data={chartData} dataKey="count" nameKey="status">
               <LabelList
                 dataKey="status"
+                fill="black"
                 className="fill-background"
                 stroke="none"
                 fontSize={12}
-                formatter={(count) => count}
+                formatter={(status) => status}
               />
             </Pie>
             <Tooltip />
@@ -98,10 +99,10 @@ export function Component() {
       </CardContent>
       <CardFooter className="flex-col gap-2 text-sm">
         <div className="flex items-center gap-2 font-medium leading-none">
-          Trending up by 5.2% this month <TrendingUp className="h-4 w-4" />
+          Statuses of All Tasks{" "}
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 months
+          Showing status of tasks for the this month
         </div>
       </CardFooter>
     </Card>
