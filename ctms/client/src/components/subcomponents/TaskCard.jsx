@@ -66,7 +66,7 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
       case "in_progress":
         return "default";
       case "completed":
-        return "success";
+        return "outline";
       default:
         return "outline";
     }
@@ -76,13 +76,13 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
     const formattedStatus = status.replace(/\s+/g, "").toLowerCase();
     switch (formattedStatus) {
       case "pending":
-        return <CircleDashed className="h-4 w-4 mr-1" />;
+        return <CircleDashed />;
       case "in_progress":
-        return <CircleDotDashed className="h-4 w-4 mr-1" />;
+        return <CircleDotDashed />;
       case "completed":
-        return <CircleCheck className="h-4 w-4 mr-1" />;
+        return <CircleCheck />;
       default:
-        return <CircleEllipsis className="h-4 w-4 mr-1" />;
+        return <CircleEllipsis />;
     }
   };
 

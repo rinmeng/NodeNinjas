@@ -42,13 +42,10 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/utils/AuthProvider";
-import { useNotification } from "@/utils/NotificationProvider";
 import { useToast } from "@/utils/ToastProvider";
 
 function Dashboard({ devMode }) {
   const { user } = useAuth();
-  const { notifications, setNotifications, setNotificationToAdd } =
-    useNotification();
   const { setFeedbackMessage } = useToast();
   const [searchCriteria, setSearchCriteria] = useState("");
 
