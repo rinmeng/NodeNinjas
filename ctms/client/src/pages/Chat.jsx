@@ -13,7 +13,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Dot, HeartCrack } from "lucide-react";
+import { ArrowDown, Dot, HeartCrack } from "lucide-react";
 
 const Chat = () => {
   const { user } = useAuth();
@@ -233,14 +233,6 @@ const Chat = () => {
             <CardContent className="p-0">
               <ScrollArea className="h-[calc(100vh-18rem)]">
                 <div className="space-y-4 p-4">
-                  {messages.length === 0 && !isLoading && (
-                    <div className="flex flex-col items-center">
-                      <HeartCrack size={64} className="mx-auto" />
-                      <p className="text-muted-foreground text-center">
-                        No messages yet
-                      </p>
-                    </div>
-                  )}
                   {Array.isArray(messages) &&
                     messages
                       .filter(
@@ -286,6 +278,14 @@ const Chat = () => {
                         </div>
                       ))}
                   <div ref={scrollRef} />
+                  {messages.length === 0 && !isLoading && (
+                    <div className="flex mt-40 justify-center flex-col items-center">
+                      <HeartCrack size={64} className="mx-auto" />
+                      <p className="text-muted-foreground text-center">
+                        No messages yet... what the heck?!
+                      </p>
+                    </div>
+                  )}
                 </div>
               </ScrollArea>
             </CardContent>
