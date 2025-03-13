@@ -7,7 +7,7 @@ import {
   UserPlus,
   UserRoundMinus,
 } from "lucide-react";
-import proxy from "../utils/proxy";
+import proxy from "@/utils/proxy";
 
 // Import Shadcn UI components
 import {

@@ -19,7 +19,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
-import proxy from "../../utils/proxy";
+import proxy from "../../../utils/proxy";
 import AssignTaskPanel from "../AssignTaskPanel";
 import {
   Dialog,

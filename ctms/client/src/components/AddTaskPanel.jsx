@@ -31,7 +31,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
-import proxy from "../utils/proxy";
+import proxy from "@/utils/proxy";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/utils/ToastProvider";
 

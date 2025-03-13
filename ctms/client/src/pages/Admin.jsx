@@ -32,7 +32,7 @@ import {
   CardHeader,
   CardDescription,
 } from "@/components/ui/card";
-import proxy from "@/src/utils/proxy";
+import proxy from "@/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 import { useToast } from "@/utils/ToastProvider";
 import { Separator } from "@/components/ui/separator";

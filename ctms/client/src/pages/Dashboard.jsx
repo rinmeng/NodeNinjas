@@ -22,7 +22,7 @@ import {
 } from "lucide-react";
 import TaskCard from "@/src/components/subcomponents/TaskCard";
 import AddTaskPanel from "@/src/components/AddTaskPanel";
-import proxy from "@/src/utils/proxy";
+import proxy from "@/utils/proxy";
 import { Button } from "@/components/ui/button";
 import {
   Card,

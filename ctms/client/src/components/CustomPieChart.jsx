@@ -17,11 +17,12 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import proxy from "@/utils/proxy";
 
 export function CustomPieChart({ height }) {
   const [chartData, setChartData] = useState([]);
   useEffect(() => {
-    fetch("http://localhost:15000/task/all", { credentials: "include" })
+    fetch(`${proxy}/task/all`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {

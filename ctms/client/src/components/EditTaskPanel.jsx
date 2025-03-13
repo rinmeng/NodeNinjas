@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Save, X } from "lucide-react";
-import proxy from "../utils/proxy";
+import proxy from "../../utils/proxy";
 import getDateWithRelativeTime from "../utils/getDateWithRelativeTime";
 
 // Import Shadcn UI components

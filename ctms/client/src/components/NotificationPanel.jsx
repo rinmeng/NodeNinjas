@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { MailWarning, MailCheck, BellOff, RefreshCw } from "lucide-react";
-import proxy from "../utils/proxy";
+import proxy from "../../utils/proxy";
 import {
   Sheet,
   SheetContent,

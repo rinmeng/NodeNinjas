@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, X, MessageSquare } from "lucide-react";
 import { useAuth } from "@/utils/AuthProvider";
-import proxy from "@/src/utils/proxy";
+import proxy from "@/utils/proxy";
 import {
   Card,
   CardContent,

@@ -49,7 +49,7 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import { useToast } from "@/utils/ToastProvider";
 
-import proxy from "@/src/utils/proxy";
+import proxy from "@/utils/proxy";
 
 // Define your validation schemas with Zod
 const loginSchema = z.object({

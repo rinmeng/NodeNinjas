@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
-import proxy from "@/src/utils/proxy";
+import proxy from "@/utils/proxy";
 
 const AuthContext = createContext({});
 

@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useAuth } from "./AuthProvider";
-import proxy from "@/src/utils/proxy";
+import proxy from "@/utils/proxy";
 
 const NotificationContext = createContext({});
 

@@ -18,6 +18,7 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import { useEffect, useState } from "react";
+import proxy from "@/utils/proxy";
 
 export function CustomBarChart({ height, width }) {
   const [chartData, setChartData] = useState([]);
@@ -25,7 +26,7 @@ export function CustomBarChart({ height, width }) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:15000/user/all");
+        const response = await fetch(`${proxy}/user/all`);
         const data = await response.json();
         // Aggregate users under each manager
         const managerCounts = {};
