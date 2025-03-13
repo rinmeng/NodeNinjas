@@ -297,7 +297,7 @@ const Chat = () => {
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Type a message..."
-                  className="flex-1 h-24"
+                  className="flex-1 h-24 resize-none"
                   disabled={!recipient}
                 />
                 <Button
