@@ -76,7 +76,7 @@ const Admin = ({ devMode }) => {
 
   // Initial load function without visual feedback
   const loadUsersInitially = () => {
-    fetch(`${proxy}/user/all`, { credentials: "include" })
+    fetch(`${proxy}/user/under/${user.manager_id}`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -86,7 +86,8 @@ const Admin = ({ devMode }) => {
         return res.json();
       })
       .then((data) => {
-        setUsersList(data);
+        const noManager = data.filter((data) => data.id != user.id);
+        setUsersList(noManager);
         setInitialLoad(false);
       })
       .catch((error) => {
