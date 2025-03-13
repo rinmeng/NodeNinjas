@@ -1,5 +1,6 @@
-import { ListPlus } from "lucide-react";
+import { CalendarIcon, ListPlus } from "lucide-react";
 import React, { useState } from "react";
+import { format } from "date-fns";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -30,6 +31,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 import proxy from "@/utils/proxy";
 import { Separator } from "@/components/ui/separator";
@@ -37,7 +44,7 @@ import { useToast } from "@/utils/ToastProvider";
 
 const AddTaskPanel = ({ user, setNeedsRefetch }) => {
   const { setFeedbackMessage } = useToast();
-  const today = new Date().toISOString().split("T")[0];
+  const today = new Date();
   const [task, setTask] = useState({
     title: "",
     date: today,
@@ -77,6 +84,9 @@ const AddTaskPanel = ({ user, setNeedsRefetch }) => {
       assignedUserIDs.push(user.id);
     }
 
+    // Format the date for the API
+    const formattedDate = format(task.date, "yyyy-MM-dd");
+
     // make post request to add task to database
     const response = await fetch(`${proxy}/task/add`, {
       method: "POST",
@@ -85,7 +95,7 @@ const AddTaskPanel = ({ user, setNeedsRefetch }) => {
       },
       body: JSON.stringify({
         name: task.title,
-        date: task.date,
+        date: formattedDate,
         description: task.description,
         priority: task.priority,
         status: task.status,
@@ -184,12 +194,29 @@ const AddTaskPanel = ({ user, setNeedsRefetch }) => {
               <div className="flex flex-row space-x-4">
                 <div className="grid gap-2">
                   <Label htmlFor="date">Due Date</Label>
-                  <Input
-                    id="date"
-                    type="date"
-                    value={task.date}
-                    onChange={(e) => setTask({ ...task, date: e.target.value })}
-                  />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant="outline"
+                        className="justify-start text-left font-normal"
+                      >
+                        {task.date ? (
+                          format(task.date, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar
+                        mode="single"
+                        selected={task.date}
+                        onSelect={(date) => setTask({ ...task, date })}
+                        initialFocus
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
 
                 <div className="grid gap-2">
