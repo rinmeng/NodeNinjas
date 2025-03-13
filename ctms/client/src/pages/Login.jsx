@@ -12,7 +12,6 @@ import {
   CircleUserRound,
   UserCog,
 } from "lucide-react";
-import TickCheckbox from "../components/subcomponents/TickCheckbox";
 import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
