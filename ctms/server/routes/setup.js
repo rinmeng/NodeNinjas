@@ -192,7 +192,6 @@ async function setupTasks() {
     }
 }
 
-
 async function setupNotifications() {
     try {
         await pool.query(`
@@ -249,7 +248,6 @@ async function setupMessages() {
     }
 }
 
-
 async function setupUsers() {
     try {
         await pool.query(`
@@ -264,6 +262,7 @@ async function setupUsers() {
                 role user_role NOT NULL DEFAULT 'team_member',
                 display_name VARCHAR(100),
                 manager_id INT,
+                is_online BOOLEAN DEFAULT FALSE,
                 FOREIGN KEY(manager_id) REFERENCES users(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

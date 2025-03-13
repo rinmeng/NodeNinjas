@@ -23,7 +23,7 @@ const Chat = () => {
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [recipient, setRecipient] = useState(null);
-  const [onlineUsers, setOnlineUsers] = useState([]);
+  const [fetchedUsers, setFetchedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
   // Fetch users under manager
@@ -37,15 +37,16 @@ const Chat = () => {
         return res.json();
       })
       .then((data) => {
-        // Filter out the current user from the online users list
+        // Filter out the current user from the fetched users list
         const filteredUsers = data.filter(
-          (onlineUser) => onlineUser.id !== user.id
+          (fetchedUser) => fetchedUser.id !== user.id
         );
-        setOnlineUsers(filteredUsers);
+        setFetchedUsers(filteredUsers);
+        console.log("Fetched users:", filteredUsers);
       })
       .catch((err) => {
         console.error("Error fetching users:", err);
-        setOnlineUsers([]);
+        setFetchedUsers([]);
       });
   }, [user?.manager_id]);
 
@@ -182,24 +183,24 @@ const Chat = () => {
       {/* Sidebar Card */}
       <Card className="w-1/4 border-r rounded-none gap-0">
         <CardHeader>
-          <CardTitle>Online Users</CardTitle>
+          <CardTitle>Users</CardTitle>
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-12rem)]">
             <div className="space-y-2 p-4">
-              {onlineUsers.map((onlineUser) => (
+              {fetchedUsers.map((fetchedUser) => (
                 <Button
-                  key={onlineUser.id}
+                  key={fetchedUser.id}
                   variant={
-                    recipient?.id === onlineUser.id ? "default" : "secondary"
+                    recipient?.id === fetchedUser.id ? "default" : "secondary"
                   }
                   className="w-full justify-start"
-                  onClick={() => setRecipient(onlineUser)}
+                  onClick={() => setRecipient(fetchedUser)}
                 >
                   <span className="truncate">
-                    {onlineUser.display_name} &nbsp;{" "}
+                    {fetchedUser.display_name} &nbsp;{" "}
                     <span className="text-muted-foreground">
-                      (@{onlineUser.username})
+                      (@{fetchedUser.username})
                     </span>
                   </span>
                 </Button>
