@@ -90,13 +90,13 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
     const formattedPriority = priority.replace(/\s+/g, "").toLowerCase();
     switch (formattedPriority) {
       case "high":
-        return <ClockAlert className="h-4 w-4 mr-1" />;
+        return <ClockAlert />;
       case "medium":
-        return <ClockArrowUp className="h-4 w-4 mr-1" />;
+        return <ClockArrowUp />;
       case "low":
-        return <ClockArrowDown className="h-4 w-4 mr-1" />;
+        return <ClockArrowDown />;
       default:
-        return <Clock className="h-4 w-4 mr-1" />;
+        return <Clock />;
     }
   };
 
@@ -106,9 +106,9 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
       case "high":
         return "destructive";
       case "medium":
-        return "warning";
-      case "low":
         return "secondary";
+      case "low":
+        return "outline";
       default:
         return "outline";
     }
@@ -125,9 +125,9 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
     } else if (diffDays === 0) {
       return "destructive";
     } else if (diffDays === 1) {
-      return "warning";
+      return "secondary";
     } else {
-      return "success";
+      return "outline";
     }
   };
 
