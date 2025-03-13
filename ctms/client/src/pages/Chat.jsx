@@ -13,6 +13,7 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
+import { Dot } from "lucide-react";
 
 const Chat = () => {
   const { user } = useAuth();
@@ -189,21 +190,28 @@ const Chat = () => {
           <ScrollArea className="h-[calc(100vh-12rem)]">
             <div className="space-y-2 p-4">
               {fetchedUsers.map((fetchedUser) => (
-                <Button
+                <div
+                  role="button"
                   key={fetchedUser.id}
-                  variant={
-                    recipient?.id === fetchedUser.id ? "default" : "secondary"
+                  className={`flex w-full justify-start px-2 rounded-lg items-center
+                  ${
+                    recipient?.id === fetchedUser.id
+                      ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+                      : "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50"
                   }
-                  className="w-full justify-start"
+                    `}
                   onClick={() => setRecipient(fetchedUser)}
                 >
-                  <span className="truncate">
-                    {fetchedUser.display_name} &nbsp;{" "}
-                    <span className="text-muted-foreground">
-                      (@{fetchedUser.username})
-                    </span>
-                  </span>
-                </Button>
+                  <Dot
+                    size={40}
+                    className={
+                      recipient?.is_online
+                        ? "text-green-500"
+                        : "text-muted-foreground"
+                    }
+                  />
+                  <span className="truncate">@{fetchedUser.username}</span>
+                </div>
               ))}
             </div>
           </ScrollArea>
@@ -212,45 +220,50 @@ const Chat = () => {
 
       {/* Chat Area Card */}
       <Card className="flex flex-col w-3/4 rounded-none border-l-0 p-0 gap-0">
-        <CardHeader className="border-b">
-          <CardTitle className="text-lg my-4">
-            {recipient
-              ? `Chat with ${recipient.display_name || recipient.username}`
-              : "Select a chat"}
-          </CardTitle>
-        </CardHeader>
+        {recipient ? (
+          <>
+            <CardHeader className="border-b">
+              <CardTitle className="text-lg my-4">
+                {recipient
+                  ? `${recipient.display_name || recipient.username}`
+                  : "Select a chat"}
+              </CardTitle>
+            </CardHeader>
 
-        <CardContent className="p-0">
-          <ScrollArea className="h-[calc(100vh-18rem)]">
-            <div className="space-y-4 p-4">
-              {Array.isArray(messages) &&
-                messages
-                  .filter(
-                    (msg) =>
-                      msg &&
-                      ((msg.sender_id === user?.id &&
-                        msg.recipient_id === recipient?.id) ||
-                        (msg.sender_id === recipient?.id &&
-                          msg.recipient_id === user?.id))
-                  )
-                  .map((msg, index) => (
-                    <div
-                      key={msg.id || index}
-                      className={cn("flex", {
-                        "justify-end": msg.sender_id === user?.id,
-                        "justify-start": msg.sender_id !== user?.id,
-                      })}
-                    >
-                      <div
-                        className={cn("max-w-[80%] rounded-lg p-3 text-sm", {
-                          "bg-primary text-primary-foreground":
-                            msg.sender_id === user?.id,
-                          "bg-muted": msg.sender_id !== user?.id,
-                        })}
-                      >
-                        <p>{msg.text}</p>
-                        <p
-                          className={`
+            <CardContent className="p-0">
+              <ScrollArea className="h-[calc(100vh-18rem)]">
+                <div className="space-y-4 p-4">
+                  {Array.isArray(messages) &&
+                    messages
+                      .filter(
+                        (msg) =>
+                          msg &&
+                          ((msg.sender_id === user?.id &&
+                            msg.recipient_id === recipient?.id) ||
+                            (msg.sender_id === recipient?.id &&
+                              msg.recipient_id === user?.id))
+                      )
+                      .map((msg, index) => (
+                        <div
+                          key={msg.id || index}
+                          className={cn("flex", {
+                            "justify-end": msg.sender_id === user?.id,
+                            "justify-start": msg.sender_id !== user?.id,
+                          })}
+                        >
+                          <div
+                            className={cn(
+                              "max-w-[80%] rounded-lg p-3 text-sm",
+                              {
+                                "bg-primary text-primary-foreground":
+                                  msg.sender_id === user?.id,
+                                "bg-muted": msg.sender_id !== user?.id,
+                              }
+                            )}
+                          >
+                            <p>{msg.text}</p>
+                            <p
+                              className={`
                           text-xs opacity-70 mt-1
                           ${
                             msg.sender_id === user?.id
@@ -258,35 +271,43 @@ const Chat = () => {
                               : "text-left"
                           }
                           `}
-                        >
-                          {dateToTimeAgo(new Date(msg.sent_at))}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-              <div ref={scrollRef} />
-            </div>
-          </ScrollArea>
-        </CardContent>
+                            >
+                              {dateToTimeAgo(new Date(msg.sent_at))}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                  <div ref={scrollRef} />
+                </div>
+              </ScrollArea>
+            </CardContent>
 
-        <CardFooter className="border-t p-4">
-          <div className="flex gap-2 w-full">
-            <Textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyPress={handleKeyPress}
-              placeholder="Type a message..."
-              className="flex-1 h-24"
-              disabled={!recipient}
-            />
-            <Button
-              onClick={handleSendMessage}
-              disabled={!recipient || !newMessage.trim()}
-            >
-              Send
-            </Button>
-          </div>
-        </CardFooter>
+            <CardFooter className="border-t p-4">
+              <div className="flex gap-2 w-full">
+                <Textarea
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Type a message..."
+                  className="flex-1 h-24"
+                  disabled={!recipient}
+                />
+                <Button
+                  onClick={handleSendMessage}
+                  disabled={!recipient || !newMessage.trim()}
+                >
+                  Send
+                </Button>
+              </div>
+            </CardFooter>
+          </>
+        ) : (
+          <CardContent className="flex items-center justify-center h-full">
+            <p className="text-lg text-muted-foreground">
+              Select a user to start chatting
+            </p>
+          </CardContent>
+        )}
       </Card>
     </div>
   );
