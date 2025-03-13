@@ -491,6 +491,78 @@ describe('User Routes', () => {
             expect(response.body).toEqual({ message: 'Something went wrong while updating user role' });
         });
     });
+
+    describe('PUT /user/update/is_online/:id', () => {
+        it('returns status code 200 if user online status was updated successfully', async () => {
+            // Reset mocks to ensure clean state
+            pool.query.mockReset();
+
+            const updatedUser = {
+                ...sampleUser,
+                is_online: true
+            };
+
+            // Mock both queries in sequence
+            pool.query
+                .mockResolvedValueOnce({
+                    rows: [sampleUser],
+                    rowCount: 1  // First query - check if user exists
+                })
+                .mockResolvedValueOnce({
+                    rows: [updatedUser]  // Second query - update user online status
+                });
+
+            const response = await request(app)
+                .put('/user/update/is_online/1')
+                .send({ id: 1, is_online: true });
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(updatedUser);
+        });
+
+        it('returns status code 400 if is_online is missing', async () => {
+            const response = await request(app)
+                .put('/user/update/is_online/1')
+                .send({ id: 1 });
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toEqual({ message: 'is_online is required' });
+        });
+
+        it('returns status code 404 if user is not found', async () => {
+            // Reset mocks to ensure clean state
+            pool.query.mockReset();
+
+            pool.query.mockResolvedValueOnce({
+                rows: [],
+                rowCount: 0
+            });
+
+            const response = await request(app)
+                .put('/user/update/is_online/999')
+                .send({ id: 999, is_online: true });
+
+            expect(response.statusCode).toBe(404);
+            expect(response.body).toEqual({ message: 'User not found' });
+        });
+
+        it('returns status code 500 if database error occurs', async () => {
+            // Reset mocks to ensure clean state
+            pool.query.mockReset();
+
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            const response = await request(app)
+                .put('/user/update/is_online/1')
+                .send({ id: 1, is_online: true });
+
+            expect(response.statusCode).toBe(500);
+            expect(response.body).toEqual({ message: 'Something went wrong while updating user is_online' });
+        });
+    });
+
+
+
     // it('returns status code 200 if session is active', async () => {
     //     //first add the user in the database, then log them in, then check if session is 200
     //     pool.query.mockResolvedValueOnce({
