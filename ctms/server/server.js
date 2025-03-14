@@ -70,13 +70,11 @@ app.use('/task', task);
 app.use('/message', message);
 app.use('/notification', notification);
 
-
-
-// Use app.listen instead of server.listen
+// if testing, don't start server
 if (process.env.NODE_ENV !== 'test') {
     app.listen(PORT, () => {
         console.log(`Server running on port ${PORT}`);
     });
 }
 
-module.exports = { app }; // Remove io from exports
+module.exports = { app }; 
