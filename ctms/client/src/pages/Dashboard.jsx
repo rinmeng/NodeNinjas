@@ -65,7 +65,15 @@ function Dashboard({ devMode }) {
     sortDateAsc: null,
     sortPriorityAsc: "",
     sortStatusAsc: "",
+    dateRange: { start: "", end: "" }, // New Date Range Filter
   });
+
+  const handleDateRangeChange = (type, value) => {
+    setFilterOptions((prev) => ({
+      ...prev,
+      dateRange: { ...prev.dateRange, [type]: value },
+    }));
+  };
 
   const handleSearch = useCallback(
     (criteria) => {
@@ -106,6 +114,7 @@ function Dashboard({ devMode }) {
       setIsLoading(false);
     }
   }, [user, devMode]);
+
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -498,6 +507,37 @@ function Dashboard({ devMode }) {
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
+        </div>
+
+        <div className="flex justify-center items-center gap-3 mt-4">
+          <span className="text-sm font-medium">Filter by Date Range:</span>
+          <Input
+            type="date"
+            value={filterOptions.dateRange.start}
+            onChange={(e) => handleDateRangeChange("start", e.target.value)}
+            className="w-40"
+            placeholder="Start Date"
+          />
+          <Input
+            type="date"
+            value={filterOptions.dateRange.end}
+            onChange={(e) => handleDateRangeChange("end", e.target.value)}
+            className="w-40"
+            placeholder="End Date"
+          />
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={() =>
+              setFilterOptions({
+                ...filterOptions,
+                dateRange: { start: "", end: "" },
+              })
+            }
+            className="ml-2"
+          >
+            <X size={18} />
+          </Button>
         </div>
 
         <div className="flex justify-center items-center gap-3">
