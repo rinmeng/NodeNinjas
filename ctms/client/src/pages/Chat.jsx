@@ -19,14 +19,9 @@ const socket = io(proxy, {
   withCredentials: true,
 });
 
-socket.on("connect", () => {
-  console.log("Connected to server");
-});
-
 const Chat = () => {
   const { user } = useAuth();
   const scrollRef = useRef(null);
-  const pollInterval = useRef(null);
   const prevMessagesLengthRef = useRef(0); // Add ref to track previous message count
 
   const [messages, setMessages] = useState([]);
@@ -34,6 +29,43 @@ const Chat = () => {
   const [recipient, setRecipient] = useState(null);
   const [fetchedUsers, setFetchedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Socket.IO setup
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Set up connection
+    const onConnect = () => {
+      console.log("Connected to server");
+      // Tell the server who you are
+      socket.emit("user_connected", user.id);
+    };
+
+    // Handle new messages
+    const onNewMessage = (message) => {
+      console.log("New message received:", message);
+      // Only add message if it's relevant to current chat
+      if (
+        recipient &&
+        ((message.sender_id === user.id &&
+          message.recipient_id === recipient.id) ||
+          (message.sender_id === recipient.id &&
+            message.recipient_id === user.id))
+      ) {
+        setMessages((prev) => [...prev, message]);
+      }
+    };
+
+    // Register listeners
+    socket.on("connect", onConnect);
+    socket.on("new_message", onNewMessage);
+
+    // Clean up
+    return () => {
+      socket.off("connect", onConnect);
+      socket.off("new_message", onNewMessage);
+    };
+  }, [user?.id, recipient]);
 
   // Fetch users under manager
   useEffect(() => {
@@ -59,24 +91,14 @@ const Chat = () => {
       });
   }, [user?.manager_id]);
 
-  // Poll for new messages every 3 seconds when a recipient is selected
+  // Initial fetch when recipient changes - NO POLLING
   useEffect(() => {
     if (user && recipient) {
-      // Initial fetch
+      // Just fetch once when recipient changes
       fetchMessages();
 
-      // Set up polling
-      pollInterval.current = setInterval(fetchMessages, 3000);
-
-      // When changing recipients, reset prevMessagesLengthRef
+      // Reset message length ref
       prevMessagesLengthRef.current = 0;
-
-      // Cleanup
-      return () => {
-        if (pollInterval.current) {
-          clearInterval(pollInterval.current);
-        }
-      };
     }
   }, [recipient, user]);
 
@@ -133,6 +155,9 @@ const Chat = () => {
     };
 
     try {
+      // Clear message input immediately for better UX
+      setNewMessage("");
+
       const response = await fetch(`${proxy}/message`, {
         method: "POST",
         headers: {
@@ -143,11 +168,7 @@ const Chat = () => {
 
       if (!response.ok) throw new Error("Failed to send message");
 
-      const savedMessage = await response.json();
-
-      // Update local messages immediately
-      setMessages((prev) => [...prev, savedMessage]);
-      setNewMessage("");
+      // No need to update messages here - will be handled by socket event
     } catch (error) {
       console.error("Error sending message:", error);
     }

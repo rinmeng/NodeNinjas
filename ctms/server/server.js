@@ -5,7 +5,6 @@ const pool = require('./db');
 const cors = require('cors');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-const { Server } = require('socket.io');
 const http = require('http');
 
 const home = require('./routes/home');
@@ -18,12 +17,14 @@ const notification = require('./routes/notification');
 const app = express();
 const server = http.createServer(app);
 
+const { initialize } = require('./socket');
+
 const allowedOrigins = [
     'http://localhost:13000',    // Docker frontend external port
     'http://localhost:3000',     // Direct frontend dev server
     'http://192.168.1.134:13000', // IP access to Docker frontend 
-    'http://142.231.95.212:15000',
-    'http://142.231.89.53:3000',
+    'http://142.231.92.199/15000',
+    'http://142.231.92.199:3000',
 ];
 
 // Session store
@@ -43,11 +44,12 @@ app.use(cors({
 }));
 
 // For Socket.IO CORS
-const io = new Server(server, {
+const io = initialize(server, {
     cors: {
         origin: allowedOrigins,
         methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        credentials: true
+        credentials: true,
+
     }
 });
 
@@ -75,13 +77,6 @@ app.use('/task', task);
 app.use('/message', message);
 app.use('/notification', notification);
 
-// Socket.IO conections
-io.on('connection', (socket) => {
-    console.log('A user connected:', socket.id);
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-    });
-});
 
 
 // if testing, don't start server
