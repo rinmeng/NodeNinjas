@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import proxy from "@/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 import { Button } from "@/components/ui/button";
@@ -87,6 +87,16 @@ const Chat = () => {
   const typingTimeoutRef = useRef(null);
   const [isRecipientTyping, setIsRecipientTyping] = useState(false);
 
+  const onlineUsers = useMemo(
+    () => fetchedUsers.filter((user) => user.is_online),
+    [fetchedUsers]
+  );
+
+  const offlineUsers = useMemo(
+    () => fetchedUsers.filter((user) => !user.is_online),
+    [fetchedUsers]
+  );
+
   const handleTyping = (e) => {
     setNewMessage(e.target.value);
 
@@ -115,7 +125,9 @@ const Chat = () => {
     }, 1000);
   };
 
-  // Initialize socket connection
+  // **********************************
+  // Socket.io connection handling (NO POLLING)
+  // **********************************
   useEffect(() => {
     if (!user?.id) return;
 
@@ -124,8 +136,10 @@ const Chat = () => {
       withCredentials: true,
     });
 
-    // Join user's room
-    socketRef.current.emit("join", user.id);
+    // Force a rejoin to ensure user status is updated
+    if (socketRef.current && socketRef.current.connected) {
+      socketRef.current.emit("join", user.id);
+    }
 
     // Listen for message refetch events
     socketRef.current.on("refetchMessages", (data) => {
@@ -140,6 +154,15 @@ const Chat = () => {
       if (recipient && data.senderId === recipient.id) {
         setIsRecipientTyping(data.isTyping);
       }
+    });
+
+    // Listen for user status changes
+    socketRef.current.on("userStatusChange", ({ userId, isOnline }) => {
+      setFetchedUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.id === userId ? { ...user, is_online: isOnline } : user
+        )
+      );
     });
 
     return () => {
@@ -292,31 +315,66 @@ const Chat = () => {
         </CardHeader>
         <CardContent className="p-0">
           <ScrollArea className="h-[calc(100vh-12rem)]">
-            <div className="space-y-2 p-4">
-              {fetchedUsers.map((fetchedUser) => (
-                <div
-                  role="button"
-                  key={fetchedUser.id}
-                  className={`flex w-full justify-start px-2 rounded-lg items-center
-                  ${
-                    recipient?.id === fetchedUser.id
-                      ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
-                      : "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50"
-                  }
-                    `}
-                  onClick={() => setRecipient(fetchedUser)}
-                >
-                  <Dot
-                    size={40}
-                    className={
-                      recipient?.is_online
-                        ? "text-green-500"
-                        : "text-muted-foreground"
-                    }
-                  />
-                  <span className="truncate">@{fetchedUser.username}</span>
-                </div>
-              ))}
+            <div className="space-y-4 p-4">
+              {/* Online Users Section */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Online
+                </h3>
+                {onlineUsers.map((fetchedUser) => (
+                  <div
+                    role="button"
+                    key={fetchedUser.id}
+                    className={`flex w-full justify-start px-2 rounded-lg items-center
+                      ${
+                        recipient?.id === fetchedUser.id
+                          ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+                          : "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50"
+                      }
+                        `}
+                    onClick={() => setRecipient(fetchedUser)}
+                  >
+                    <Dot size={40} className="text-green-500" />
+                    <span className="truncate">@{fetchedUser.username}</span>
+                  </div>
+                ))}
+
+                {onlineUsers.length === 0 && (
+                  <p className="text-xs text-muted-foreground px-2">
+                    No users online
+                  </p>
+                )}
+              </div>
+
+              {/* Offline Users Section */}
+              <div className="space-y-2">
+                <h3 className="text-sm font-medium text-muted-foreground mb-1">
+                  Offline
+                </h3>
+                {offlineUsers.map((fetchedUser) => (
+                  <div
+                    role="button"
+                    key={fetchedUser.id}
+                    className={`flex w-full justify-start px-2 rounded-lg items-center
+                      ${
+                        recipient?.id === fetchedUser.id
+                          ? "bg-primary text-primary-foreground shadow-xs hover:bg-primary/90"
+                          : "border bg-background shadow-xs hover:bg-accent hover:text-accent-foreground dark:bg-input/30 dark:border-input dark:hover:bg-input/50"
+                      }
+                        `}
+                    onClick={() => setRecipient(fetchedUser)}
+                  >
+                    <Dot size={40} className="text-muted-foreground" />
+                    <span className="truncate">@{fetchedUser.username}</span>
+                  </div>
+                ))}
+
+                {offlineUsers.length === 0 && (
+                  <p className="text-xs text-muted-foreground px-2">
+                    No users offline
+                  </p>
+                )}
+              </div>
             </div>
           </ScrollArea>
         </CardContent>

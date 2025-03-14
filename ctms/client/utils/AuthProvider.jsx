@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useRef,
+} from "react";
 import proxy from "@/utils/proxy";
 import { io } from "socket.io-client";
 
@@ -11,11 +17,44 @@ export function useAuth() {
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const socketRef = useRef(null);
 
   // Check active session
   useEffect(() => {
     checkUser();
   }, []);
+
+  // Handle socket connection based on user state
+  useEffect(() => {
+    // If user exists and no socket connection yet, connect
+    if (user?.id && !socketRef.current) {
+      socketRef.current = io(proxy, { withCredentials: true });
+      socketRef.current.emit("join", user.id);
+      console.log("Socket connection established in AuthProvider");
+    }
+
+    // If user exists and socket already exists, ensure we emit join
+    if (user?.id && socketRef.current) {
+      socketRef.current.emit("join", user.id);
+      console.log("Re-emitted join event for existing socket");
+    }
+
+    // If user is null but socket exists, disconnect
+    if (!user && socketRef.current) {
+      socketRef.current.disconnect();
+      socketRef.current = null;
+      console.log("Socket disconnected in AuthProvider");
+    }
+
+    // Cleanup function
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+        socketRef.current = null;
+        console.log("Socket disconnected on AuthProvider unmount");
+      }
+    };
+  }, [user]);
 
   const checkUser = async () => {
     try {
@@ -64,9 +103,7 @@ export function AuthProvider({ children }) {
 
       if (response.ok) {
         setUser(data.session.user);
-
-        // connect to socket.io and emit the user id so that we can set their is_online attribute
-
+        // Socket connection will be established in useEffect
         return { success: true };
       }
 
@@ -90,6 +127,7 @@ export function AuthProvider({ children }) {
       });
 
       if (response.ok) {
+        // Socket disconnection will happen in useEffect when user is set to null
         setUser(null);
         return { success: true };
       }
@@ -112,6 +150,7 @@ export function AuthProvider({ children }) {
     loading,
     login,
     logout,
+    socket: socketRef.current, // Export socket for components to use
   };
 
   return (

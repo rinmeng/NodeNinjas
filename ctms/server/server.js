@@ -76,15 +76,26 @@ app.use('/task', task);
 app.use('/message', message);
 app.use('/notification', notification);
 
-
 // Socket.io connection handling
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
+    // Store the userId in the socket object for later use
+    let connectedUserId;
 
     // User joins their own room based on user ID
     socket.on('join', (userId) => {
         socket.join(`user_${userId}`);
+        connectedUserId = userId; // Store the userId for disconnect
         console.log(`User ${userId} joined their room`);
+
+        pool.query('UPDATE users SET is_online = true WHERE id = $1', [userId], (err, res) => {
+            if (err) {
+                console.error(err);
+            } else {
+                // Broadcast to all connected clients that this user is now online
+                io.emit('userStatusChange', { userId, isOnline: true });
+            }
+        });
     });
 
     socket.on('typing', (data) => {
@@ -103,6 +114,19 @@ io.on('connection', (socket) => {
 
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
+
+        // Only update if we have a userId stored
+        if (connectedUserId) {
+            pool.query('UPDATE users SET is_online = false WHERE id = $1', [connectedUserId], (err, res) => {
+                if (err) {
+                    console.error('Error setting user offline:', err);
+                } else {
+                    console.log(`User ${connectedUserId} is now offline`);
+                    // Broadcast to all connected clients that this user is now offline
+                    io.emit('userStatusChange', { userId: connectedUserId, isOnline: false });
+                }
+            });
+        }
     });
 });
 
