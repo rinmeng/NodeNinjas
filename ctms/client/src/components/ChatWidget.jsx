@@ -41,12 +41,11 @@ const ChatWidget = () => {
           return res.json();
         })
         .then((data) => {
-          console.log("Users fetched:", data); // Add logging to debug
+          console.log("Users fetched:", data);
           setUsers(data);
         })
         .catch((err) => {
           console.error("Error fetching users:", err);
-          // Add user feedback for errors
           setUsers([]);
         });
     }
@@ -93,22 +92,33 @@ const ChatWidget = () => {
     <>
       {user && (
         <div className="fixed bottom-5 right-5">
-          {!isOpen && (
+          <div className="relative">
+            {/* Toggle Button with Transition */}
             <Button
               ref={toggleButtonRef}
               onClick={() => setIsOpen(true)}
               size="icon"
               variant="default"
-              className="rounded-full shadow-lg"
+              className={`rounded-full shadow-lg absolute bottom-0 right-0 transition-all duration-200 ease-in-out ${
+                isOpen
+                  ? "opacity-0 scale-0 pointer-events-none"
+                  : "opacity-100 scale-100"
+              }`}
             >
               <MessageSquare size={24} />
             </Button>
-          )}
 
-          {isOpen && (
-            <Card ref={chatRef} className="w-80 relative">
+            {/* Chat Card with Transition */}
+            <Card
+              ref={chatRef}
+              className={`w-80 relative transition-all duration-200 ease-in-out transform origin-bottom-right ${
+                isOpen
+                  ? "opacity-100 scale-100 pointer-events-auto"
+                  : "opacity-0 scale-95 pointer-events-none"
+              }`}
+            >
               <Button
-                className=" absolute top-2 right-2"
+                className="absolute top-2 right-2"
                 variant="ghost"
                 size="icon"
                 onClick={() => setIsOpen(false)}
@@ -189,7 +199,7 @@ const ChatWidget = () => {
                 </Button>
               </CardFooter>
             </Card>
-          )}
+          </div>
         </div>
       )}
     </>
