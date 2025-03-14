@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import proxy from "@/utils/proxy";
+import { io } from "socket.io-client";
 
 const AuthContext = createContext({});
 
@@ -63,6 +64,9 @@ export function AuthProvider({ children }) {
 
       if (response.ok) {
         setUser(data.session.user);
+
+        // connect to socket.io and emit the user id so that we can set their is_online attribute
+
         return { success: true };
       }
 
