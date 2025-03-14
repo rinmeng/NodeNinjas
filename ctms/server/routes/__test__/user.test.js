@@ -491,6 +491,8 @@ describe('User Routes', () => {
             expect(response.body).toEqual({ message: 'Something went wrong while updating user role' });
         });
     });
+
+
     // it('returns status code 200 if session is active', async () => {
     //     //first add the user in the database, then log them in, then check if session is 200
     //     pool.query.mockResolvedValueOnce({

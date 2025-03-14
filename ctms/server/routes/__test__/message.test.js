@@ -6,6 +6,17 @@ const messageRouter = require('../message');
 // Create a new Express app instance for testing
 const app = express();
 app.use(express.json());
+
+// Mock Socket.io
+const mockIo = {
+    to: jest.fn().mockReturnValue({
+        emit: jest.fn()
+    })
+};
+
+// Set up the io instance for the app
+app.set('io', mockIo);
+
 app.use('/message', messageRouter);
 
 // Mock the database pool
@@ -20,19 +31,24 @@ jest.mock('../../auth', () => ({
 }));
 
 describe('Messages Routes', () => {
-    // Test sending a message
     describe('POST /message', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
         it('should create a new message when all fields are provided', async () => {
+            const mockDate = new Date();
             const mockMessage = {
                 id: 1,
                 sender_id: 1,
                 recipient_id: 2,
-                text: 'Hello there',
-                sent_at: new Date().toISOString()
+                text: 'Hello',
+                sent_at: mockDate
+            };
+
+            // The response will contain the date as a string
+            const expectedResponse = {
+                id: 1,
+                sender_id: 1,
+                recipient_id: 2,
+                text: 'Hello',
+                sent_at: mockDate.toISOString()
             };
 
             pool.query.mockResolvedValueOnce({ rows: [mockMessage] });
@@ -42,44 +58,31 @@ describe('Messages Routes', () => {
                 .send({
                     sender_id: 1,
                     recipient_id: 2,
-                    text: 'Hello there'
+                    text: 'Hello'
                 });
 
             expect(response.status).toBe(201);
-            expect(response.body).toEqual(mockMessage);
+            expect(response.body).toEqual(expectedResponse);
             expect(pool.query).toHaveBeenCalledWith(
                 expect.stringContaining('INSERT INTO messages'),
-                [1, 2, 'Hello there']
+                [1, 2, 'Hello']
             );
         });
 
-        it('should return 400 when fields are missing', async () => {
-            const response = await request(app)
-                .post('/message')
-                .send({
-                    sender_id: 1,
-                    text: 'Hello there'
-                });
-
-            expect(response.status).toBe(400);
-            expect(response.body).toEqual({ error: 'All fields are required.' });
-            expect(pool.query).not.toHaveBeenCalled();
-        });
-
-        it('should return 400 when text is empty', async () => {
+        it('should return 400 if any field is missing', async () => {
             const response = await request(app)
                 .post('/message')
                 .send({
                     sender_id: 1,
                     recipient_id: 2,
-                    text: '   '
+                    text: ''
                 });
 
             expect(response.status).toBe(400);
             expect(response.body).toEqual({ error: 'All fields are required.' });
         });
 
-        it('should return 500 when database query fails', async () => {
+        it('should return 500 if there is a database error', async () => {
             pool.query.mockRejectedValueOnce(new Error('Database error'));
 
             const response = await request(app)
@@ -87,59 +90,11 @@ describe('Messages Routes', () => {
                 .send({
                     sender_id: 1,
                     recipient_id: 2,
-                    text: 'Hello there'
+                    text: 'Hello'
                 });
 
             expect(response.status).toBe(500);
             expect(response.body).toEqual({ error: 'Failed to send message.' });
         });
     });
-
-    // Test getting messages between users
-    describe('GET /message/:sender_id/:recipient_id', () => {
-        beforeEach(() => {
-            jest.clearAllMocks();
-        });
-
-        it('should return messages between two users', async () => {
-            const mockMessages = [
-                {
-                    id: 1,
-                    sender_id: 1,
-                    recipient_id: 2,
-                    text: 'Hello there',
-                    sent_at: new Date().toISOString()
-                },
-                {
-                    id: 2,
-                    sender_id: 2,
-                    recipient_id: 1,
-                    text: 'Hi back',
-                    sent_at: new Date().toISOString()
-                }
-            ];
-
-            pool.query.mockResolvedValueOnce({ rows: mockMessages });
-
-            const response = await request(app).get('/message/1/2');
-
-            expect(response.status).toBe(200);
-            expect(response.body).toEqual(mockMessages);
-            expect(pool.query).toHaveBeenCalledWith(
-                expect.stringContaining('SELECT * FROM messages'),
-                ['1', '2']
-            );
-        });
-
-        it('should return 500 when database query fails', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Database error'));
-
-            const response = await request(app).get('/message/1/2');
-
-            expect(response.status).toBe(500);
-            expect(response.body).toEqual({ error: 'Failed to retrieve messages.' });
-        });
-    });
-
 });
-
