@@ -19,12 +19,17 @@ router.post("/", async (req, res) => {
 
     const io = req.app.get('io');
 
-    // now since the mesage is sent, we need to emit to both 
-    // sender and recipient to update fetch new messages.
+    // Emit to sender's room
+    io.to(`user_${sender_id}`).emit('refetchMessages', {
+      conversationId: `${sender_id}-${recipient_id}`,
+      partnerId: recipient_id
+    });
 
-    // emit to sender and recipient
-    io.to(`user_${sender_id}`).emit('refetchMessages', { conversationPartner: recipient_id });
-    io.to(`user_${recipient_id}`).emit('refetchMessages', { conversationPartner: sender_id });
+    // Emit to recipient's room
+    io.to(`user_${recipient_id}`).emit('refetchMessages', {
+      conversationId: `${recipient_id}-${sender_id}`,
+      partnerId: sender_id
+    });
 
     res.status(201).json(result.rows[0]);
   } catch (err) {
