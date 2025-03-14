@@ -601,27 +601,5 @@ router.get('/under/:manager_id', async (req, res) => {
     }
 });
 
-// PUT /user/update/:is_online
-router.put('/update/is_online/:id', async (req, res) => {
-    const is_online = req.body.is_online;
-    const id = req.body.id;
-    if (!is_online) {
-        return res.status(400).json({ message: "is_online is required" });
-    }
-
-    try {
-        const user = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
-        if (user.rowCount === 0) {
-            return res.status(404).json({ message: "User not found" });
-        }
-        const updatedUser = await pool.query('UPDATE users SET is_online = $1 WHERE id = $2 RETURNING *', [is_online, id]);
-        res.status(200).json(updatedUser.rows[0]);
-
-    } catch (error) {
-        console.error("Error updating user is_online:", error);
-        res.status(500).json({ message: "Something went wrong while updating user is_online" });
-    }
-}
-);
 
 module.exports = router;
