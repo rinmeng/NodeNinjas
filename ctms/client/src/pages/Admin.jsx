@@ -66,7 +66,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
 
   // Initial load function without visual feedback
   const loadUsersInitially = () => {
-    fetch(`${proxy}/user/all`, { credentials: "include" })
+    fetch(`${proxy}/user/under/${user.id}`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -76,6 +76,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
         return res.json();
       })
       .then((data) => {
+        data = data.filter((user) => user.role !== "admin");
         setUsersList(data);
         setInitialLoad(false);
       })
@@ -279,7 +280,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   const fetchUsers = () => {
     setIsLoading(true);
     setIsRefetching(true);
-    fetch(`${proxy}/user/all`, { credentials: "include" })
+    fetch(`${proxy}/user/under/${user.id}`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -289,7 +290,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
         return res.json();
       })
       .then((data) => {
-        console.log("Fetch list:", data);
+        data = data.filter((user) => user.role !== "admin");
         setUsersList(data);
         setSortDirection("none"); // Reset sort direction when fetching new data
         // Loading indicator will be cleared by the useEffect
@@ -325,11 +326,20 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   };
 
   const updateUserRole = (userId, newRole) => {
-    setIsRefetching(true);
-    if (newRole==="admin"){
-      setFeedbackMessage("You can't change a user to an admin");
+    // Find the user in the usersList
+    const userToUpdate = usersList.find((user) => user.id === userId);
+  
+    // Check if the user is an admin
+    if (userToUpdate.role === "admin") {
+      setFeedbackMessage({
+        title: "Error",
+        description: "Cannot change the role of an admin user.",
+      });
       return;
     }
+  
+    setIsRefetching(true);
+  
     fetch(`${proxy}/user/updateRole/${userId}`, {
       method: "PUT",
       headers: {
@@ -338,6 +348,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
       credentials: "include",
       body: JSON.stringify({ role: newRole }),
     })
+
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -351,7 +362,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
           title: "Success",
           description: "Role updated successfully",
         });
-
+  
         // Update local state with the new role
         setUsersList((prev) =>
           prev.map((user) =>
@@ -366,9 +377,17 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
           title: "Error",
           description: "Failed to update role: " + error.message,
         });
-        setIsRefetching(false);
+        
+        setUsersList((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, role: userToUpdate.role } : user
+          )
+        );
+        setIsRefetching(fasle);
       });
-  };
+      
+      
+  }
 
   return (
     <div className="w-full my-30 animate-fadein ">
