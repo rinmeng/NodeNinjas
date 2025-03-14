@@ -137,15 +137,22 @@ const Chat = () => {
     });
 
     // Force a rejoin to ensure user status is updated
-    if (socketRef.current && socketRef.current.connected) {
-      socketRef.current.emit("join", user.id);
-    }
+    socketRef.current.emit("join", user.id);
 
     // Listen for message refetch events
     socketRef.current.on("refetchMessages", (data) => {
-      // Only refetch if we're currently in a conversation with this partner
-      if (recipient && data.conversationPartner === recipient.id) {
+      console.log("Received refetchMessages event:", data);
+
+      // Only refetch if we're currently viewing this conversation
+      if (recipient && data.partnerId === recipient.id) {
         fetchMessages();
+      } else if (data.partnerId) {
+        // Optionally handle notifications for messages from other users
+        // This could update an unread count or show a notification
+        console.log(`New message from user ${data.partnerId}`);
+
+        // If you want to implement notifications, you could update state here
+        // For example: setUnreadMessages(prev => ({...prev, [data.partnerId]: (prev[data.partnerId] || 0) + 1}));
       }
     });
 
@@ -283,12 +290,17 @@ const Chat = () => {
       });
       if (!response.ok) throw new Error("Failed to send message");
       setNewMessage("");
+
+      // Stop typing indication
       if (socketRef.current) {
         socketRef.current.emit("stopTyping", {
           senderId: user.id,
           receiverId: recipient.id,
         });
       }
+
+      // Manually fetch messages after sending
+      fetchMessages();
     } catch (error) {
       console.error("Error sending message:", error);
     }
