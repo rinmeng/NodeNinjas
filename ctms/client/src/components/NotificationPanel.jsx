@@ -1,5 +1,6 @@
 import React, { useState } from "react";
-
+import { MailWarning, MailCheck, BellOff, RefreshCw } from "lucide-react";
+import proxy from "../../utils/proxy";
 import {
   Sheet,
   SheetContent,
@@ -25,6 +26,29 @@ const NotificationPanel = ({
   open,
   onOpenChange,
   setNotificationsNeedRefetch,
+  notificationsNeedRefetch,
+}) => {
+  const { setFeedbackMessage } = useToast();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const isNotificationRead = (notification) => {
+    return notification.status === "read";
+  };
+
+  const handleReadNotification = (id, status) => async () => {
+    const endpoint = status === "unread" ? "read" : "unread";
+
+    try {
+      await fetch(`${proxy}/notification/${endpoint}/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      setNotificationsNeedRefetch(true);
+    } catch (error) {
+      console.error(`Failed to mark notification as ${endpoint}:`, error);
+    }
+  };
 
   const getNotificationText = (type) => {
     switch (type) {
@@ -56,84 +80,24 @@ const NotificationPanel = ({
     }
   };
 
-  const isNotificationRead = (notification) => notification.status === "read";
-
-  const handleReadNotification = (id, status) => async () => {
-    const endpoint = status === "unread" ? "read" : "unread";
-
-    try {
-      await fetch(`${proxy}/notification/${endpoint}/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-      });
-      setNotificationsNeedRefetch(true);
-    } catch (error) {
-      console.error(`Failed to mark notification as ${endpoint}:`, error);
-    }
-  };
-
-  const fetchNotificationHistory = async () => {
-    setLoadingHistory(true);
-    try {
-      const response = await fetch(
-        `${proxy}/notification/history/${user.id}?offset=${notificationHistory.length}&limit=10&status=${historyFilter}`
-      );
-      const data = await response.json();
-      setNotificationHistory((prevHistory) => [...prevHistory, ...data]);
-    } catch (error) {
-      console.error("Error fetching notification history:", error);
-    }
-    setLoadingHistory(false);
-  };
-
-  const toggleHistoryView = () => {
-    if (!showHistory) fetchNotificationHistory();
-    setShowHistory(!showHistory);
-  };
-
-  const toggleHistoryFilter = () => {
-    const newFilter = historyFilter === "all" ? "unread" : "all";
-    setHistoryFilter(newFilter);
-    setNotificationHistory([]);
-    fetchNotificationHistory();
-  };
-
-  const deleteNotification = async (id) => {
-    try {
-      await fetch(`${proxy}/notification/delete/${id}`, {
-        method: "DELETE",
-      });
-      setNotificationsNeedRefetch(true);
-      setNotificationHistory(notificationHistory.filter((n) => n.id !== id));
-    } catch (error) {
-      console.error("Error deleting notification:", error);
-    }
-  };
-
-  const clearAllNotifications = async () => {
-    try {
-      await fetch(`${proxy}/notification/delete/all/${user.id}`, {
-        method: "DELETE",
-      });
-      setNotificationsNeedRefetch(true);
-      setNotificationHistory([]);
-    } catch (error) {
-      console.error("Error clearing notifications:", error);
-    }
-  };
-
   const dateToTimeAgo = (date) => {
     const now = new Date();
     const diff = now - date;
+
     const seconds = Math.floor(diff / 1000);
     const minutes = Math.floor(seconds / 60);
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
-    if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-    if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-    return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+    if (days > 0) {
+      return `${days} day${days > 1 ? "s" : ""} ago`;
+    } else if (hours > 0) {
+      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+    } else if (minutes > 0) {
+      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+    } else {
+      return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+    }
   };
 
   return (
@@ -247,7 +211,23 @@ const NotificationPanel = ({
                                 </div>
                               </div>
                             </div>
-
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            {isNotificationRead(notification)
+                              ? "Mark as unread"
+                              : "Mark as read"}
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </ScrollArea>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 };
 
