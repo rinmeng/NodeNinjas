@@ -3,6 +3,8 @@ const pool = require('../db');
 const router = express.Router();
 
 async function setupPgSession() {
+    // The postgre database may not be ready to accept connections yet, so we will retry a few times with 
+    // a delay before giving up.
     let retries = 5;
     while (retries) {
         try {
