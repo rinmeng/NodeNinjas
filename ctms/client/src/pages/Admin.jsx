@@ -377,15 +377,13 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
           title: "Error",
           description: "Failed to update role: " + error.message,
         });
-        
         setUsersList((prev) =>
           prev.map((user) =>
             user.id === userId ? { ...user, role: userToUpdate.role } : user
           )
         );
-        setIsRefetching(fasle);
+        setIsRefetching(false);
       });
-      
       
   }
 

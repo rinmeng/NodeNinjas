@@ -609,9 +609,6 @@ router.put('/change_manager_id/:id',isAuthAsAdmin,async(req,res)=>{
     if (!manager_id || !id){
         return res.status(400).json({message:"Manager ID is required"});
     }
-    if (manager_id===id){
-        return res.status(400).json({message:"Manager cannot be the same as the user"});
-    }
     try{
         const user= await pool.query('SELECT * FROM users WHERE id =$1',[id]);
         if (user.rowCount===0){
