@@ -13,17 +13,47 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Dot, HeartCrack } from "lucide-react";
+import { io } from "socket.io-client";
 
 const Chat = () => {
   const { user } = useAuth();
   const scrollRef = useRef(null);
-  const prevMessagesLengthRef = useRef(0); // Add ref to track previous message count
+  const prevMessagesLengthRef = useRef(0);
+  const socketRef = useRef(null);
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const [recipient, setRecipient] = useState(null);
   const [fetchedUsers, setFetchedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Initialize socket connection
+  useEffect(() => {
+    if (!user?.id) return;
+
+    // Create socket connection
+    socketRef.current = io(proxy.replace("/api", ""), {
+      withCredentials: true,
+    });
+
+    // Join user's room
+    socketRef.current.emit("join", user.id);
+
+    // Listen for message refetch events
+    socketRef.current.on("refetchMessages", (data) => {
+      // Only refetch if we're currently in a conversation with this partner
+      if (recipient && data.conversationPartner === recipient.id) {
+        fetchMessages();
+      }
+    });
+
+    return () => {
+      // Clean up socket connection
+      if (socketRef.current) {
+        socketRef.current.disconnect();
+      }
+    };
+  }, [user?.id, recipient]);
 
   // Fetch users under manager
   useEffect(() => {
@@ -126,7 +156,8 @@ const Chat = () => {
 
       if (!response.ok) throw new Error("Failed to send message");
 
-      fetchMessages(); // Fetch messages after sending
+      // We no longer need to fetch messages here as the socket event will trigger it
+      // The server will emit an event that will trigger a refetch
     } catch (error) {
       console.error("Error sending message:", error);
     }
