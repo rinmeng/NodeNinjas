@@ -76,7 +76,8 @@
   },
   "scripts": {
     "start": "vite",
-    "build": "vite build",
+    "postinstall": "npm install vite",
+    "build": "npx vite build",
     "serve": "vite preview",
     "dev": "npm run start"
   },
