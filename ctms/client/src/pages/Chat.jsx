@@ -259,16 +259,20 @@ const Chat = () => {
     // Only scroll if:
     // 1. There are new messages (length increased)
     // 2. This is the initial load for a recipient (prevLength was 0)
+    // 3. The recipient is typing
+    // 4. The current user is typing
     if (
       currentMessagesLength > prevMessagesLengthRef.current ||
-      (prevMessagesLengthRef.current === 0 && currentMessagesLength > 0)
+      (prevMessagesLengthRef.current === 0 && currentMessagesLength > 0) ||
+      isRecipientTyping ||
+      isTyping
     ) {
       scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     }
 
     // Update the ref with current length for next comparison
     prevMessagesLengthRef.current = currentMessagesLength;
-  }, [messages]);
+  }, [messages, isRecipientTyping, isTyping]);
 
   // Add send message handler
   const handleSendMessage = async () => {
@@ -420,8 +424,9 @@ const Chat = () => {
                       .map((msg, index) => (
                         <Message key={msg.id || index} msg={msg} user={user} />
                       ))}
+
                   {isRecipientTyping && (
-                    <div className="flex justify-start">
+                    <div className="animate-fade-in flex justify-start">
                       <div className="max-w-[80%] rounded-lg p-3 text-sm bg-muted">
                         <p className="flex items-center">
                           <span className="typing-dot animate-pulse">•</span>
