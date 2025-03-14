@@ -30,43 +30,6 @@ const Chat = () => {
   const [fetchedUsers, setFetchedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
 
-  // Socket.IO setup
-  useEffect(() => {
-    if (!user?.id) return;
-
-    // Set up connection
-    const onConnect = () => {
-      console.log("Connected to server");
-      // Tell the server who you are
-      socket.emit("user_connected", user.id);
-    };
-
-    // Handle new messages
-    const onNewMessage = (message) => {
-      console.log("New message received:", message);
-      // Only add message if it's relevant to current chat
-      if (
-        recipient &&
-        ((message.sender_id === user.id &&
-          message.recipient_id === recipient.id) ||
-          (message.sender_id === recipient.id &&
-            message.recipient_id === user.id))
-      ) {
-        setMessages((prev) => [...prev, message]);
-      }
-    };
-
-    // Register listeners
-    socket.on("connect", onConnect);
-    socket.on("new_message", onNewMessage);
-
-    // Clean up
-    return () => {
-      socket.off("connect", onConnect);
-      socket.off("new_message", onNewMessage);
-    };
-  }, [user?.id, recipient]);
-
   // Fetch users under manager
   useEffect(() => {
     if (!user?.manager_id) return;
