@@ -22,9 +22,7 @@ const { Server } = require('socket.io');
 const allowedOrigins = [
     'http://localhost:13000',    // Docker frontend external port
     'http://localhost:3000',     // Direct frontend dev server
-    'http://192.168.1.134:13000', // IP access to Docker frontend 
-    'http://142.231.92.199/15000',
-    'http://142.231.92.199:3000',
+    'http://192.168.1.67:3000',
 ];
 
 const io = new Server(server, {

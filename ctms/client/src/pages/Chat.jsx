@@ -15,6 +15,62 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dot, HeartCrack } from "lucide-react";
 import { io } from "socket.io-client";
 
+const formatTimeAgo = (date) => {
+  const now = new Date();
+  const diff = now - date;
+
+  const seconds = Math.floor(diff / 1000);
+  const minutes = Math.floor(seconds / 60);
+  const hours = Math.floor(minutes / 60);
+  const days = Math.floor(hours / 24);
+
+  if (days > 0) return `${days} day${days > 1 ? "s" : ""} ago`;
+  if (hours > 0) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+  if (minutes > 0) return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
+  if (seconds < 10) return "Just now";
+  return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
+};
+
+const Message = ({ msg, user }) => {
+  const [timeAgo, setTimeAgo] = useState("");
+
+  useEffect(() => {
+    const updateTimeAgo = () => {
+      setTimeAgo(formatTimeAgo(new Date(msg.sent_at)));
+    };
+
+    updateTimeAgo(); // Initial calculation
+    const interval = setInterval(updateTimeAgo, 60000); // Update every 60s
+
+    return () => clearInterval(interval); // Cleanup on unmount
+  }, [msg.sent_at]);
+
+  return (
+    <div
+      className={`flex ${
+        msg.sender_id === user?.id ? "justify-end" : "justify-start"
+      }`}
+    >
+      <div
+        className={`max-w-[80%] rounded-lg p-3 text-sm ${
+          msg.sender_id === user?.id
+            ? "bg-primary text-primary-foreground"
+            : "bg-muted"
+        }`}
+      >
+        <p>{msg.text}</p>
+        <p
+          className={`text-xs opacity-70 mt-1 ${
+            msg.sender_id === user?.id ? "text-right" : "text-left"
+          }`}
+        >
+          {timeAgo}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const Chat = () => {
   const { user } = useAuth();
   const scrollRef = useRef(null);
@@ -26,6 +82,8 @@ const Chat = () => {
   const [recipient, setRecipient] = useState(null);
   const [fetchedUsers, setFetchedUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const [isTyping, setIsTyping] = useState(false);
 
   // Initialize socket connection
   useEffect(() => {
@@ -103,6 +161,8 @@ const Chat = () => {
       .then((data) => {
         // Ensure data is an array
         const messageArray = Array.isArray(data) ? data : [];
+        // convert the date strings to Date objects
+        messageArray.forEach((msg) => (msg.sent_at = new Date(msg.sent_at)));
         setMessages(messageArray);
       })
       .catch((err) => {
@@ -175,28 +235,6 @@ const Chat = () => {
     window.location.href = "/login";
   }
 
-  const dateToTimeAgo = (date) => {
-    const now = new Date();
-    const diff = now - date;
-
-    const seconds = Math.floor(diff / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    const days = Math.floor(hours / 24);
-
-    if (days > 0) {
-      return `${days} day${days > 1 ? "s" : ""} ago`;
-    } else if (hours > 0) {
-      return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-    } else if (minutes > 0) {
-      return `${minutes} minute${minutes > 1 ? "s" : ""} ago`;
-    } else if (seconds === 0 || seconds < 10) {
-      return "Just now";
-    } else {
-      return `${seconds} second${seconds > 1 ? "s" : ""} ago`;
-    }
-  };
-
   return (
     <div className="flex h-[calc(100vh-5rem)] bg-background mt-18">
       {/* Sidebar Card */}
@@ -262,38 +300,7 @@ const Chat = () => {
                               msg.recipient_id === user?.id))
                       )
                       .map((msg, index) => (
-                        <div
-                          key={msg.id || index}
-                          className={cn("flex", {
-                            "justify-end": msg.sender_id === user?.id,
-                            "justify-start": msg.sender_id !== user?.id,
-                          })}
-                        >
-                          <div
-                            className={cn(
-                              "max-w-[80%] rounded-lg p-3 text-sm",
-                              {
-                                "bg-primary text-primary-foreground":
-                                  msg.sender_id === user?.id,
-                                "bg-muted": msg.sender_id !== user?.id,
-                              }
-                            )}
-                          >
-                            <p>{msg.text}</p>
-                            <p
-                              className={`
-                          text-xs opacity-70 mt-1
-                          ${
-                            msg.sender_id === user?.id
-                              ? "text-right"
-                              : "text-left"
-                          }
-                          `}
-                            >
-                              {dateToTimeAgo(new Date(msg.sent_at))}
-                            </p>
-                          </div>
-                        </div>
+                        <Message key={msg.id || index} msg={msg} user={user} />
                       ))}
                   <div ref={scrollRef} />
                   {messages.length === 0 && !isLoading && (
