@@ -87,6 +87,20 @@ io.on('connection', (socket) => {
         console.log(`User ${userId} joined their room`);
     });
 
+    socket.on('typing', (data) => {
+        socket.to(`user_${data.receiverId}`).emit('userTyping', {
+            senderId: data.senderId,
+            isTyping: true
+        });
+    });
+
+    socket.on('stopTyping', (data) => {
+        socket.to(`user_${data.receiverId}`).emit('userTyping', {
+            senderId: data.senderId,
+            isTyping: false
+        });
+    });
+
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
     });

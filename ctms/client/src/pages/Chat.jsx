@@ -84,13 +84,43 @@ const Chat = () => {
   const [isLoading, setIsLoading] = useState(false);
 
   const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
+  const [isRecipientTyping, setIsRecipientTyping] = useState(false);
+
+  const handleTyping = (e) => {
+    setNewMessage(e.target.value);
+
+    // don't emit typing events if not in a conversation
+    if (!recipient || !socketRef.current) return;
+
+    if (!isTyping) {
+      setIsTyping(true);
+      socketRef.current.emit("typing", {
+        senderId: user.id,
+        receiverId: recipient.id,
+      });
+    }
+
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // set a new time out
+    typingTimeoutRef.current = setTimeout(() => {
+      setIsTyping(false);
+      socketRef.current.emit("stopTyping", {
+        senderId: user.id,
+        receiverId: recipient.id,
+      });
+    }, 1000);
+  };
 
   // Initialize socket connection
   useEffect(() => {
     if (!user?.id) return;
 
     // Create socket connection
-    socketRef.current = io(proxy.replace("/api", ""), {
+    socketRef.current = io(proxy, {
       withCredentials: true,
     });
 
@@ -105,13 +135,31 @@ const Chat = () => {
       }
     });
 
+    // Listen for typing events
+    socketRef.current.on("userTyping", (data) => {
+      if (recipient && data.senderId === recipient.id) {
+        setIsRecipientTyping(data.isTyping);
+      }
+    });
+
     return () => {
       // Clean up socket connection
       if (socketRef.current) {
         socketRef.current.disconnect();
       }
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
     };
   }, [user?.id, recipient]);
+
+  // Reset typing state when changing recipients
+  useEffect(() => {
+    setIsRecipientTyping(false);
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+  }, [recipient]);
 
   // Fetch users under manager
   useEffect(() => {
@@ -203,9 +251,6 @@ const Chat = () => {
     };
 
     try {
-      // Clear message input immediately for better UX
-      setNewMessage("");
-
       const response = await fetch(`${proxy}/message`, {
         method: "POST",
         headers: {
@@ -213,11 +258,14 @@ const Chat = () => {
         },
         body: JSON.stringify(messageData),
       });
-
       if (!response.ok) throw new Error("Failed to send message");
-
-      // We no longer need to fetch messages here as the socket event will trigger it
-      // The server will emit an event that will trigger a refetch
+      setNewMessage("");
+      if (socketRef.current) {
+        socketRef.current.emit("stopTyping", {
+          senderId: user.id,
+          receiverId: recipient.id,
+        });
+      }
     } catch (error) {
       console.error("Error sending message:", error);
     }
@@ -302,6 +350,24 @@ const Chat = () => {
                       .map((msg, index) => (
                         <Message key={msg.id || index} msg={msg} user={user} />
                       ))}
+                  {isRecipientTyping && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-lg p-3 text-sm bg-muted">
+                        <p className="flex items-center">
+                          <span className="typing-dot animate-pulse">•</span>
+                          <span className="typing-dot animate-pulse delay-100">
+                            •
+                          </span>
+                          <span className="typing-dot animate-pulse delay-200">
+                            •
+                          </span>
+                          <span className="ml-2 text-xs text-muted-foreground">
+                            {recipient.username} is typing...
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  )}
                   <div ref={scrollRef} />
                   {messages.length === 0 && !isLoading && (
                     <div className="flex mt-40 justify-center flex-col items-center">
@@ -319,7 +385,7 @@ const Chat = () => {
               <div className="flex gap-2 w-full">
                 <Textarea
                   value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
+                  onChange={handleTyping}
                   onKeyPress={handleKeyPress}
                   placeholder="Type a message..."
                   className="flex-1 h-24 resize-none"
