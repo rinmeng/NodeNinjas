@@ -125,6 +125,8 @@ const Chat = () => {
       });
 
       if (!response.ok) throw new Error("Failed to send message");
+
+      fetchMessages(); // Fetch messages after sending
     } catch (error) {
       console.error("Error sending message:", error);
     }

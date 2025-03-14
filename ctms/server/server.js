@@ -17,6 +17,7 @@ const notification = require('./routes/notification');
 const app = express();
 const server = http.createServer(app);
 
+const { Server } = require('socket.io');
 
 const allowedOrigins = [
     'http://localhost:13000',    // Docker frontend external port
@@ -25,6 +26,17 @@ const allowedOrigins = [
     'http://142.231.92.199/15000',
     'http://142.231.92.199:3000',
 ];
+
+const io = new Server(server, {
+    cors: {
+        origin: allowedOrigins,
+        methods: ['GET', 'POST', 'PUT', 'DELETE'],
+        credentials: true
+    }
+});
+
+app.set('io', io);
+
 
 // Session store
 const sessionStore = new pgSession({
@@ -66,6 +78,21 @@ app.use('/task', task);
 app.use('/message', message);
 app.use('/notification', notification);
 
+
+// Socket.io connection handling
+io.on('connection', (socket) => {
+    console.log('A user connected:', socket.id);
+
+    // User joins their own room based on user ID
+    socket.on('join', (userId) => {
+        socket.join(`user_${userId}`);
+        console.log(`User ${userId} joined their room`);
+    });
+
+    socket.on('disconnect', () => {
+        console.log('User disconnected:', socket.id);
+    });
+});
 
 
 // if testing, don't start server

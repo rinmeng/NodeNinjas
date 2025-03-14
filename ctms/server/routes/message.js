@@ -17,6 +17,15 @@ router.post("/", async (req, res) => {
       [sender_id, recipient_id, text]
     );
 
+    const io = req.app.get('io');
+
+    // now since the mesage is sent, we need to emit to both 
+    // sender and recipient to update fetch new messages.
+
+    // emit to sender and recipient
+    io.to(`user_${sender_id}`).emit('refetchMessages', { conversationPartner: recipient_id });
+    io.to(`user_${recipient_id}`).emit('refetchMessages', { conversationPartner: sender_id });
+
     res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error("Error sending message:", err);
