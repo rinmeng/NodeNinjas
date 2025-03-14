@@ -20,6 +20,12 @@ ctms> cd client
 ctms\client> npm install
 ```
 
+There might be an error due to `react-day-picker` package. If you encounter this error, run the following command:
+
+```shell
+ctms\client> npm install react-day-picker@latest
+```
+
 ## Backend & Frontend Setups
 
 ### 1. `cd` into the `ctms` directory (or where the docker-compose.yml is located) and run the following commands
@@ -28,106 +34,8 @@ ctms\client> npm install
 ctms> docker-compose up -d --build
 ```
 
-Our whole backend whill be running on [http://localhost:15000](http://localhost:15000). I have edited the code to include the whole frontend, which will be running on [http://localhost:13000](http://localhost:13000),
+This command will build the images and start the containers in the background, and you can access the frontend at `http://localhost:13000` and the backend at `http://localhost:15000`.
 
-## NOTE: All error logs will be displayed in the Docker app, under the server container, where
+## To setup the database
 
-- If there is a backend error, it will be displayed under `postgres-db`
-
-- If there is a frontend error, it will be displayed under `frontend`
-
-- If there is a request (DB query) error, it will be displayed under `backend`
-
-### As long as the `server` image is running, everything is accessible
-
-## How do you test the backend & frontend?
-
-### Backend
-
-Under the `server` directory, you will see a `test.rest` file. You need to install the REST Client extension in Visual Studio Code. Then you can run the tests by clicking on the `Send Request` link, or you can utilize Postman to test the backend
-
-A first, it will not work unless you run the first api call in the `test.rest` file, `GET http://localhost:15000/setup` to get the setup working. You can click send request on the first api call or visit [http://localhost:15000/setup](http://localhost:15000/setup) (Note that we are not actually using port 5000 for the api calls because docker is running the backend, mapped to port 15000 as defined in the `docker-compose.yml` file)
-
-When it is successfull, you will see a json file containing 
-
-```json
-{
-    "message": "Table created successfully"
-}
-```
-
-Then you can run the next call `GET http://localhost:15000/` to get the list of all the schools or visit [http://localhost:15000/](http://localhost:15000/). You may encounter an empty array `[]` because there are no schools in the database yet.
-
-Now you can test inserts by running
-
-```json
-POST http://localhost:15000/
-Content-Type: application/json
-
-{
-  "name": "hi",
-  "location": "Canada"
-}
-###
-POST http://localhost:15000/
-Content-Type: application/json
-
-{
-  "id": 2,
-  "name": "hello",
-  "location": "USA"
-}
-###
-POST http://localhost:15000/
-Content-Type: application/json
-
-{
-  "id": 3,
-  "name": "greetings",
-  "location": "Australia"
-}
-###
-```
-
-Now you can run the `GET http://localhost:15000/` again to see the list of schools
-
-### Frontend
-
-Then check your front-end, visit [http://localhost:13000](http://localhost:13000) to see the front-end (visiting purpose only)
-
-On macOS, Docker has been optimized to run both frontend and backend without any issues, but sometimes there is a time where updates are not made real-time, if you want to enter development mode manually, you can run the following command
-
-```shell
-ctms> cd client
-ctms\client> npm run dev
-```
-
-which will start the frontend in development mode on [http://localhost:3000](http://localhost:3000) instead.
-
-Sometimes Docker does not update the front-end real time when you develop. It needs to be rebuilt everytime you run docker so you need to run the above command to see the changes you make in the front-end code.
-
-To reset the table, simply visit setup again [http://localhost:15000/setup](http://localhost:15000/setup)
-
-## What area will be used the most during development?
-
-- The `server/routes` directory will be used the most for the backend
-
-- The `client/src` directory will be used the most for the frontend
-
-## Use the Postgres database real-time
-
-- You can use the Postgres database real-time by running the following command
-in the same directory where the `docker-compose.yml` file is located
-
-```shell
-docker exec -it postgres-db psql -U root -d ctms
-```
-
-- You can run any SQL command in the terminal that appears for example, `\dt` to see the tables
-
-```sql
-ctms=# \dt
-ctms=# SELECT * FROM schools;
-```
-
-- To exit the terminal, type `\q` and press enter
+Visit `http://localhost:15000` and click on "Setup Endpoint", this will forward you to `http://localhost:15000/setup`. Or you create/initialize the database by visiting the link itself.
