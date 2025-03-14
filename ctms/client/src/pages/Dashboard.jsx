@@ -555,6 +555,7 @@ function Dashboard({ devMode }) {
               />
             </PopoverContent>
           </Popover>
+          <span>-</span>
           <Popover>
             <PopoverTrigger asChild>
               <Button
