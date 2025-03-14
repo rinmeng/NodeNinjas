@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db"); // Import database connection
-const { getIO } = require('../socket');
 
 //  Send a message
 router.post("/", async (req, res) => {
@@ -17,9 +16,6 @@ router.post("/", async (req, res) => {
        VALUES ($1, $2, $3) RETURNING *`,
       [sender_id, recipient_id, text]
     );
-
-    const io = getIO();
-    io.to(`user_${sender_id}`).to(`user_${recipient_id}`).emit("new_message", result.rows[0]);
 
     res.status(201).json(result.rows[0]);
   } catch (err) {

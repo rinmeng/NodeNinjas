@@ -17,7 +17,6 @@ const notification = require('./routes/notification');
 const app = express();
 const server = http.createServer(app);
 
-const { initialize } = require('./socket');
 
 const allowedOrigins = [
     'http://localhost:13000',    // Docker frontend external port
@@ -42,16 +41,6 @@ app.use(cors({
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
-
-// For Socket.IO CORS
-const io = initialize(server, {
-    cors: {
-        origin: allowedOrigins,
-        methods: ['GET', 'POST', 'PUT', 'DELETE'],
-        credentials: true,
-
-    }
-});
 
 // Call to setup pgSession table
 setupPgSession();
@@ -86,4 +75,4 @@ if (process.env.NODE_ENV !== 'test') {
     });
 }
 
-module.exports = { app, io, server };
+module.exports = { app };

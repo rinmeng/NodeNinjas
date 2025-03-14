@@ -13,11 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Dot, HeartCrack } from "lucide-react";
-import { io } from "socket.io-client";
-
-const socket = io(proxy, {
-  withCredentials: true,
-});
 
 const Chat = () => {
   const { user } = useAuth();
@@ -130,8 +125,6 @@ const Chat = () => {
       });
 
       if (!response.ok) throw new Error("Failed to send message");
-
-      // No need to update messages here - will be handled by socket event
     } catch (error) {
       console.error("Error sending message:", error);
     }
