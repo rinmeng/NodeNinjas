@@ -1,7 +1,7 @@
-"use client"
-import { TrendingUp,User} from "lucide-react"
+"use client";
+import { TrendingUp, User } from "lucide-react";
 
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
 import {
   Card,
@@ -10,28 +10,30 @@ import {
   CardHeader,
   CardFooter,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { useEffect, useState } from "react"
+} from "@/components/ui/chart";
+import { useEffect, useState } from "react";
+import proxy from "@/utils/proxy";
 
-export function Analytics() {
+export function CustomBarChart({ height, width }) {
   const [chartData, setChartData] = useState([]);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://localhost:15000/user/all");
+        const response = await fetch(`${proxy}/user/all`);
         const data = await response.json();
         // Aggregate users under each manager
         const managerCounts = {};
         data.forEach((user) => {
           if (user.manager_id) {
-            managerCounts[user.manager_id] = (managerCounts[user.manager_id] || 0) + 1;
+            managerCounts[user.manager_id] =
+              (managerCounts[user.manager_id] || 0) + 1;
           }
         });
 
@@ -51,17 +53,21 @@ export function Analytics() {
     fetchData();
   }, []);
 
-  
-
   return (
-         <Card className={"w-1/4"}>
+    <Card>
       <CardHeader>
-        <CardTitle>Admin User Distribution</CardTitle>
-        <CardDescription>Total Users: {chartData.reduce((sum, admin) => sum + admin.users, 0)}</CardDescription>
+        <CardTitle>User Distribution</CardTitle>
+        <CardDescription>
+          Total Users: {chartData.reduce((sum, admin) => sum + admin.users, 0)}
+        </CardDescription>
       </CardHeader>
       <CardContent>
-        <ChartContainer config={ChartConfig}>
-          <BarChart width={10} height={40} data={chartData}>
+        <ChartContainer
+          config={ChartConfig}
+          className={`mx-auto aspect-square max-h-[${height}] w-[${width}]
+           [&_.recharts-text]:fill-background`}
+        >
+          <BarChart data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="name"
@@ -80,14 +86,12 @@ export function Analytics() {
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex items-center gap-2">
           <TrendingUp size={16} />
-          <span>Admin User Distribution</span>
+          <span>Admin-User Distribution</span>
         </div>
         <div className="leading-none text-muted-foreground">
           Showing user distribution under specific admins
         </div>
       </CardFooter>
     </Card>
-    
-   
   );
 }

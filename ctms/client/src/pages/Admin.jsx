@@ -11,11 +11,10 @@ import {
 
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import DBTable from "./testing/subcomp/DBTable";
-import TickCheckbox from "../components/subcomponents/TickCheckbox.jsx";
-import { Analytics } from "./Graphs";
+import { CustomBarChart } from "@/src/components/CustomBarChart";
+import { CustomPieChart } from "@/src/components/CustomPieChart";
 
-import DataTable from "../components/DataTable";
+import DataTable from "@/src/components/DataTable";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -26,12 +25,23 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Card, CardContent, CardTitle, CardHeader } from "@/components/ui/card";
-import proxy from "@/src/utils/proxy";
+import {
+  Card,
+  CardContent,
+  CardTitle,
+  CardHeader,
+  CardDescription,
+} from "@/components/ui/card";
+import proxy from "@/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
+import { useToast } from "@/utils/ToastProvider";
+import { Separator } from "@/components/ui/separator";
 
-const Admin = ({ devMode, setFeedbackMessage }) => {
+const Admin = ({ devMode }) => {
   const { user } = useAuth();
+  const { setFeedbackMessage } = useToast();
+
+  // State for managing users
   const [usersList, setUsersList] = useState([]);
   const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -66,7 +76,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
 
   // Initial load function without visual feedback
   const loadUsersInitially = () => {
-    fetch(`${proxy}/user/all`, { credentials: "include" })
+    fetch(`${proxy}/user/under/${user.id}`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -76,6 +86,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
         return res.json();
       })
       .then((data) => {
+        data = data.filter((user) => user.role !== "admin");
         setUsersList(data);
         setInitialLoad(false);
       })
@@ -279,7 +290,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   const fetchUsers = () => {
     setIsLoading(true);
     setIsRefetching(true);
-    fetch(`${proxy}/user/all`, { credentials: "include" })
+    fetch(`${proxy}/user/under/${user.id}`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -289,7 +300,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
         return res.json();
       })
       .then((data) => {
-        console.log("Fetch list:", data);
+        data = data.filter((user) => user.role !== "admin");
         setUsersList(data);
         setSortDirection("none"); // Reset sort direction when fetching new data
         // Loading indicator will be cleared by the useEffect
@@ -306,17 +317,6 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
       });
   };
 
-  const changeTable = (userId) => {
-    setChosenUserIds((prev) => {
-      if (!Array.isArray(prev)) {
-        return [userId];
-      }
-      return prev.includes(userId)
-        ? prev.filter((id) => id !== userId)
-        : [...prev, userId];
-    });
-  };
-
   const resetSelection = () => {
     setChosenUserIds([]);
     if (tableRef.current) {
@@ -325,7 +325,20 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
   };
 
   const updateUserRole = (userId, newRole) => {
+    // Find the user in the usersList
+    const userToUpdate = usersList.find((user) => user.id === userId);
+  
+    // Check if the user is an admin
+    if (userToUpdate.role === "admin") {
+      setFeedbackMessage({
+        title: "Error",
+        description: "Cannot change the role of an admin user.",
+      });
+      return;
+    }
+  
     setIsRefetching(true);
+  
     fetch(`${proxy}/user/updateRole/${userId}`, {
       method: "PUT",
       headers: {
@@ -334,6 +347,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
       credentials: "include",
       body: JSON.stringify({ role: newRole }),
     })
+
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -347,7 +361,7 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
           title: "Success",
           description: "Role updated successfully",
         });
-
+  
         // Update local state with the new role
         setUsersList((prev) =>
           prev.map((user) =>
@@ -362,26 +376,33 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
           title: "Error",
           description: "Failed to update role: " + error.message,
         });
+        setUsersList((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, role: userToUpdate.role } : user
+          )
+        );
         setIsRefetching(false);
       });
-  };
+      
+  }
 
   return (
-    <div className="w-full my-30 animate-fadein ">
-      <Card className="max-w-lg mx-auto">
+    <div className=" w-full my-30 animate-fade-in ">
+      <Card className="container mx-auto flex flex-col items-center">
         <CardHeader>
           <CardTitle>
-            <h2 className="text-2xl font-semibold">User Administration</h2>
+            <h2 className="text-2xl font-semibold">Admin Functionality</h2>
           </CardTitle>
+          <CardDescription>Manage users, roles, and more.</CardDescription>
         </CardHeader>
-        <CardContent className=" flex flex-col items-center">
+        <CardContent className="flex flex-col md:flex-row gap-4">
           <Dialog>
             <DialogTrigger asChild>
-              <Button className="w-full">Manage Users</Button>
+              <Button className="w-full md:w-auto">Manage Users</Button>
             </DialogTrigger>
 
             {/* Make the dialog much larger */}
-            <DialogContent className="min-w-[900px]">
+            <DialogContent className="min-w-[90vw] md:min-w-[900px]">
               <DialogHeader>
                 <DialogTitle className="text-primary flex items-center gap-4 text-xl">
                   Manage Users
@@ -446,12 +467,38 @@ const Admin = ({ devMode, setFeedbackMessage }) => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+
+          <Button className="w-full md:w-auto">To Be Added</Button>
+
+          <Button className="w-full md:w-auto">To Be Added</Button>
         </CardContent>
       </Card>
-      <h2 className="text-2xl font-bold mb-4 text-center ">User Analytics</h2>
-      <section className="flex justify-center">
-        <Analytics /> 
-      </section>
+
+      <Separator className="my-10" />
+
+      {/* Analytics Grid */}
+      <Card className="container mx-auto">
+        <CardHeader>
+          <CardTitle>
+            <h2 className="text-4xl font-semibold">Analytics</h2>
+          </CardTitle>
+          <CardDescription>
+            Here's a quick overview of what's going on.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="h-auto grid grid-cols-2 gap-4">
+          <div className=" flex flex-col w-full gap-4">
+            <CustomPieChart height="300px" />
+
+            <CustomPieChart height="300px" />
+          </div>
+
+          <div className="w-full h-full">
+            <CustomBarChart height="100%" width="100%" />
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 };

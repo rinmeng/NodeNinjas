@@ -192,7 +192,6 @@ async function setupTasks() {
     }
 }
 
-
 async function setupNotifications() {
     try {
         await pool.query(`
@@ -226,19 +225,19 @@ async function setupMessages() {
             CREATE TABLE messages (
                 id SERIAL PRIMARY KEY, -- Unique message ID
                 sender_id INT NOT NULL,
-                receiver_id INT,
+                recipient_id INT,
                 task_id INT,
-                message TEXT NOT NULL,
+                text TEXT NOT NULL,
                 sent_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
 
                 FOREIGN KEY (sender_id) REFERENCES users (id) ON DELETE CASCADE,
-                FOREIGN KEY (receiver_id) REFERENCES users (id) ON DELETE SET NULL,
+                FOREIGN KEY (recipient_id) REFERENCES users (id) ON DELETE SET NULL,
                 FOREIGN KEY (task_id) REFERENCES task (id) ON DELETE SET NULL
             );
 
             -- Indexes for faster lookups
             CREATE INDEX idx_messages_sender_id ON messages (sender_id);
-            CREATE INDEX idx_messages_receiver_id ON messages (receiver_id);
+            CREATE INDEX idx_messages_recipient_id ON messages (recipient_id);
             CREATE INDEX idx_messages_task_id ON messages (task_id);
         `);
 
@@ -248,7 +247,6 @@ async function setupMessages() {
         throw new Error("Failed to create Messages table: " + err.message);
     }
 }
-
 
 async function setupUsers() {
     try {
@@ -264,6 +262,7 @@ async function setupUsers() {
                 role user_role NOT NULL DEFAULT 'team_member',
                 display_name VARCHAR(100),
                 manager_id INT,
+                is_online BOOLEAN DEFAULT FALSE,
                 FOREIGN KEY(manager_id) REFERENCES users(id),
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP

@@ -19,7 +19,7 @@ import {
   ExternalLink,
 } from "lucide-react";
 import EditTaskPanel from "../EditTaskPanel";
-import proxy from "../../utils/proxy";
+import proxy from "../../../utils/proxy";
 import AssignTaskPanel from "../AssignTaskPanel";
 import {
   Dialog,
@@ -42,18 +42,14 @@ import { Separator } from "@/components/ui/separator";
 
 import getDateWithRelativeTime from "@/src/utils/getDateWithRelativeTime";
 
-const TaskCard = ({
-  task,
-  user,
-  setNeedsRefetch,
-  setFeedbackMessage,
-  setNotificationToAdd,
-  devMode,
-}) => {
-  const [showUpdateTaskPanel, setShowUpdateTaskPanel] = useState(false);
+import { useToast } from "@/utils/ToastProvider";
+import { useNotification } from "@/utils/NotificationProvider";
+
+const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
   const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
-  const [showAssignTaskPanel, setShowAssignTaskPanel] = useState(false);
+  const { setFeedbackMessage } = useToast();
+  const { setNotificationToAdd } = useNotification();
 
   const isTaskOwner = task.owner_id === user.id;
 
@@ -70,7 +66,7 @@ const TaskCard = ({
       case "in_progress":
         return "default";
       case "completed":
-        return "success";
+        return "outline";
       default:
         return "outline";
     }
@@ -80,13 +76,13 @@ const TaskCard = ({
     const formattedStatus = status.replace(/\s+/g, "").toLowerCase();
     switch (formattedStatus) {
       case "pending":
-        return <CircleDashed className="h-4 w-4 mr-1" />;
+        return <CircleDashed />;
       case "in_progress":
-        return <CircleDotDashed className="h-4 w-4 mr-1" />;
+        return <CircleDotDashed />;
       case "completed":
-        return <CircleCheck className="h-4 w-4 mr-1" />;
+        return <CircleCheck />;
       default:
-        return <CircleEllipsis className="h-4 w-4 mr-1" />;
+        return <CircleEllipsis />;
     }
   };
 
@@ -94,13 +90,13 @@ const TaskCard = ({
     const formattedPriority = priority.replace(/\s+/g, "").toLowerCase();
     switch (formattedPriority) {
       case "high":
-        return <ClockAlert className="h-4 w-4 mr-1" />;
+        return <ClockAlert />;
       case "medium":
-        return <ClockArrowUp className="h-4 w-4 mr-1" />;
+        return <ClockArrowUp />;
       case "low":
-        return <ClockArrowDown className="h-4 w-4 mr-1" />;
+        return <ClockArrowDown />;
       default:
-        return <Clock className="h-4 w-4 mr-1" />;
+        return <Clock />;
     }
   };
 
@@ -110,9 +106,9 @@ const TaskCard = ({
       case "high":
         return "destructive";
       case "medium":
-        return "warning";
-      case "low":
         return "secondary";
+      case "low":
+        return "outline";
       default:
         return "outline";
     }
@@ -129,9 +125,9 @@ const TaskCard = ({
     } else if (diffDays === 0) {
       return "destructive";
     } else if (diffDays === 1) {
-      return "warning";
+      return "secondary";
     } else {
-      return "success";
+      return "outline";
     }
   };
 
@@ -229,10 +225,6 @@ const TaskCard = ({
           description: `Failed to ${isTaskLocked ? "unlock" : "lock"} task.`,
         });
       });
-  };
-
-  const handleAssignTask = () => {
-    setShowAssignTaskPanel(!showAssignTaskPanel);
   };
 
   return (
@@ -336,8 +328,6 @@ const TaskCard = ({
                   user={user}
                   taskToEdit={task}
                   setNeedsRefetch={setNeedsRefetch}
-                  setNotificationToAdd={setNotificationToAdd}
-                  setFeedbackMessage={setFeedbackMessage}
                 />
               )}
             </Dialog>
@@ -370,8 +360,6 @@ const TaskCard = ({
                 <AssignTaskPanel
                   task={task}
                   setNeedsRefetch={setNeedsRefetch}
-                  setFeedbackMessage={setFeedbackMessage}
-                  setNotificationToAdd={setNotificationToAdd}
                   user={user}
                 />
               )}
