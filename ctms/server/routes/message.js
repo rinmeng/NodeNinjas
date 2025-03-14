@@ -14,10 +14,19 @@ router.post("/", async (req, res) => {
     const result = await pool.query(
       `INSERT INTO messages (sender_id, recipient_id, text) 
        VALUES ($1, $2, $3) RETURNING *`,
-      [sender_id, recipient_id, text]  
+      [sender_id, recipient_id, text]
     );
 
-    res.status(201).json(result.rows[0]); // Send back the inserted message
+    const io = req.app.get('io');
+
+    // now since the mesage is sent, we need to emit to both 
+    // sender and recipient to update fetch new messages.
+
+    // emit to sender and recipient
+    io.to(`user_${sender_id}`).emit('refetchMessages', { conversationPartner: recipient_id });
+    io.to(`user_${recipient_id}`).emit('refetchMessages', { conversationPartner: sender_id });
+
+    res.status(201).json(result.rows[0]);
   } catch (err) {
     console.error("Error sending message:", err);
     res.status(500).json({ error: "Failed to send message." });
@@ -34,7 +43,7 @@ router.get("/:sender_id/:recipient_id", async (req, res) => {
        WHERE (sender_id = $1 AND recipient_id = $2) 
           OR (sender_id = $2 AND recipient_id = $1)
        ORDER BY sent_at ASC`,
-      [sender_id, recipient_id]  
+      [sender_id, recipient_id]
     );
 
     res.json(result.rows);

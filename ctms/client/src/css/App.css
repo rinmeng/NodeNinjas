@@ -29,6 +29,10 @@
     @apply m-5 p-5;
   }
 
+  .recharts-text {
+    fill: black;
+  }
+
   .title {
     @apply text-5xl font-bold;
   }
@@ -362,8 +366,6 @@
     --chart-5: 340 75% 55%;
   }
 }
-
-
 
 @layer base {
   * {
