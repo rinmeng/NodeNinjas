@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import proxy from "@/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import {
@@ -13,7 +12,16 @@ import {
   CardFooter,
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowDown, Dot, HeartCrack } from "lucide-react";
+import { Dot, HeartCrack } from "lucide-react";
+import { io } from "socket.io-client";
+
+const socket = io(proxy, {
+  withCredentials: true,
+});
+
+socket.on("connect", () => {
+  console.log("Connected to server");
+});
 
 const Chat = () => {
   const { user } = useAuth();
