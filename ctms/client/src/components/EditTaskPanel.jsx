@@ -1,6 +1,7 @@
 import React, { useState } from "react";
-import { Save, X } from "lucide-react";
-import proxy from "../utils/proxy";
+import { Save, X, CalendarIcon } from "lucide-react";
+import { format, parseISO } from "date-fns";
+import proxy from "@/utils/proxy";
 import getDateWithRelativeTime from "../utils/getDateWithRelativeTime";
 
 // Import Shadcn UI components
@@ -28,19 +29,29 @@ import {
   Card,
   CardContent,
   CardDescription,
-  CardFooter,
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useToast } from "@/utils/ToastProvider";
+import { useNotification } from "@/utils/NotificationProvider";
 
-const EditTaskPanel = ({
-  taskToEdit,
-  setNeedsRefetch,
-  setFeedbackMessage,
-  setNotificationToAdd,
-  user,
-}) => {
-  const [taskAfterEdit, setTaskAfterEdit] = useState(taskToEdit || {});
+const EditTaskPanel = ({ taskToEdit, setNeedsRefetch, user }) => {
+  // Convert date string to Date object for the calendar
+  const initialDate = taskToEdit?.date ? new Date(taskToEdit.date) : new Date();
+
+  const [taskAfterEdit, setTaskAfterEdit] = useState({
+    ...taskToEdit,
+    date: initialDate,
+  });
+
+  const { setFeedbackMessage } = useToast();
+  const { setNotificationToAdd } = useNotification();
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -57,23 +68,15 @@ const EditTaskPanel = ({
     }));
   };
 
-  const getDateFromDateString = (dateString) => {
-    if (!dateString) return ""; // Handle empty values safely
-
-    // Ensure date is parsed correctly
-    const taskDate = new Date(dateString);
-    if (isNaN(taskDate.getTime())) return ""; // Handle parsing errors
-
-    // Format the date as YYYY-MM-DD for input[type="date"]
-    const year = taskDate.getFullYear();
-    const month = String(taskDate.getMonth() + 1).padStart(2, "0");
-    const day = String(taskDate.getDate()).padStart(2, "0");
-
-    return `${year}-${month}-${day}`;
+  const handleDateChange = (date) => {
+    setTaskAfterEdit((prevState) => ({
+      ...prevState,
+      date: date,
+    }));
   };
 
   const handleUpdateTask = async () => {
-    if (taskAfterEdit.name == "" || taskAfterEdit.date == "") {
+    if (taskAfterEdit.name == "" || !taskAfterEdit.date) {
       setFeedbackMessage({
         title: "Missing Requirements",
         description: "Please fill in all required fields.",
@@ -81,11 +84,17 @@ const EditTaskPanel = ({
       return;
     }
 
+    // Format date for comparison and API submission
+    const formattedNewDate = format(taskAfterEdit.date, "yyyy-MM-dd");
+    const originalDate = taskToEdit.date
+      ? format(new Date(taskToEdit.date), "yyyy-MM-dd")
+      : "";
+
     // Check if there are any changes
     const hasChanges =
       taskAfterEdit.name !== taskToEdit.name ||
       taskAfterEdit.description !== taskToEdit.description ||
-      taskAfterEdit.date !== taskToEdit.date ||
+      formattedNewDate !== originalDate ||
       taskAfterEdit.priority !== taskToEdit.priority ||
       taskAfterEdit.status !== taskToEdit.status;
 
@@ -107,7 +116,7 @@ const EditTaskPanel = ({
           id: taskToEdit.id,
           name: taskAfterEdit.name,
           description: taskAfterEdit.description,
-          date: taskAfterEdit.date,
+          date: formattedNewDate,
           priority: taskAfterEdit.priority,
           status: taskAfterEdit.status,
         }),
@@ -218,14 +227,30 @@ const EditTaskPanel = ({
             <div className="flex flex-row justify-start space-x-4">
               <div className="space-y-2">
                 <Label htmlFor="date">Due Date</Label>
-                <Input
-                  id="date"
-                  name="date"
-                  type="date"
-                  value={getDateFromDateString(taskAfterEdit?.date)}
-                  onChange={handleInputChange}
-                  className="flex justify-center"
-                />
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      id="date"
+                      variant="outline"
+                      className="justify-start text-left font-normal"
+                    >
+                      {taskAfterEdit.date ? (
+                        format(taskAfterEdit.date, "PPP")
+                      ) : (
+                        <span>Pick a date</span>
+                      )}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={taskAfterEdit.date}
+                      onSelect={handleDateChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
               </div>
 
               <div className="space-y-2">

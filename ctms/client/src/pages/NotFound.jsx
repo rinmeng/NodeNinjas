@@ -6,7 +6,7 @@ const NotFound = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="flex items-center justify-center h-screen bg-background">
+    <div className="flex items-center justify-center h-screen bg-background animate-fade-in">
       <Card className="w-[400px] text-center">
         <CardHeader>
           <CardTitle className="flex flex-col items-center gap-4">

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Send, X, MessageSquare } from "lucide-react";
 import { useAuth } from "@/utils/AuthProvider";
-import proxy from "@/src/utils/proxy";
+import proxy from "@/utils/proxy";
 import {
   Card,
   CardContent,
@@ -33,7 +33,7 @@ const ChatWidget = () => {
 
   useEffect(() => {
     if (isOpen) {
-      fetch(`${proxy}/user/under/${user.manager_id}`) // Changed from /user to /user/all based on your API routes
+      fetch(`${proxy}/user/under/${user.manager_id}`)
         .then((res) => {
           if (!res.ok) {
             throw new Error(`Error: ${res.status}`);
@@ -90,103 +90,109 @@ const ChatWidget = () => {
   };
 
   return (
-    <div className="fixed bottom-5 right-5">
-      {!isOpen && (
-        <Button
-          ref={toggleButtonRef}
-          onClick={() => setIsOpen(true)}
-          size="icon"
-          variant="default"
-          className="rounded-full shadow-lg"
-        >
-          <MessageSquare size={24} />
-        </Button>
-      )}
-
-      {isOpen && (
-        <Card ref={chatRef} className="w-80 relative">
-          <Button
-            className=" absolute top-2 right-2"
-            variant="ghost"
-            size="icon"
-            onClick={() => setIsOpen(false)}
-          >
-            <X size={20} />
-          </Button>
-          <CardHeader>
-            <CardTitle>Chat</CardTitle>
-            <CardDescription>Message people in your department</CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-3">
-            <Select
-              value={selectedUser?.id?.toString() || ""}
-              onValueChange={(value) => {
-                setSelectedUser(
-                  users.find((user) => user.id === parseInt(value))
-                );
-              }}
+    <>
+      {user && (
+        <div className="fixed bottom-5 right-5">
+          {!isOpen && (
+            <Button
+              ref={toggleButtonRef}
+              onClick={() => setIsOpen(true)}
+              size="icon"
+              variant="default"
+              className="rounded-full shadow-lg"
             >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a user..." />
-              </SelectTrigger>
-              <SelectContent>
-                {users
-                  .filter((u) => u.id !== user?.id)
-                  .map((user) => (
-                    <SelectItem key={user.id} value={user.id.toString()}>
-                      {user.username}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-
-            <ScrollArea className="h-60 rounded-md border">
-              <div className="p-3">
-                {messages.length > 0 ? (
-                  messages.map((msg, index) => (
-                    <div
-                      key={index}
-                      className={`mb-2 p-2 rounded-xl w-fit ${
-                        msg.sender_id === user?.id
-                          ? "bg-primary text-primary-foreground ml-auto"
-                          : "bg-muted"
-                      }`}
-                    >
-                      <strong>
-                        {msg.sender_id === user?.id
-                          ? "You"
-                          : selectedUser?.username}
-                        :
-                      </strong>{" "}
-                      {msg.text}
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-muted-foreground">
-                    No messages yet. Start chatting!
-                  </p>
-                )}
-              </div>
-            </ScrollArea>
-          </CardContent>
-
-          <CardFooter className="flex items-center gap-2 pt-2">
-            <Input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              className="flex-1"
-              placeholder="Type a message..."
-              onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
-            />
-            <Button size="icon" onClick={handleSendMessage}>
-              <Send size={20} />
+              <MessageSquare size={24} />
             </Button>
-          </CardFooter>
-        </Card>
+          )}
+
+          {isOpen && (
+            <Card ref={chatRef} className="w-80 relative">
+              <Button
+                className=" absolute top-2 right-2"
+                variant="ghost"
+                size="icon"
+                onClick={() => setIsOpen(false)}
+              >
+                <X size={20} />
+              </Button>
+              <CardHeader>
+                <CardTitle>Chat</CardTitle>
+                <CardDescription>
+                  Message people in your department
+                </CardDescription>
+              </CardHeader>
+
+              <CardContent className="space-y-3">
+                <Select
+                  value={selectedUser?.id?.toString() || ""}
+                  onValueChange={(value) => {
+                    setSelectedUser(
+                      users.find((user) => user.id === parseInt(value))
+                    );
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a user..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {users
+                      .filter((u) => u.id !== user?.id)
+                      .map((user) => (
+                        <SelectItem key={user.id} value={user.id.toString()}>
+                          {user.username}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+
+                <ScrollArea className="h-60 rounded-md border">
+                  <div className="p-3">
+                    {messages.length > 0 ? (
+                      messages.map((msg, index) => (
+                        <div
+                          key={index}
+                          className={`mb-2 p-2 rounded-xl w-fit ${
+                            msg.sender_id === user?.id
+                              ? "bg-primary text-primary-foreground ml-auto"
+                              : "bg-muted"
+                          }`}
+                        >
+                          <strong>
+                            {msg.sender_id === user?.id
+                              ? "You"
+                              : selectedUser?.username}
+                            :
+                          </strong>{" "}
+                          {msg.text}
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground">
+                        No messages yet. Start chatting!
+                      </p>
+                    )}
+                  </div>
+                </ScrollArea>
+              </CardContent>
+
+              <CardFooter className="flex items-center gap-2 pt-2">
+                <Input
+                  type="text"
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  className="flex-1"
+                  placeholder="Type a message..."
+                  onKeyDown={(e) => e.key === "Enter" && handleSendMessage()}
+                />
+                <Button size="icon" onClick={handleSendMessage}>
+                  <Send size={20} />
+                </Button>
+              </CardFooter>
+            </Card>
+          )}
+        </div>
       )}
-    </div>
+    </>
   );
 };
 

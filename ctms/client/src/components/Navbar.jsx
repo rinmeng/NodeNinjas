@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import {
   Bell,
@@ -9,6 +9,7 @@ import {
   MessageSquare,
   Menu,
   Moon,
+  Sun,
 } from "lucide-react";
 import {
   Sheet,
@@ -19,7 +20,6 @@ import {
   SheetDescription,
 } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
-import { Toggle } from "@/components/ui/toggle";
 import { useAuth } from "@/utils/AuthProvider";
 import {
   NavigationMenu,
@@ -29,14 +29,21 @@ import {
 import { cn } from "@/lib/utils";
 import NotificationPanel from "./NotificationPanel";
 import { Separator } from "@/components/ui/separator";
+import { useTheme } from "@/contexts/ThemeProvider";
+import { useNotification } from "@/utils/NotificationProvider";
 
-function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
+function Navbar({ devMode }) {
+  const {
+    notifications,
+    setNotificationsNeedRefetch,
+    notificationsNeedRefetch,
+  } = useNotification();
   const { user } = useAuth();
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const unreadCount = notifications.filter((n) => n.status === "unread").length;
   const location = useLocation();
-
+  const { toggleTheme } = useTheme();
   const isActive = (route) => location.pathname === route;
 
   // Define navigation links based on user role and dev mode
@@ -48,7 +55,11 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
       if (user?.role === "admin" || devMode) {
         links.push({ label: "Admin", route: "/admin", icon: Shield });
       }
-      links.push({ label: "Message", route: "/message", icon: MessageSquare });
+      links.push({
+        label: "Chat",
+        route: "/chat",
+        icon: MessageSquare,
+      });
     }
 
     links.push({ label: "About", route: "/about", icon: Info });
@@ -61,6 +72,20 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
     return links;
   };
 
+  function ThemeToggle() {
+    return (
+      <Button
+        role="outline"
+        className="p-2 outline rounded-xl flex"
+        onClick={() => toggleTheme()}
+      >
+        <Sun className="h-[1.2rem] w-[1.2rem] rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
+        <Moon className="absolute h-[1.2rem] w-[1.2rem] rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
+        <span className="sr-only">Toggle theme</span>
+      </Button>
+    );
+  }
+
   const links = getLinks();
 
   const handleNavigation = (route) => {
@@ -68,10 +93,7 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
   };
 
   // Notification bell with count
-  const NotificationBell = React.forwardRef(function NotificationBell(
-    { unreadCount, ...props },
-    ref
-  ) {
+  function NotificationBell({ unreadCount, ...props }, ref) {
     return (
       <Button ref={ref} variant="secondary" className="relative p-2" {...props}>
         <Bell className="h-5 w-5" />
@@ -82,19 +104,23 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
         )}
       </Button>
     );
-  });
-  NotificationBell.displayName = "NotificationBell";
+  }
+
+  useEffect(() => {
+    const intervalId = setInterval(
+      () => setNotificationsNeedRefetch(true),
+      3000
+    );
+
+    return () => clearInterval(intervalId);
+  }, []);
 
   return (
-    <NavigationMenu className="fixed top-0 left-0 bg-foreground p-4 flex justify-between min-w-full animate-fade-in z-10">
+    <NavigationMenu className="fixed top-0 left-0 p-4 flex justify-between min-w-full z-10 bg-background border">
       <NavigationMenuList className={"px-10"}>
         {/* CTMS Logo inside NavigationMenu */}
         <NavigationMenuItem>
-          <Button
-            variant="link"
-            className="text-primary-foreground font-bold text-4xl"
-            asChild
-          >
+          <Button variant="link" className="font-bold text-4xl" asChild>
             <Link to="/">CTMS.</Link>
           </Button>
         </NavigationMenuItem>
@@ -144,6 +170,7 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
                   open={notificationOpen}
                   onOpenChange={setNotificationOpen}
                   setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+                  notificationsNeedRefetch={notificationsNeedRefetch}
                 />
               </Sheet>
             </NavigationMenuItem>
@@ -151,14 +178,8 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
 
           <Separator orientation="vertical" className={"border"} />
 
-          <NavigationMenuItem className={"hidden lg:flex"}>
-            <Toggle
-              variant="secondary"
-              aria-label="Toggle dark mode"
-              onClick={() => document.documentElement.classList.toggle("dark")}
-            >
-              <Moon />
-            </Toggle>
+          <NavigationMenuItem className="hidden lg:flex">
+            <ThemeToggle />
           </NavigationMenuItem>
         </NavigationMenuList>
 
@@ -178,6 +199,7 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
                   open={notificationOpen}
                   onOpenChange={setNotificationOpen}
                   setNotificationsNeedRefetch={setNotificationsNeedRefetch}
+                  notificationsNeedRefetch={notificationsNeedRefetch}
                 />
               </Sheet>
             </NavigationMenuItem>
@@ -218,15 +240,7 @@ function Navbar({ devMode, notifications, setNotificationsNeedRefetch }) {
 
                 {/* Toggle dark/light mode */}
                 <div className="flex justify-center">
-                  <Toggle
-                    variant="secondary"
-                    aria-label="Toggle dark mode"
-                    onClick={() =>
-                      document.documentElement.classList.toggle("dark")
-                    }
-                  >
-                    <Moon className="h-4 w-4" />
-                  </Toggle>
+                  <ThemeToggle />
                 </div>
               </SheetContent>
             </Sheet>
