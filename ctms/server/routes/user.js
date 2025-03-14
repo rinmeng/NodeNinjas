@@ -502,13 +502,7 @@ router.post('/login', async (req, res) => {
 
         if (isPasswordValid || isPasswordValidOld) {
             // Set session data
-            req.session.user = {
-                id: user.id,
-                username: user.username,
-                role: user.role,
-                display_name: user.display_name,
-                manager_id: user.manager_id
-            };
+            req.session.user = data.rows[0];
 
             // Set session expiration based on "Remember Me"
             if (isRemembered) {
