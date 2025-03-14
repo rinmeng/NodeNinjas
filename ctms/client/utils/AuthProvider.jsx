@@ -21,6 +21,14 @@ export function AuthProvider({ children }) {
       const response = await fetch(`${proxy}/user/session`, {
         credentials: "include",
       });
+
+      if (response.status === 404) {
+        setUser(null);
+        setLoading(false);
+        console.log("No active session found");
+        return;
+      }
+
       const data = await response.json();
 
       if (data.isValid && data.user) {

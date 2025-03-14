@@ -4,8 +4,7 @@ const pool = require('./db');
 const cors = require('cors');
 const session = require('express-session');
 const pgSession = require('connect-pg-simple')(session);
-// const http = require('http'); // Comment out
-// const { Server } = require('socket.io'); // Comment out
+const { Server } = require('socket.io');
 
 const home = require('./routes/home');
 const setup = require('./routes/setup');
@@ -23,15 +22,6 @@ const allowedOrigins = [
     'http://142.231.95.212:15000',
     'http://142.231.89.53:3000',
 ];
-
-// Comment out Socket.IO setup
-// const server = http.createServer(app);
-// const io = new Server(server, {
-//     cors: {
-//         origin: allowedOrigins,
-//         methods: ['GET', 'POST']
-//     }
-// });
 
 // Session store
 const sessionStore = new pgSession({
@@ -80,16 +70,7 @@ app.use('/task', task);
 app.use('/message', message);
 app.use('/notification', notification);
 
-// Comment out Socket.IO Logic
-// io.on('connection', (socket) => {
-//     console.log('A user connected:', socket.id);
-//     socket.on('message', (message) => {
-//         io.emit('message', message);
-//     });
-//     socket.on('disconnect', () => {
-//         console.log('User disconnected:', socket.id);
-//     });
-// });
+
 
 // Use app.listen instead of server.listen
 if (process.env.NODE_ENV !== 'test') {
