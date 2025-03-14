@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Navigate } from "react-router-dom";
 import {
+  CalendarIcon,
   ClipboardList,
   RefreshCw,
   Search,
@@ -43,6 +44,15 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/utils/AuthProvider";
 import { useToast } from "@/utils/ToastProvider";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
+
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
 
 function Dashboard({ devMode }) {
   const { user } = useAuth();
@@ -56,7 +66,7 @@ function Dashboard({ devMode }) {
   const [allTasks, setAllTasks] = useState([]);
   const [tasks, setTasks] = useState([]);
 
-  const [needsRefetch, setNeedsRefetch] = useState(false); // Refetch tasks from database
+  const [needsRefetch, setNeedsRefetch] = useState(false);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -65,15 +75,9 @@ function Dashboard({ devMode }) {
     sortDateAsc: null,
     sortPriorityAsc: "",
     sortStatusAsc: "",
-    dateRange: { start: "", end: "" }, // New Date Range Filter
+    toDate: null,
+    fromDate: null,
   });
-
-  const handleDateRangeChange = (type, value) => {
-    setFilterOptions((prev) => ({
-      ...prev,
-      dateRange: { ...prev.dateRange, [type]: value },
-    }));
-  };
 
   const handleSearch = useCallback(
     (criteria) => {
@@ -114,7 +118,6 @@ function Dashboard({ devMode }) {
       setIsLoading(false);
     }
   }, [user, devMode]);
-
 
   // Handle search input change
   const handleSearchChange = (e) => {
@@ -259,6 +262,19 @@ function Dashboard({ devMode }) {
             ? new Date(a.date) - new Date(b.date)
             : new Date(b.date) - new Date(a.date);
         });
+      }
+
+      // Apply date range filter
+      if (filterOptions.fromDate) {
+        tasksToSort = tasksToSort.filter(
+          (task) => new Date(task.date) >= filterOptions.fromDate
+        );
+      }
+
+      if (filterOptions.toDate) {
+        tasksToSort = tasksToSort.filter(
+          (task) => new Date(task.date) <= filterOptions.toDate
+        );
       }
 
       // Apply priority filter
@@ -509,35 +525,64 @@ function Dashboard({ devMode }) {
           </TooltipProvider>
         </div>
 
+        {/* Date Range Filter */}
         <div className="flex justify-center items-center gap-3 mt-4">
-          <span className="text-sm font-medium">Filter by Date Range:</span>
-          <Input
-            type="date"
-            value={filterOptions.dateRange.start}
-            onChange={(e) => handleDateRangeChange("start", e.target.value)}
-            className="w-40"
-            placeholder="Start Date"
-          />
-          <Input
-            type="date"
-            value={filterOptions.dateRange.end}
-            onChange={(e) => handleDateRangeChange("end", e.target.value)}
-            className="w-40"
-            placeholder="End Date"
-          />
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={() =>
-              setFilterOptions({
-                ...filterOptions,
-                dateRange: { start: "", end: "" },
-              })
-            }
-            className="ml-2"
-          >
-            <X size={18} />
-          </Button>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-center font-normal",
+                  !filterOptions.fromDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {filterOptions.fromDate ? (
+                  format(filterOptions.fromDate, "PPP")
+                ) : (
+                  <span>From Date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={filterOptions.fromDate}
+                onSelect={(date) =>
+                  setFilterOptions({ ...filterOptions, fromDate: date })
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-center font-normal",
+                  !filterOptions.toDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {filterOptions.toDate ? (
+                  format(filterOptions.toDate, "PPP")
+                ) : (
+                  <span>To Date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={filterOptions.toDate}
+                onSelect={(date) =>
+                  setFilterOptions({ ...filterOptions, toDate: date })
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
 
         <div className="flex justify-center items-center gap-3">
