@@ -27,3 +27,5 @@
 ## How to run the project?
 
 - Visit the [tutorial](tutorial.md) for more information.
+
+- Or pull the [Docker Image](https://hub.docker.com/r/rinmeng/nodeninjas-ctms/tags) from Docker Hub and run it locally
