@@ -33,7 +33,6 @@ export function CustomPieChart({ height }) {
             throw new Error(error.message || "Tasks can't be loaded");
           });
         }
-        console.log("Response: ", res);
         return res.json();
       })
       .then((data) => {
