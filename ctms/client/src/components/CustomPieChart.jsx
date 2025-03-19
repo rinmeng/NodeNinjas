@@ -18,17 +18,22 @@ import {
   ChartTooltipContent,
 } from "@/components/ui/chart";
 import proxy from "@/utils/proxy";
+import { useAuth } from "@/utils/AuthProvider";
 
 export function CustomPieChart({ height }) {
+  const { user } = useAuth();
   const [chartData, setChartData] = useState([]);
   useEffect(() => {
-    fetch(`${proxy}/task/all`, { credentials: "include" })
+    fetch(`${proxy}/task/assignedto/manager/${user.id}`, {
+      credentials: "include",
+    })
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
             throw new Error(error.message || "Tasks can't be loaded");
           });
         }
+        console.log("Response: ", res);
         return res.json();
       })
       .then((data) => {
@@ -101,10 +106,10 @@ export function CustomPieChart({ height }) {
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex items-center gap-2">
           <TrendingUp size={16} />
-          <span>Statuses of All Tasks</span>
+          <span>Statuses of all tasks for your team</span>
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing status of tasks for the this month
+          Showing status of all tasks under your management.
         </div>
       </CardFooter>
     </Card>

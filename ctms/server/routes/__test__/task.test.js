@@ -326,5 +326,48 @@ describe('Task Routes', () => {
             expect(response.status).toBe(200);
             expect(response.body).toEqual({ message: 'Unassignment process completed' });
         });
+
     });
+
+    describe('GET /task/assignedto/manager/:id', () => {
+        test('should return tasks assigned to users under a manager', async () => {
+            const mockTasks = [
+                { id: 1, name: 'Task 1', date: '2023-01-01', description: 'Description 1', status: 'pending', priority: 'high', is_locked: false, created_at: '2023-01-01T00:00:00.000Z', owner_id: 1, owner_username: 'owner1', owner_display_name: 'Owner One' },
+                { id: 2, name: 'Task 2', date: '2023-01-02', description: 'Description 2', status: 'in_progress', priority: 'medium', is_locked: false, created_at: '2023-01-02T00:00:00.000Z', owner_id: 2, owner_username: 'owner2', owner_display_name: 'Owner Two' }
+            ];
+
+            pool.query.mockResolvedValueOnce({ rows: mockTasks, rowCount: 2 });
+
+            const response = await request(app).get('/task/assignedto/manager/1');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual(mockTasks);
+        });
+
+        test('should return 400 if user ID is missing or invalid', async () => {
+            const response = await request(app).get(`/task/assignedto/manager/${null}`);
+
+            expect(response.status).toBe(400);
+            expect(response.body).toEqual({ message: 'User ID is required' });
+        });
+
+        test('should return 404 if no tasks found', async () => {
+            pool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+            const response = await request(app).get('/task/assignedto/manager/999');
+
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({ message: 'No tasks found under this user' });
+        });
+
+        test('should return 500 on database error', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            const response = await request(app).get('/task/assignedto/manager/1');
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({ message: 'Failed to fetch tasks' });
+        });
+    });
+
 });

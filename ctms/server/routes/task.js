@@ -719,11 +719,15 @@ router.delete('/unassign/:id', isAuthenticated, async (req, res) => {
 });
 
 // new route for fetching all tasks under a user that is under some manager
+// GET /task/assignedto/manager/:id - Fetch all tasks assigned to users under a manager
 router.get('/assignedto/manager/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
-    if (!id) {
+    // Return 400 if the route is called without an ID parameter 
+    // return 400 if it is not integer
+    if (!id || isNaN(id)) {
         return res.status(400).json({ message: 'User ID is required' });
     }
+
     try {
         const result = await pool.query(`
             SELECT t.id, t.name, t.date, t.description, t.status, t.priority, t.is_locked, t.created_at,
@@ -734,6 +738,7 @@ router.get('/assignedto/manager/:id', isAuthenticated, async (req, res) => {
             WHERE a.user_id IN (SELECT id FROM users WHERE manager_id = $1)
             ORDER BY t.date DESC
         `, [id]);
+
         if (result.rowCount === 0) {
             return res.status(404).json({ message: 'No tasks found under this user' });
         }
@@ -744,3 +749,4 @@ router.get('/assignedto/manager/:id', isAuthenticated, async (req, res) => {
 });
 
 module.exports = router;
+
