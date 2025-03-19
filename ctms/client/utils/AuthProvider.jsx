@@ -161,11 +161,15 @@ export function AuthProvider({ children }) {
 
   // Add socket helper functions
   const emitTyping = (senderId, receiverId) => {
-    socketRef.current?.emit("typing", { senderId, receiverId });
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("typing", { senderId, receiverId });
+    }
   };
 
   const emitStopTyping = (senderId, receiverId) => {
-    socketRef.current?.emit("stopTyping", { senderId, receiverId });
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("stopTyping", { senderId, receiverId });
+    }
   };
 
   const value = {

@@ -101,6 +101,7 @@ io.on('connection', (socket) => {
     socket.on('typing', (data) => {
         socket.to(`user_${data.receiverId}`).emit('userTyping', {
             senderId: data.senderId,
+            receiverId: data.receiverId,  // Add this
             isTyping: true
         });
     });
@@ -108,6 +109,7 @@ io.on('connection', (socket) => {
     socket.on('stopTyping', (data) => {
         socket.to(`user_${data.receiverId}`).emit('userTyping', {
             senderId: data.senderId,
+            receiverId: data.receiverId,  // Add this
             isTyping: false
         });
     });

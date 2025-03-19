@@ -134,7 +134,12 @@ const Chat = () => {
     // Typing handler
     const handleUserTyping = (event) => {
       const data = event.detail;
-      if (recipient && data.senderId === recipient.id) {
+      // Check if we have a recipient and if the typing event is for current conversation
+      if (
+        recipient &&
+        data.senderId === recipient.id &&
+        data.receiverId === user.id
+      ) {
         setIsRecipientTyping(data.isTyping);
       }
     };
@@ -167,7 +172,20 @@ const Chat = () => {
     setIsRecipientTyping(false);
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
+      // Also emit stop typing when changing recipients
+      if (recipient && user) {
+        emitStopTyping(user.id, recipient.id);
+      }
     }
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      // Clean up typing state when unmounting
+      if (recipient && user) {
+        emitStopTyping(user.id, recipient.id);
+      }
+    };
   }, [recipient]);
 
   // Fetch users under manager
