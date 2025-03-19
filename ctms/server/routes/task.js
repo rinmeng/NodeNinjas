@@ -722,31 +722,36 @@ router.delete('/unassign/:id', isAuthenticated, async (req, res) => {
 // GET /task/assignedto/manager/:id - Fetch all tasks assigned to users under a manager
 router.get('/assignedto/manager/:id', isAuthenticated, async (req, res) => {
     const { id } = req.params;
-    // Return 400 if the route is called without an ID parameter 
-    // return 400 if it is not integer
     if (!id || isNaN(id)) {
-        return res.status(400).json({ message: 'User ID is required' });
+        return res.status(400).json({ message: 'Manager ID is required and must be a number' });
     }
 
     try {
         const result = await pool.query(`
-            SELECT t.id, t.name, t.date, t.description, t.status, t.priority, t.is_locked, t.created_at,
-            u.id as owner_id, u.username as owner_username, u.display_name as owner_display_name
-            FROM task t
-            JOIN assignedto a ON t.id = a.task_id
-            JOIN users u ON t.owner_id = u.id
-            WHERE a.user_id IN (SELECT id FROM users WHERE manager_id = $1)
-            ORDER BY t.date DESC
+            SELECT 
+                t.*,
+                u.id as assigned_user_id,
+                u.username as assigned_username,
+                u.display_name as assigned_display_name,
+                o.id as owner_id,
+                o.username as owner_username,
+                o.display_name as owner_display_name
+            FROM users u
+            JOIN assignedto a ON u.id = a.user_id
+            JOIN task t ON a.task_id = t.id
+            JOIN users o ON t.owner_id = o.id
+            WHERE u.manager_id = $1
+            ORDER BY u.display_name, t.date DESC
         `, [id]);
 
         if (result.rowCount === 0) {
-            return res.status(404).json({ message: 'No tasks found under this user' });
+            return res.status(404).json({ message: 'No tasks found for team members under this manager' });
         }
         res.json(result.rows);
     } catch (err) {
+        console.error('Error fetching manager tasks:', err);
         res.status(500).json({ message: 'Failed to fetch tasks' });
     }
 });
-
 module.exports = router;
 

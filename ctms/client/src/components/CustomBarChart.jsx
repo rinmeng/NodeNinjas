@@ -27,32 +27,46 @@ export function CustomBarChart({ height, width }) {
           { credentials: "include" }
         );
         const data = await response.json();
-        // Group tasks by owner and count each status for stacking into a bar
+
+        // Group tasks by assigned user and count statuses
         const groupedTasks = data.reduce((acc, task) => {
-          // Prefer display name, fallback to username
-          const owner =
-            task.owner_display_name ||
-            task.owner_username ||
-            `User ${task.owner_id}`;
-          if (!acc[owner]) {
-            acc[owner] = { owner, pending: 0, inProg: 0, completed: 0 };
+          // Use assigned user's display name or username
+          const assignedUser =
+            task.assigned_display_name ||
+            task.assigned_username ||
+            `User ${task.assigned_user_id}`;
+
+          if (!acc[assignedUser]) {
+            acc[assignedUser] = {
+              name: assignedUser,
+              pending: 0,
+              inProgress: 0,
+              completed: 0,
+            };
           }
-          if (task.status === "pending") {
-            acc[owner].pending++;
-          } else if (task.status === "in_progress") {
-            acc[owner].inProg++;
-          } else if (task.status === "completed") {
-            acc[owner].completed++;
+
+          switch (task.status) {
+            case "pending":
+              acc[assignedUser].pending++;
+              break;
+            case "in_progress":
+              acc[assignedUser].inProgress++;
+              break;
+            case "completed":
+              acc[assignedUser].completed++;
+              break;
           }
           return acc;
         }, {});
-        // Transform keys to proper capitalization for the chart
+
+        // Transform for chart display
         const transformedData = Object.values(groupedTasks).map((item) => ({
-          owner: item.owner,
+          name: item.name,
           Pending: item.pending,
-          "In-Progress": item.inProg,
+          "In-Progress": item.inProgress,
           Completed: item.completed,
         }));
+
         setChartData(transformedData);
       } catch (error) {
         console.error("Failed to fetch tasks:", error);
@@ -78,7 +92,7 @@ export function CustomBarChart({ height, width }) {
           <BarChart data={chartData}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="owner"
+              dataKey="name"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
