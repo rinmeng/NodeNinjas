@@ -18,6 +18,7 @@ export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const socketRef = useRef(null);
+  const socketEventsRegistered = useRef(false);
 
   // Check active session
   useEffect(() => {
@@ -26,24 +27,37 @@ export function AuthProvider({ children }) {
 
   // Handle socket connection based on user state
   useEffect(() => {
-    // If user exists and no socket connection yet, connect
     if (user?.id && !socketRef.current) {
+      // Initialize socket connection
       socketRef.current = io(proxy, { withCredentials: true });
-      socketRef.current.emit("join", user.id);
-      console.log("Socket connection established in AuthProvider");
-    }
 
-    // If user exists and socket already exists, ensure we emit join
-    if (user?.id && socketRef.current) {
+      // Join user's room
       socketRef.current.emit("join", user.id);
-      console.log("Re-emitted join event for existing socket");
-    }
 
-    // If user is null but socket exists, disconnect
-    if (!user && socketRef.current) {
-      socketRef.current.disconnect();
-      socketRef.current = null;
-      console.log("Socket disconnected in AuthProvider");
+      // Register socket event handlers if not already registered
+      if (!socketEventsRegistered.current) {
+        // Message refetch event
+        socketRef.current.on("refetchMessages", (data) => {
+          // Emit a custom event that components can listen to
+          window.dispatchEvent(
+            new CustomEvent("refetchMessages", { detail: data })
+          );
+        });
+
+        // User typing event
+        socketRef.current.on("userTyping", (data) => {
+          window.dispatchEvent(new CustomEvent("userTyping", { detail: data }));
+        });
+
+        // User status change event
+        socketRef.current.on("userStatusChange", (data) => {
+          window.dispatchEvent(
+            new CustomEvent("userStatusChange", { detail: data })
+          );
+        });
+
+        socketEventsRegistered.current = true;
+      }
     }
 
     // Cleanup function
@@ -51,7 +65,7 @@ export function AuthProvider({ children }) {
       if (socketRef.current) {
         socketRef.current.disconnect();
         socketRef.current = null;
-        console.log("Socket disconnected on AuthProvider unmount");
+        socketEventsRegistered.current = false;
       }
     };
   }, [user]);
@@ -145,12 +159,27 @@ export function AuthProvider({ children }) {
     }
   };
 
+  // Add socket helper functions
+  const emitTyping = (senderId, receiverId) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("typing", { senderId, receiverId });
+    }
+  };
+
+  const emitStopTyping = (senderId, receiverId) => {
+    if (socketRef.current?.connected) {
+      socketRef.current.emit("stopTyping", { senderId, receiverId });
+    }
+  };
+
   const value = {
     user,
     loading,
     login,
     logout,
     socket: socketRef.current, // Export socket for components to use
+    emitTyping,
+    emitStopTyping,
   };
 
   return (
