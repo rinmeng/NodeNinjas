@@ -252,27 +252,28 @@ const Chat = () => {
       });
   };
 
-  // Modified scroll effect - only scroll when necessary
+  // Scroll to bottom when messages change
   useEffect(() => {
     const currentMessagesLength = messages.length;
+    const isInitialLoad =
+      prevMessagesLengthRef.current === 0 && messages.length > 0;
 
-    // Only scroll if:
-    // 1. There are new messages (length increased)
-    // 2. This is the initial load for a recipient (prevLength was 0)
-    // 3. The recipient is typing
-    // 4. The current user is typing
     if (
+      messages.length > 0 ||
       currentMessagesLength > prevMessagesLengthRef.current ||
-      (prevMessagesLengthRef.current === 0 && currentMessagesLength > 0) ||
       isRecipientTyping ||
       isTyping
     ) {
-      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollIntoView({
+          behavior: isInitialLoad ? "instant" : "smooth",
+        });
+      });
     }
 
     // Update the ref with current length for next comparison
     prevMessagesLengthRef.current = currentMessagesLength;
-  }, [messages, isRecipientTyping, isTyping]);
+  }, [messages, isRecipientTyping, isTyping, recipient]);
 
   // Add send message handler
   const handleSendMessage = async () => {

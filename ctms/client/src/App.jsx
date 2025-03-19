@@ -33,7 +33,7 @@ function AppContent() {
 
         <Route path="*" element={<NotFound />} />
       </Routes>
-      <ChatWidget />
+      {/* <ChatWidget /> */}
     </Router>
   );
 }
