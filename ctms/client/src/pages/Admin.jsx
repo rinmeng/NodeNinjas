@@ -205,11 +205,6 @@ const Admin = ({ devMode }) => {
                 onClick={() => {
                   setDeleteUser(user);
                   setIsDeleting(true);
-                  // if (
-                  //   window.confirm("Are you sure you want to delete this user?")
-                  // ) {
-                  //   deleteUsers([user.id]);
-                  // }
                 }}
                 className="text-destructive focus:text-destructive"
               >
@@ -442,7 +437,7 @@ const Admin = ({ devMode }) => {
                       variant="destructive"
                       size="sm"
                       onClick={() => {
-                        setChosenUserIds[chosenUserIds];
+                        setChosenUserIds(chosenUserIds);
                         setIsDeleting(true);
                       }}
                       disabled={isDeleting}
@@ -495,50 +490,62 @@ const Admin = ({ devMode }) => {
           </div>
         </CardContent>
       </Card>
+
       <Dialog
         open={isDeleting}
         onOpenChange={(open) => {
           if (!open) {
             setDeleteUser(null);
             setChosenUserIds([]);
+            setIsDeleting(false);
+            if (tableRef.current) {
+              tableRef.current.resetRowSelection();
+            }
           }
         }}
       >
         <DialogContent>
           <DialogTitle> Confirm Deletion</DialogTitle>
-          <DialogDescription>
-            {deleteUser
-              ? "Would you like to delete this user? This action is irreversible!"
-              : `You liked to delete these ${chosenUserIds.length} users? This action is irreversible!`}
-          </DialogDescription>
           <DialogHeader>
-            <DialogFooter>
-              <Button
-                onClick={() => {
-                  setIsDeleting(false);
-                  setDeleteUser(null);
-                  setChosenUserIds([]);
-                }}
-              >
-                Don't Delete
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={() => {
-                  if (deleteUser) {
-                    deleteUsers([deleteUser.id]);
-                  } else {
-                    deleteUsers(chosenUserIds);
-                  }
-                  setIsDeleting(false);
-                  setDeleteUser(null);
-                  setChosenUserIds([]);
-                }}
-              >
-                Delete Selected User
-              </Button>
-            </DialogFooter>
+            <DialogDescription>
+              {deleteUser
+                ? `Would you like to delete ${deleteUser.display_name}? This action is irreversible!`
+                : `You liked to delete these ${chosenUserIds.length} users? This action is irreversible!`}
+            </DialogDescription>
           </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleting(false);
+                setDeleteUser(null);
+                setChosenUserIds([]);
+                if (tableRef.current) {
+                  tableRef.current.resetRowSelection();
+                }
+              }}
+            >
+              Don't Delete
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteUser) {
+                  deleteUsers([deleteUser.id]);
+                } else {
+                  deleteUsers(chosenUserIds);
+                }
+                setIsDeleting(false);
+                setDeleteUser(null);
+                setChosenUserIds([]);
+                if (tableRef.current) {
+                  tableRef.current.resetRowSelection();
+                }
+              }}
+            >
+              Delete Selected User(s)
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
