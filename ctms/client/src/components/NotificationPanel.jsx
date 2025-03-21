@@ -1,11 +1,4 @@
-import React, { useState } from "react";
-import {
-  MailWarning,
-  MailCheck,
-  BellOff,
-  RefreshCw,
-  Trash2,
-} from "lucide-react";
+
 import proxy from "../../utils/proxy";
 import {
   Sheet,
@@ -26,9 +19,10 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/utils/ToastProvider";
+import { set } from "date-fns";
 
 const NotificationPanel = ({
-  notifications,
+  notifications:initialNotifications,
   open,
   onOpenChange,
   setNotificationsNeedRefetch,
@@ -36,6 +30,12 @@ const NotificationPanel = ({
 }) => {
   const { setFeedbackMessage } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const[notifications,setNotifications]=useState(initialNotifications);
+  useEffect(() => {
+    setNotifications(initialNotifications);
+  }, [initialNotifications]);
+  
+
   const isNotificationRead = (notification) => {
     return notification.status === "read";
   };
@@ -55,6 +55,35 @@ const NotificationPanel = ({
       console.error(`Failed to mark notification as ${endpoint}:`, error);
     }
   };
+  //handling delete notification
+  const handleDeleteNotification = async (id,e) => {
+    e.stopPropagation();
+    const updatedNotifications = notifications.filter((n) => n.id !== id);
+    setNotifications(updatedNotifications);
+    try {
+     const response = await fetch(`${proxy}/notification/delete/${id}`, {
+        method: "DELETE",
+        headers: {  "Content-Type": "application/json",},
+      });
+      if(!response.ok){
+        throw new Error("Failed to delete notification");
+      }
+      setNotificationsNeedRefetch(true);
+      setFeedbackMessage({
+        title: "Notification Deleted",
+        description: "Notification has been deleted",
+      })
+    } catch (error) {
+      setNotifications(initialNotifications);
+      console.error(`Failed to delete notification:`, error);
+      setFeedbackMessage({
+        title: "Failed to delete notification",
+        description: "Please try again later",
+      })
+    } 
+  };
+  
+
 
   // ✅ Delete a single notification
   const deleteNotification = async (id) => {
@@ -94,6 +123,7 @@ const NotificationPanel = ({
         return `New notification`;
     }
   };
+
 
   const getNotificationTypeVariant = (type) => {
     switch (type) {
@@ -263,14 +293,6 @@ const NotificationPanel = ({
                         </Tooltip>
                       </TooltipProvider>
 
-                      {/* 🗑 Delete Individual Notification */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteNotification(notification.id)}
-                      >
-                        <Trash2 size={18} className="text-red-500" />
-                      </Button>
                     </CardContent>
                   </Card>
                 ))}

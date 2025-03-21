@@ -326,5 +326,74 @@ describe('Task Routes', () => {
             expect(response.status).toBe(200);
             expect(response.body).toEqual({ message: 'Unassignment process completed' });
         });
+
     });
+
+    describe('GET /task/assignedto/manager/:id', () => {
+        test('should return tasks for team members under a manager', async () => {
+            const mockManagerTasks = [
+                {
+                    id: 1,
+                    name: 'Task 1',
+                    date: '2023-01-01',
+                    description: 'Description 1',
+                    status: 'pending',
+                    priority: 'high',
+                    assigned_user_id: 1,
+                    assigned_username: 'user1',
+                    assigned_display_name: 'User One',
+                    owner_id: 2,
+                    owner_username: 'owner1',
+                    owner_display_name: 'Owner One'
+                },
+                {
+                    id: 2,
+                    name: 'Task 2',
+                    date: '2023-01-02',
+                    description: 'Description 2',
+                    status: 'in_progress',
+                    priority: 'medium',
+                    assigned_user_id: 1,
+                    assigned_username: 'user1',
+                    assigned_display_name: 'User One',
+                    owner_id: 2,
+                    owner_username: 'owner1',
+                    owner_display_name: 'Owner One'
+                }
+            ];
+
+            pool.query.mockResolvedValueOnce({ rows: mockManagerTasks, rowCount: 2 });
+
+            const response = await request(app).get('/task/assignedto/manager/1');
+
+            expect(response.status).toBe(200);
+            expect(response.body).toEqual(mockManagerTasks);
+        });
+
+        test('should return 400 if manager ID is missing or not a number', async () => {
+            const response = await request(app).get('/task/assignedto/manager/abc');
+
+            expect(response.status).toBe(400);
+            expect(response.body).toEqual({ message: 'Manager ID is required and must be a number' });
+        });
+
+        test('should return 404 if no tasks found for team members under the manager', async () => {
+            pool.query.mockResolvedValueOnce({ rows: [], rowCount: 0 });
+
+            const response = await request(app).get('/task/assignedto/manager/999');
+
+            expect(response.status).toBe(404);
+            expect(response.body).toEqual({ message: 'No tasks found for team members under this manager' });
+        });
+
+        test('should return 500 on database error', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            const response = await request(app).get('/task/assignedto/manager/1');
+
+            expect(response.status).toBe(500);
+            expect(response.body).toEqual({ message: 'Failed to fetch tasks' });
+        });
+    });
+
 });

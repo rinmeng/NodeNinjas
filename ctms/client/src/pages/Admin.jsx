@@ -43,13 +43,16 @@ const Admin = ({ devMode }) => {
 
   // State for managing users
   const [usersList, setUsersList] = useState([]);
+  const [deleteUser, setDeleteUser] = useState(null);
   const [chosenUserIds, setChosenUserIds] = useState([]);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
   const [initialLoad, setInitialLoad] = useState(true);
   const tableRef = React.useRef(null);
+
+  //State for Deletion dialog
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     // Initial load without visual feedback
@@ -202,11 +205,8 @@ const Admin = ({ devMode }) => {
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 onClick={() => {
-                  if (
-                    window.confirm("Are you sure you want to delete this user?")
-                  ) {
-                    deleteUsers([user.id]);
-                  }
+                  setDeleteUser(user);
+                  setIsDeleting(true);
                 }}
                 className="text-destructive focus:text-destructive"
               >
@@ -327,7 +327,7 @@ const Admin = ({ devMode }) => {
   const updateUserRole = (userId, newRole) => {
     // Find the user in the usersList
     const userToUpdate = usersList.find((user) => user.id === userId);
-  
+
     // Check if the user is an admin
     if (userToUpdate.role === "admin") {
       setFeedbackMessage({
@@ -336,9 +336,9 @@ const Admin = ({ devMode }) => {
       });
       return;
     }
-  
+
     setIsRefetching(true);
-  
+
     fetch(`${proxy}/user/updateRole/${userId}`, {
       method: "PUT",
       headers: {
@@ -347,7 +347,6 @@ const Admin = ({ devMode }) => {
       credentials: "include",
       body: JSON.stringify({ role: newRole }),
     })
-
       .then((res) => {
         if (!res.ok) {
           return res.json().then((error) => {
@@ -361,7 +360,7 @@ const Admin = ({ devMode }) => {
           title: "Success",
           description: "Role updated successfully",
         });
-  
+
         // Update local state with the new role
         setUsersList((prev) =>
           prev.map((user) =>
@@ -383,8 +382,7 @@ const Admin = ({ devMode }) => {
         );
         setIsRefetching(false);
       });
-      
-  }
+  };
 
   return (
     <div className=" w-full my-30 animate-fade-in ">
@@ -441,13 +439,8 @@ const Admin = ({ devMode }) => {
                       variant="destructive"
                       size="sm"
                       onClick={() => {
-                        if (
-                          window.confirm(
-                            "Are you sure you want to delete the selected users?"
-                          )
-                        ) {
-                          deleteUsers();
-                        }
+                        setChosenUserIds(chosenUserIds);
+                        setIsDeleting(true);
                       }}
                       disabled={isDeleting}
                       className="flex items-center"
@@ -499,6 +492,66 @@ const Admin = ({ devMode }) => {
           </div>
         </CardContent>
       </Card>
+
+      <Dialog
+        open={isDeleting}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteUser(null);
+            setChosenUserIds([]);
+            setIsDeleting(false);
+            if (tableRef.current) {
+              tableRef.current.resetRowSelection();
+            }
+          }
+        }}
+      >
+        {/* Dialog to confirm when the admin wants to delete user(s) */}
+
+        <DialogContent>
+          <DialogTitle> Confirm Deletion</DialogTitle>
+          <DialogHeader>
+            <DialogDescription>
+              {deleteUser
+                ? `Would you like to delete ${deleteUser.display_name}? This action is irreversible!`
+                : `You liked to delete these ${chosenUserIds.length} users? This action is irreversible!`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleting(false);
+                setDeleteUser(null);
+                setChosenUserIds([]);
+                if (tableRef.current) {
+                  tableRef.current.resetRowSelection();
+                }
+              }}
+            >
+              Don't Delete
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteUser) {
+                  deleteUsers([deleteUser.id]);
+                } else {
+                  deleteUsers(chosenUserIds);
+                }
+                setIsDeleting(false);
+                setDeleteUser(null);
+                setChosenUserIds([]);
+                if (tableRef.current) {
+                  tableRef.current.resetRowSelection();
+                }
+              }}
+            >
+              Delete Selected User(s)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
