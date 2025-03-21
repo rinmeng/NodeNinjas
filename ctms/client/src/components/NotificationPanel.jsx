@@ -1,11 +1,3 @@
-import React, { useState, useEffect } from "react";
-import {
-  MailWarning,
-  MailCheck,
-  BellOff,
-  RefreshCw,
-  Trash2,
-} from "lucide-react";
 import proxy from "../../utils/proxy";
 import {
   Sheet,
@@ -295,15 +287,6 @@ const NotificationPanel = ({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
-
-                      {/* 🗑 Delete Individual Notification */}
-                      <Button
-                        variant="ghost"
-                        size="icon"
-                        onClick={() => deleteNotification(notification.id)}
-                      >
-                        <Trash2 size={18} className="text-red-500" />
-                      </Button>
                     </CardContent>
                   </Card>
                 ))}
