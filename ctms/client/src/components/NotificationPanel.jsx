@@ -1,3 +1,11 @@
+import React, { useState, useEffect } from "react";
+import {
+  MailWarning,
+  MailCheck,
+  BellOff,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import proxy from "../../utils/proxy";
 import {
   Sheet,
