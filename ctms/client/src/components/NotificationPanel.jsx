@@ -1,5 +1,11 @@
 import React, { useState } from "react";
-import { MailWarning, MailCheck, BellOff, RefreshCw } from "lucide-react";
+import {
+  MailWarning,
+  MailCheck,
+  BellOff,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import proxy from "../../utils/proxy";
 import {
   Sheet,
@@ -47,6 +53,30 @@ const NotificationPanel = ({
       setNotificationsNeedRefetch(true);
     } catch (error) {
       console.error(`Failed to mark notification as ${endpoint}:`, error);
+    }
+  };
+
+  // ✅ Delete a single notification
+  const deleteNotification = async (id) => {
+    try {
+      await fetch(`${proxy}/notification/delete/${id}`, { method: "DELETE" });
+      setNotificationsNeedRefetch(true);
+    } catch (error) {
+      console.error("Error deleting notification:", error);
+    }
+  };
+
+  // ✅ Clear all notifications
+  const clearAllNotifications = async () => {
+    try {
+      await fetch(`${proxy}/notification/delete/all`, { method: "DELETE" });
+      setNotificationsNeedRefetch(true);
+      setFeedbackMessage({
+        title: "All Notifications Deleted",
+        description: "All notifications have been cleared successfully.",
+      });
+    } catch (error) {
+      console.error("Error clearing notifications:", error);
     }
   };
 
@@ -120,6 +150,19 @@ const NotificationPanel = ({
             <SheetDescription className="text-xs">
               Click on notifications to toggle read/unread status
             </SheetDescription>
+
+            {/* 🚮 Clear All Notifications Button */}
+            {notifications.length > 0 && (
+              <Button
+                variant="destructive"
+                size="sm"
+                className="w-full mt-2"
+                onClick={clearAllNotifications}
+              >
+                <Trash2 className="mr-2" size={18} /> Clear All
+              </Button>
+            )}
+
             <Button
               variant="default"
               size="sm"
@@ -219,6 +262,15 @@ const NotificationPanel = ({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+
+                      {/* 🗑 Delete Individual Notification */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => deleteNotification(notification.id)}
+                      >
+                        <Trash2 size={18} className="text-red-500" />
+                      </Button>
                     </CardContent>
                   </Card>
                 ))}
