@@ -507,6 +507,7 @@ const Admin = ({ devMode }) => {
         }}
       >
         {/* Dialog to confirm when the admin wants to delete user(s) */}
+
         <DialogContent>
           <DialogTitle> Confirm Deletion</DialogTitle>
           <DialogHeader>
