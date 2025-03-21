@@ -259,5 +259,23 @@ router.put('/unread/:id', isAuthenticated, async (req, res) => {
     }
 }
 );
+//delete a notification back-end
+router.delete('/delete/:id', isAuthenticated, async (req, res) => {
+    const id = req.params.id;
+    try {
+        const notification = await pool.query("DELETE FROM notifications WHERE id = $1 RETURNING *", [id]);
+
+        if (notification.rows.length === 0) {
+            return res.status(404).json({ message: 'Notification not found' });
+        }
+
+        res.status(200).json(notification.rows[0]);
+    }
+    catch (err) {
+        console.error(err.message);
+        res.status(500).json({ message: 'Failed to delete notification' });
+    }
+});
+
 
 module.exports = router;
