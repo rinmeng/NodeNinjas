@@ -264,7 +264,7 @@ const NotificationPanel = ({
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
-                                variant="ghost"
+                                variant="outline"
                                 size="icon"
                                 className="h-8 w-8 p-0 ml-2 self-center hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
                                 onClick={(e) => handleDeleteNotification(notification.id, e)}
