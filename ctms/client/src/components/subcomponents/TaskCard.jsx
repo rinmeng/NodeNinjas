@@ -28,6 +28,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
@@ -48,6 +49,7 @@ import { useNotification } from "@/utils/NotificationProvider";
 const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
   const [isTaskLocked, setIsTaskLocked] = useState(task.is_locked || false);
   const [showTaskDetails, setShowTaskDetails] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
   const { setFeedbackMessage } = useToast();
   const { setNotificationToAdd } = useNotification();
 
@@ -157,22 +159,11 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
     }
   };
 
-  const handleDeleteTask = () => {
-    if (isTaskLocked) {
-      if (user.role === "admin") {
-        setFeedbackMessage({
-          title: "Task Locked",
-          description: "This task is locked. Unlock it first to delete.",
-        });
-      } else {
-        setFeedbackMessage({
-          title: "Task Locked",
-          description: "Contact your admin to make changes.",
-        });
-      }
-      return;
-    }
+  const handleDeleteConfirmation = () => {
+    setIsDeleting(true);
+  };
 
+  const handleDeleteTask = () => {
     fetch(`${proxy}/task/delete/:id`, {
       method: "DELETE",
       headers: {
@@ -194,6 +185,9 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
           title: "Error",
           description: "Failed to delete task.",
         });
+      })
+      .finally(() => {
+        setIsDeleting(false);
       });
   };
 
@@ -399,7 +393,7 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={handleDeleteTask}
+                      onClick={handleDeleteConfirmation}
                       disabled={isTaskLocked}
                       className="h-8 w-8 p-0"
                     >
@@ -474,6 +468,39 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
           </CardTitle>
         </CardHeader>
       </CardContent>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog
+        open={isDeleting}
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsDeleting(false);
+          }
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogDescription>
+              Would you like to delete task "{task.name}"? This action is irreversible!
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsDeleting(false)}
+            >
+              Don't Delete
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteTask}
+            >
+              Delete Task
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

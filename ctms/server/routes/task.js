@@ -718,4 +718,41 @@ router.delete('/unassign/:id', isAuthenticated, async (req, res) => {
     }
 });
 
+// new route for fetching all tasks under a user that is under some manager
+// GET /task/assignedto/manager/:id - Fetch all tasks assigned to users under a manager
+router.get('/assignedto/manager/:id', isAuthenticated, async (req, res) => {
+    const { id } = req.params;
+    if (!id || isNaN(id)) {
+        return res.status(400).json({ message: 'Manager ID is required and must be a number' });
+    }
+
+    try {
+        const result = await pool.query(`
+            SELECT 
+                t.*,
+                u.id as assigned_user_id,
+                u.username as assigned_username,
+                u.display_name as assigned_display_name,
+                o.id as owner_id,
+                o.username as owner_username,
+                o.display_name as owner_display_name
+            FROM users u
+            JOIN assignedto a ON u.id = a.user_id
+            JOIN task t ON a.task_id = t.id
+            JOIN users o ON t.owner_id = o.id
+            WHERE u.manager_id = $1
+            ORDER BY u.display_name, t.date DESC
+        `, [id]);
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({ message: 'No tasks found for team members under this manager' });
+        }
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Error fetching manager tasks:', err);
+        res.status(500).json({ message: 'Failed to fetch tasks' });
+    }
+});
+
 module.exports = router;
+

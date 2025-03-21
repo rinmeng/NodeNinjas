@@ -424,6 +424,51 @@ async function deleteAllTables() {
     }
 }
 
+async function setupTeamMemberTasks() {
+    try {
+        // Get team members with role 'team_member' that have no tasks in assignedto
+        const resTeamMembers = await pool.query(`
+            SELECT id FROM users 
+            WHERE role = 'team_member' 
+              AND id NOT IN (SELECT DISTINCT user_id FROM assignedto)
+        `);
+        const teamMembers = resTeamMembers.rows;
+        if (teamMembers.length === 0) {
+            return { message: "All team members already have tasks." };
+        }
+
+        // Get all task IDs from Task table
+        const resTasks = await pool.query(`SELECT id FROM Task`);
+        const taskIds = resTasks.rows.map(row => row.id);
+        if (taskIds.length === 0) {
+            throw new Error("No tasks available in Task table.");
+        }
+
+        const currentDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+
+        for (const member of teamMembers) {
+            // Get a random number between 3 and 5 (inclusive)
+            const numTasks = Math.floor(Math.random() * 3) + 3;
+            // Shuffle task IDs and pick the first numTasks
+            const shuffledTasks = [...taskIds].sort(() => 0.5 - Math.random());
+            const chosenTaskIds = shuffledTasks.slice(0, numTasks);
+
+            // Build multi-row insert
+            const values = chosenTaskIds
+                .map(taskId => `('${currentDate}', ${member.id}, ${taskId})`)
+                .join(',');
+            await pool.query(`
+                INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES ${values}
+            `);
+        }
+
+        return { message: "Team member tasks assigned successfully" };
+    } catch (err) {
+        console.error("Error setting up team member tasks:", err.message);
+        throw new Error("Failed to assign tasks to team members: " + err.message);
+    }
+}
+
 // Setup all tables
 router.get('/', async (req, res) => {
     try {
@@ -434,10 +479,17 @@ router.get('/', async (req, res) => {
         const messages = await setupMessages();
         const notifications = await setupNotifications();
         const assignedTo = await setupAssignedTo();
+        const teamMemberTasks = await setupTeamMemberTasks();
 
         res.status(200).json({
             message: "All tables created successfully",
-            users, session, tasks, messages, notifications, assignedTo
+            users,
+            session,
+            tasks,
+            messages,
+            notifications,
+            assignedTo,
+            teamMemberTasks
         });
     } catch (err) {
         console.error(err.message);

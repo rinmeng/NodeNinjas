@@ -13,7 +13,6 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Dot, HeartCrack } from "lucide-react";
-import { io } from "socket.io-client";
 
 const formatTimeAgo = (date) => {
   const now = new Date();
@@ -72,10 +71,9 @@ const Message = ({ msg, user }) => {
 };
 
 const Chat = () => {
-  const { user } = useAuth();
+  const { user, socket, emitTyping, emitStopTyping } = useAuth();
   const scrollRef = useRef(null);
   const prevMessagesLengthRef = useRef(0);
-  const socketRef = useRef(null);
 
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -101,14 +99,11 @@ const Chat = () => {
     setNewMessage(e.target.value);
 
     // don't emit typing events if not in a conversation
-    if (!recipient || !socketRef.current) return;
+    if (!recipient || !socket) return;
 
     if (!isTyping) {
       setIsTyping(true);
-      socketRef.current.emit("typing", {
-        senderId: user.id,
-        receiverId: recipient.id,
-      });
+      emitTyping(user.id, recipient.id);
     }
 
     if (typingTimeoutRef.current) {
@@ -118,10 +113,7 @@ const Chat = () => {
     // set a new time out
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
-      socketRef.current.emit("stopTyping", {
-        senderId: user.id,
-        receiverId: recipient.id,
-      });
+      emitStopTyping(user.id, recipient.id);
     }, 1000);
   };
 
@@ -131,55 +123,47 @@ const Chat = () => {
   useEffect(() => {
     if (!user?.id) return;
 
-    // Create socket connection
-    socketRef.current = io(proxy, {
-      withCredentials: true,
-    });
-
-    // Force a rejoin to ensure user status is updated
-    socketRef.current.emit("join", user.id);
-
-    // Listen for message refetch events
-    socketRef.current.on("refetchMessages", (data) => {
-      console.log("Received refetchMessages event:", data);
-
-      // Only refetch if we're currently viewing this conversation
+    // Message refetch handler
+    const handleRefetchMessages = (event) => {
+      const data = event.detail;
       if (recipient && data.partnerId === recipient.id) {
         fetchMessages();
-      } else if (data.partnerId) {
-        // Optionally handle notifications for messages from other users
-        // This could update an unread count or show a notification
-        console.log(`New message from user ${data.partnerId}`);
-
-        // If you want to implement notifications, you could update state here
-        // For example: setUnreadMessages(prev => ({...prev, [data.partnerId]: (prev[data.partnerId] || 0) + 1}));
       }
-    });
+    };
 
-    // Listen for typing events
-    socketRef.current.on("userTyping", (data) => {
-      if (recipient && data.senderId === recipient.id) {
+    // Typing handler
+    const handleUserTyping = (event) => {
+      const data = event.detail;
+      // Check if we have a recipient and if the typing event is for current conversation
+      if (
+        recipient &&
+        data.senderId === recipient.id &&
+        data.receiverId === user.id
+      ) {
         setIsRecipientTyping(data.isTyping);
       }
-    });
+    };
 
-    // Listen for user status changes
-    socketRef.current.on("userStatusChange", ({ userId, isOnline }) => {
+    // Status change handler
+    const handleUserStatusChange = (event) => {
+      const { userId, isOnline } = event.detail;
       setFetchedUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.id === userId ? { ...user, is_online: isOnline } : user
         )
       );
-    });
+    };
 
+    // Add event listeners
+    window.addEventListener("refetchMessages", handleRefetchMessages);
+    window.addEventListener("userTyping", handleUserTyping);
+    window.addEventListener("userStatusChange", handleUserStatusChange);
+
+    // Cleanup
     return () => {
-      // Clean up socket connection
-      if (socketRef.current) {
-        socketRef.current.disconnect();
-      }
-      if (typingTimeoutRef.current) {
-        clearTimeout(typingTimeoutRef.current);
-      }
+      window.removeEventListener("refetchMessages", handleRefetchMessages);
+      window.removeEventListener("userTyping", handleUserTyping);
+      window.removeEventListener("userStatusChange", handleUserStatusChange);
     };
   }, [user?.id, recipient]);
 
@@ -188,7 +172,20 @@ const Chat = () => {
     setIsRecipientTyping(false);
     if (typingTimeoutRef.current) {
       clearTimeout(typingTimeoutRef.current);
+      // Also emit stop typing when changing recipients
+      if (recipient && user) {
+        emitStopTyping(user.id, recipient.id);
+      }
     }
+    return () => {
+      if (typingTimeoutRef.current) {
+        clearTimeout(typingTimeoutRef.current);
+      }
+      // Clean up typing state when unmounting
+      if (recipient && user) {
+        emitStopTyping(user.id, recipient.id);
+      }
+    };
   }, [recipient]);
 
   // Fetch users under manager
@@ -252,27 +249,28 @@ const Chat = () => {
       });
   };
 
-  // Modified scroll effect - only scroll when necessary
+  // Scroll to bottom when messages change
   useEffect(() => {
     const currentMessagesLength = messages.length;
+    const isInitialLoad =
+      prevMessagesLengthRef.current === 0 && messages.length > 0;
 
-    // Only scroll if:
-    // 1. There are new messages (length increased)
-    // 2. This is the initial load for a recipient (prevLength was 0)
-    // 3. The recipient is typing
-    // 4. The current user is typing
     if (
+      messages.length > 0 ||
       currentMessagesLength > prevMessagesLengthRef.current ||
-      (prevMessagesLengthRef.current === 0 && currentMessagesLength > 0) ||
       isRecipientTyping ||
       isTyping
     ) {
-      scrollRef.current?.scrollIntoView({ behavior: "smooth" });
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollIntoView({
+          behavior: isInitialLoad ? "instant" : "smooth",
+        });
+      });
     }
 
     // Update the ref with current length for next comparison
     prevMessagesLengthRef.current = currentMessagesLength;
-  }, [messages, isRecipientTyping, isTyping]);
+  }, [messages, isRecipientTyping, isTyping, recipient]);
 
   // Add send message handler
   const handleSendMessage = async () => {
@@ -296,12 +294,7 @@ const Chat = () => {
       setNewMessage("");
 
       // Stop typing indication
-      if (socketRef.current) {
-        socketRef.current.emit("stopTyping", {
-          senderId: user.id,
-          receiverId: recipient.id,
-        });
-      }
+      emitStopTyping(user.id, recipient.id);
 
       // Manually fetch messages after sending
       fetchMessages();
