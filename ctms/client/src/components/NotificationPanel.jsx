@@ -1,5 +1,11 @@
 import React, { useState, useEffect } from "react";
-import { MailWarning, MailCheck, BellOff, RefreshCw, Trash2 } from "lucide-react";
+import {
+  MailWarning,
+  MailCheck,
+  BellOff,
+  RefreshCw,
+  Trash2,
+} from "lucide-react";
 import proxy from "../../utils/proxy";
 import {
   Sheet,
@@ -31,7 +37,7 @@ const NotificationPanel = ({
   const { setFeedbackMessage } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [notifications, setNotifications] = useState(initialNotifications);
-  
+
   useEffect(() => {
     setNotifications(initialNotifications);
   }, [initialNotifications]);
@@ -55,7 +61,7 @@ const NotificationPanel = ({
       console.error(`Failed to mark notification as ${endpoint}:`, error);
     }
   };
-  
+
   //handling delete notification
   const handleDeleteNotification = async (id, e) => {
     e.stopPropagation();
@@ -145,9 +151,13 @@ const NotificationPanel = ({
             <div className="flex items-center gap-1">
               <SheetTitle>Notifications</SheetTitle>
               {notifications.length > 0 && (
-                <Badge variant="default" className="ml-2">
-                  {notifications.filter((n) => n.status === "unread").length}{" "}
-                  unread
+                <Badge variant="default">
+                  {notifications.filter((n) => n.status === "unread").length > 0
+                    ? `${
+                        notifications.filter((n) => n.status === "unread")
+                          .length
+                      } unread`
+                    : "All Read"}
                 </Badge>
               )}
             </div>
@@ -170,7 +180,9 @@ const NotificationPanel = ({
                 }, 750);
               }}
             >
-              {isRefreshing && <RefreshCw className="animate-spin mr-2 h-4 w-4" />}
+              {isRefreshing && (
+                <RefreshCw className="animate-spin mr-2 h-4 w-4" />
+              )}
               Sync Notifications
             </Button>
           </SheetHeader>
@@ -196,7 +208,7 @@ const NotificationPanel = ({
                   >
                     <CardContent className="p-0">
                       <div className="flex items-start justify-between px-4 py-3">
-                        <div 
+                        <div
                           className="flex items-start gap-3 flex-1 cursor-pointer"
                           onClick={handleReadNotification(
                             notification.id,
@@ -252,13 +264,11 @@ const NotificationPanel = ({
                             </p>
 
                             <div className="text-xs text-muted-foreground mt-1.5">
-                              {dateToTimeAgo(
-                                new Date(notification.created_at)
-                              )}
+                              {dateToTimeAgo(new Date(notification.created_at))}
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Delete notification button */}
                         <TooltipProvider>
                           <Tooltip>
@@ -267,15 +277,17 @@ const NotificationPanel = ({
                                 variant="outline"
                                 size="icon"
                                 className="h-8 w-8 p-0 ml-2 self-center hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
-                                onClick={(e) => handleDeleteNotification(notification.id, e)}
+                                onClick={(e) =>
+                                  handleDeleteNotification(notification.id, e)
+                                }
                               >
                                 <Trash2 size={16} className="text-red-500" />
-                                <span className="sr-only">Delete notification</span>
+                                <span className="sr-only">
+                                  Delete notification
+                                </span>
                               </Button>
                             </TooltipTrigger>
-                            <TooltipContent>
-                              Delete notification
-                            </TooltipContent>
+                            <TooltipContent>Delete notification</TooltipContent>
                           </Tooltip>
                         </TooltipProvider>
                       </div>
