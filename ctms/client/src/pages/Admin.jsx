@@ -45,12 +45,14 @@ const Admin = ({ devMode }) => {
   const [usersList, setUsersList] = useState([]);
   const [deleteUser, setDeleteUser] = useState(null);
   const [chosenUserIds, setChosenUserIds] = useState([]);
-  const [isDeleting, setIsDeleting] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
   const [initialLoad, setInitialLoad] = useState(true);
   const tableRef = React.useRef(null);
+
+  //State for Deletion dialog
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     // Initial load without visual feedback
@@ -504,6 +506,7 @@ const Admin = ({ devMode }) => {
           }
         }}
       >
+        {/* Dialog to confirm when the admin wants to delete user(s) */}
         <DialogContent>
           <DialogTitle> Confirm Deletion</DialogTitle>
           <DialogHeader>
