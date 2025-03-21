@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { MailWarning, MailCheck, BellOff, RefreshCw } from "lucide-react";
+import React, { useState,useEffect} from "react";
+import { MailWarning, MailCheck, BellOff, RefreshCw,Trash2 } from "lucide-react";
 import proxy from "../../utils/proxy";
 import {
   Sheet,
@@ -20,9 +20,10 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/utils/ToastProvider";
+import { set } from "date-fns";
 
 const NotificationPanel = ({
-  notifications,
+  notifications:initialNotifications,
   open,
   onOpenChange,
   setNotificationsNeedRefetch,
@@ -30,6 +31,12 @@ const NotificationPanel = ({
 }) => {
   const { setFeedbackMessage } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const[notifications,setNotifications]=useState(initialNotifications);
+  useEffect(() => {
+    setNotifications(initialNotifications);
+  }, [initialNotifications]);
+  
+
   const isNotificationRead = (notification) => {
     return notification.status === "read";
   };
@@ -49,6 +56,35 @@ const NotificationPanel = ({
       console.error(`Failed to mark notification as ${endpoint}:`, error);
     }
   };
+  //handling delete notification
+  const handleDeleteNotification = async (id,e) => {
+    e.stopPropagation();
+    const updatedNotifications = notifications.filter((n) => n.id !== id);
+    setNotifications(updatedNotifications);
+    try {
+     const response = await fetch(`${proxy}/notification/delete/${id}`, {
+        method: "DELETE",
+        headers: {  "Content-Type": "application/json",},
+      });
+      if(!response.ok){
+        throw new Error("Failed to delete notification");
+      }
+      setNotificationsNeedRefetch(true);
+      setFeedbackMessage({
+        title: "Notification Deleted",
+        description: "Notification has been deleted",
+      })
+    } catch (error) {
+      setNotifications(initialNotifications);
+      console.error(`Failed to delete notification:`, error);
+      setFeedbackMessage({
+        title: "Failed to delete notification",
+        description: "Please try again later",
+      })
+    } 
+  };
+  
+
 
   const getNotificationText = (type) => {
     switch (type) {
@@ -64,6 +100,7 @@ const NotificationPanel = ({
         return `New notification`;
     }
   };
+
 
   const getNotificationTypeVariant = (type) => {
     switch (type) {
@@ -219,6 +256,26 @@ const NotificationPanel = ({
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
+                      {/*Delete notification button)*/}
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="rounded-none border-l-0 border-r-0 border-t-0 border-b ... relative"
+                              onClick={(e) => handleDeleteNotification(notification.id,e)}
+                            >
+                              <Trash2 size={16} className="text-red-500" />
+                              <span className="sr-only">Delete notification</span>
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            Delete notification
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+
                     </CardContent>
                   </Card>
                 ))}

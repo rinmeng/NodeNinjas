@@ -179,5 +179,49 @@ describe('Notification Routes', () => {
             expect(response.status).toBe(500);
             expect(response.body).toEqual({ message: 'Failed to update notification' });
         });
+        //delete notification test
+        describe('DELETE /notification/delete/:id', () => {
+            it('should delete a notification successfully', async () => {
+                const mockNotification = {
+                    id: 1,
+                    message: 'Test notification',
+                    user_id: 1,
+                    type: 'alert',
+                    status: 'unread',
+                    created_at: '2023-01-01T00:00:00.000Z'
+                };
+
+                pool.query.mockResolvedValue({ rows: [mockNotification] });
+
+                const response = await request(app).delete('/notification/delete/1');
+
+                expect(response.status).toBe(200);
+                expect(response.body).toEqual(mockNotification);
+                expect(pool.query).toHaveBeenCalledWith(
+                    "DELETE FROM notifications WHERE id = $1 RETURNING *",
+                    ['1']
+                );
+            });
+
+            it('should return 404 if notification not found', async () => {
+                pool.query.mockResolvedValue({ rows: [] });
+
+                const response = await request(app).delete('/notification/delete/999');
+
+                expect(response.status).toBe(404);
+                expect(response.body).toEqual({ message: 'Notification not found' });
+            });
+
+            it('should return 500 if deleting notification fails', async () => {
+                pool.query.mockRejectedValue(new Error('Database error'));
+
+                const response = await request(app).delete('/notification/delete/1');
+
+                expect(response.status).toBe(500);
+                expect(response.body).toEqual({ message: 'Failed to delete notification' });
+            });
+        });
+
+
     });
 });
