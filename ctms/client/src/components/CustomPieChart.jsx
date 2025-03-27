@@ -22,7 +22,7 @@ import { useAuth } from "@/utils/AuthProvider";
 
 export function CustomPieChart({
   height,
-  dataType = "status",
+  dataType,
   title = "Task Info",
   description = "Here is data on tasks!",
   colours,
@@ -32,40 +32,13 @@ export function CustomPieChart({
   const { user } = useAuth();
   const [chartData, setChartData] = useState([]);
 
-  //Colours depending on task data:
-  const defaultColourPalette = {
-    status: {
-      pending: "var(--chart-1)",
-      in_progress: "var(--chart-3)",
-      completed: "var(--chart-2)",
-    },
+  const confirmColourPalette = {
+    ...(colours && { [dataType]: colours }),
   };
 
-  //The display name based on the given task data:
-  const defaultDisplayNames = {
-    status: {
-      pending: "Pending",
-      in_progress: "In-Progress",
-      completed: "Completed",
-    },
+  const confirmDisplayNames = {
+    ...(display && { [dataType]: display }),
   };
-
-  const confirmColourPalette = colours
-    ? {
-        ...defaultColourPalette,
-        [dataType]: colours,
-      }
-    : defaultColourPalette;
-
-  const confirmDisplayNames = display
-    ? {
-        ...defaultDisplayNames,
-        [dataType]: {
-          ...(defaultDisplayNames[dataType] || {}),
-          ...display,
-        },
-      }
-    : defaultDisplayNames;
 
   useEffect(() => {
     fetch(`${proxy}/task/assignedto/manager/${user.id}`, {
@@ -85,7 +58,7 @@ export function CustomPieChart({
         setChartData(dataSet);
       })
       .catch((error) => console.error("Error fetching tasks: ", error));
-  }, [user.id, dataType, defaultColourPalette, defaultDisplayNames]);
+  }, [user.id, dataType, confirmColourPalette, confirmDisplayNames]);
 
   const processData = (tasks) => {
     const counts = tasks.reduce((count, task) => {
