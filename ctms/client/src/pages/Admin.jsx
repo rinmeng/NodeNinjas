@@ -493,7 +493,6 @@ const Admin = ({ devMode }) => {
             </DialogContent>
           </Dialog>
           <RegisterPanel isAdmin={true} onUserAdded={handleUserAdded} />
-          <Button className="w-full md:w-auto">To Be Added</Button>
         </CardContent>
       </Card>
 
