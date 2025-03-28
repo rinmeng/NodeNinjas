@@ -10,6 +10,7 @@ import {
   Menu,
   Moon,
   Sun,
+  Book,
 } from "lucide-react";
 import {
   Sheet,
@@ -49,6 +50,12 @@ function Navbar({ devMode }) {
   // Define navigation links based on user role and dev mode
   const getLinks = () => {
     const links = [];
+
+    links.push({
+      label: "Docs",
+      route: "/docs",
+      icon: Book,
+    });
 
     if (user || devMode) {
       links.push({ label: "Dashboard", route: "/", icon: LayoutDashboard });

@@ -16,6 +16,7 @@ import ChatWidget from "@/src/components/ChatWidget";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
 
 import { ToastProvider } from "@/utils/ToastProvider";
+import Docs from "@/src/pages/Docs";
 
 function AppContent() {
   const [devMode] = useState(false);
@@ -30,7 +31,7 @@ function AppContent() {
         <Route path="/about" element={<About />} />
         <Route path="/login" element={<Login />} />
         <Route path="/chat" element={<Chat />} />
-
+        <Route path="/docs" element={<Docs />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
       {/* <ChatWidget /> */}
