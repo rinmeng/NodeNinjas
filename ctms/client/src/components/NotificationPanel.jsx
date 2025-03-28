@@ -1,5 +1,5 @@
-import React, { useState,useEffect} from "react";
-import { MailWarning, MailCheck, BellOff, RefreshCw,Trash2 } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { MailWarning, MailCheck, BellOff, RefreshCw, Trash2 } from "lucide-react";
 import proxy from "../../utils/proxy";
 import {
   Sheet,
@@ -20,10 +20,9 @@ import {
 } from "@/components/ui/tooltip";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/utils/ToastProvider";
-import { set } from "date-fns";
 
 const NotificationPanel = ({
-  notifications:initialNotifications,
+  notifications: initialNotifications,
   open,
   onOpenChange,
   setNotificationsNeedRefetch,
@@ -31,11 +30,11 @@ const NotificationPanel = ({
 }) => {
   const { setFeedbackMessage } = useToast();
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const[notifications,setNotifications]=useState(initialNotifications);
+  const [notifications, setNotifications] = useState(initialNotifications);
+  
   useEffect(() => {
     setNotifications(initialNotifications);
   }, [initialNotifications]);
-  
 
   const isNotificationRead = (notification) => {
     return notification.status === "read";
@@ -56,35 +55,34 @@ const NotificationPanel = ({
       console.error(`Failed to mark notification as ${endpoint}:`, error);
     }
   };
+  
   //handling delete notification
-  const handleDeleteNotification = async (id,e) => {
+  const handleDeleteNotification = async (id, e) => {
     e.stopPropagation();
     const updatedNotifications = notifications.filter((n) => n.id !== id);
     setNotifications(updatedNotifications);
     try {
-     const response = await fetch(`${proxy}/notification/delete/${id}`, {
+      const response = await fetch(`${proxy}/notification/delete/${id}`, {
         method: "DELETE",
-        headers: {  "Content-Type": "application/json",},
+        headers: { "Content-Type": "application/json" },
       });
-      if(!response.ok){
+      if (!response.ok) {
         throw new Error("Failed to delete notification");
       }
       setNotificationsNeedRefetch(true);
       setFeedbackMessage({
         title: "Notification Deleted",
         description: "Notification has been deleted",
-      })
+      });
     } catch (error) {
       setNotifications(initialNotifications);
       console.error(`Failed to delete notification:`, error);
       setFeedbackMessage({
         title: "Failed to delete notification",
         description: "Please try again later",
-      })
-    } 
+      });
+    }
   };
-  
-
 
   const getNotificationText = (type) => {
     switch (type) {
@@ -100,7 +98,6 @@ const NotificationPanel = ({
         return `New notification`;
     }
   };
-
 
   const getNotificationTypeVariant = (type) => {
     switch (type) {
@@ -173,7 +170,7 @@ const NotificationPanel = ({
                 }, 750);
               }}
             >
-              {isRefreshing && <RefreshCw className="animate-spin" />}
+              {isRefreshing && <RefreshCw className="animate-spin mr-2 h-4 w-4" />}
               Sync Notifications
             </Button>
           </SheetHeader>
@@ -196,86 +193,92 @@ const NotificationPanel = ({
                         ? "bg-blue-50/50 dark:bg-blue-900/20"
                         : ""
                     } hover:bg-accent/10 transition-colors`}
-                    onClick={handleReadNotification(
-                      notification.id,
-                      notification.status
-                    )}
                   >
                     <CardContent className="p-0">
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <div className="flex items-start gap-3 px-4">
-                              {isNotificationRead(notification) ? (
-                                <MailCheck
-                                  size={18}
-                                  className="mt-1 text-muted-foreground"
-                                />
-                              ) : (
-                                <MailWarning
-                                  size={18}
-                                  className="mt-1 text-primary"
-                                />
-                              )}
-
-                              <div className="flex-1 text-left">
-                                <div className="flex items-center justify-between mb-1">
-                                  <p
-                                    className={`text-sm ${
-                                      !isNotificationRead(notification)
-                                        ? "font-semibold"
-                                        : ""
-                                    }`}
-                                  >
-                                    {getNotificationText(notification.type)}
-                                  </p>
-                                </div>
-
-                                <p
-                                  className={`text-sm ${
-                                    !isNotificationRead(notification)
-                                      ? "font-medium"
-                                      : "text-muted-foreground"
-                                  }`}
-                                >
-                                  "{notification.message}"
-                                </p>
-
-                                <div className="text-xs text-muted-foreground mt-1.5">
-                                  {dateToTimeAgo(
-                                    new Date(notification.created_at)
+                      <div className="flex items-start justify-between px-4 py-3">
+                        <div 
+                          className="flex items-start gap-3 flex-1 cursor-pointer"
+                          onClick={handleReadNotification(
+                            notification.id,
+                            notification.status
+                          )}
+                        >
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <div className="mt-1">
+                                  {isNotificationRead(notification) ? (
+                                    <MailCheck
+                                      size={18}
+                                      className="text-muted-foreground"
+                                    />
+                                  ) : (
+                                    <MailWarning
+                                      size={18}
+                                      className="text-primary"
+                                    />
                                   )}
                                 </div>
-                              </div>
-                            </div>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            {isNotificationRead(notification)
-                              ? "Mark as unread"
-                              : "Mark as read"}
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                      {/*Delete notification button)*/}
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="rounded-none border-l-0 border-r-0 border-t-0 border-b ... relative"
-                              onClick={(e) => handleDeleteNotification(notification.id,e)}
-                            >
-                              <Trash2 size={16} className="text-red-500" />
-                              <span className="sr-only">Delete notification</span>
-                            </Button>
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            Delete notification
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {isNotificationRead(notification)
+                                  ? "Mark as unread"
+                                  : "Mark as read"}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
 
+                          <div className="flex-1 text-left">
+                            <div className="flex items-center justify-between mb-1">
+                              <p
+                                className={`text-sm ${
+                                  !isNotificationRead(notification)
+                                    ? "font-semibold"
+                                    : ""
+                                }`}
+                              >
+                                {getNotificationText(notification.type)}
+                              </p>
+                            </div>
+
+                            <p
+                              className={`text-sm ${
+                                !isNotificationRead(notification)
+                                  ? "font-medium"
+                                  : "text-muted-foreground"
+                              }`}
+                            >
+                              "{notification.message}"
+                            </p>
+
+                            <div className="text-xs text-muted-foreground mt-1.5">
+                              {dateToTimeAgo(
+                                new Date(notification.created_at)
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Delete notification button */}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                className="h-8 w-8 p-0 ml-2 self-center hover:bg-red-100 hover:text-red-600 dark:hover:bg-red-900/30"
+                                onClick={(e) => handleDeleteNotification(notification.id, e)}
+                              >
+                                <Trash2 size={16} className="text-red-500" />
+                                <span className="sr-only">Delete notification</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              Delete notification
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
