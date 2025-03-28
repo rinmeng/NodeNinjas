@@ -36,6 +36,7 @@ import proxy from "@/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 import { useToast } from "@/utils/ToastProvider";
 import { Separator } from "@/components/ui/separator";
+import { RegisterPanel } from "@/src/components/RegisterPanel";
 
 const Admin = ({ devMode }) => {
   const { user } = useAuth();
@@ -384,6 +385,11 @@ const Admin = ({ devMode }) => {
       });
   };
 
+  const handleUserAdded = () => {
+    // Refresh the users list
+    fetchUsers();
+  };
+
   return (
     <div className=" w-full my-30 animate-fade-in ">
       <Card className="container mx-auto flex flex-col items-center">
@@ -460,9 +466,7 @@ const Admin = ({ devMode }) => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
-
-          <Button className="w-full md:w-auto">To Be Added</Button>
-
+          <RegisterPanel isAdmin={true} onUserAdded={handleUserAdded} />
           <Button className="w-full md:w-auto">To Be Added</Button>
         </CardContent>
       </Card>
