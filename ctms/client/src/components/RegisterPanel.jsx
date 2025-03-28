@@ -36,21 +36,54 @@ import {
 } from "lucide-react";
 import { useToast } from "@/utils/ToastProvider";
 import proxy from "@/utils/proxy";
-import { useAuth } from "@/utils/AuthProvider"; // Add this to get current admin user
+import { useAuth } from "@/utils/AuthProvider";
+
+// Form validation schema
+const formSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(8, "Password must be at least 8 characters"),
+  displayName: z.string().min(2, "Display name is required"),
+  email: z.string().email("Invalid email address"),
+  role: z.enum(["team_member", "admin"]),
+  manager_username: z.string().optional(),
+});
+
+// Form field configurations
+const formFields = [
+  {
+    name: "username",
+    label: "Username",
+    icon: User,
+    type: "text",
+    placeholder: "Enter your unique username",
+  },
+  {
+    name: "password",
+    label: "Password",
+    icon: Lock,
+    type: "password",
+    placeholder: "Enter your password",
+  },
+  {
+    name: "displayName",
+    label: "Display Name",
+    icon: Contact,
+    type: "text",
+    placeholder: "Enter your display name",
+  },
+  {
+    name: "email",
+    label: "Email",
+    icon: Mail,
+    type: "email",
+    placeholder: "Enter your email",
+  },
+];
 
 export function RegisterPanel({ isAdmin, onUserAdded }) {
   const [open, setOpen] = useState(false);
   const { user } = useAuth();
-
-  // Define Zod schema for form validation
-  const formSchema = z.object({
-    username: z.string().min(3, "Username must be at least 3 characters"),
-    password: z.string().min(8, "Password must be at least 8 characters"),
-    displayName: z.string().min(2, "Display name is required"),
-    email: z.string().email("Invalid email address"),
-    role: z.enum(["team_member", "admin"]),
-    manager_username: z.string().optional(),
-  });
+  const { setFeedbackMessage } = useToast();
 
   const registerForm = useForm({
     resolver: zodResolver(formSchema),
@@ -63,103 +96,94 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
       manager_username: "",
     },
   });
-  const { setFeedbackMessage } = useToast();
+
+  // Helper function to verify manager
+  const verifyManager = async (managerUsername) => {
+    try {
+      const response = await fetch(`${proxy}/user/username/${managerUsername}`, {
+        method: "GET",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+      });
+
+      if (!response.ok) {
+        throw new Error("Manager not found");
+      }
+
+      const managerData = await response.json();
+      
+      if (managerData.role !== "admin") {
+        throw new Error("Invalid manager role");
+      }
+
+      return managerData.id;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+  // Helper function to register user
+  const registerUser = async (userData) => {
+    const response = await fetch(`${proxy}/user/register`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(userData),
+    });
+
+    if (!response.ok) {
+      throw new Error("Registration failed");
+    }
+
+    return response.json();
+  };
 
   const onRegisterSubmit = async (data) => {
     try {
       let manager_id = null;
 
-      // Case 1: Admin is adding a team member - use admin's ID as manager_id
+      // Handle manager ID assignment
       if (isAdmin) {
-        manager_id = user.id; // Current admin's ID
-        data.role = "team_member"; // Force role to team_member
-      }
-      // Case 2: User is registering as a team member - look up their manager's ID
-      else if (data.role === "team_member" && data.manager_username) {
-        // Get manager's user data from username
-        const managerResponse = await fetch(
-          `${proxy}/user/username/${data.manager_username}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            credentials: "include",
-          }
-        );
-
-        if (!managerResponse.ok) {
+        manager_id = user.id;
+      } else if (data.role === "team_member") {
+        try {
+          manager_id = await verifyManager(data.manager_username);
+        } catch (error) {
           setFeedbackMessage({
-            title: "Manager Not Found",
-            description: "The provided manager username does not exist.",
+            title: "Manager Verification Failed",
+            description: error.message === "Invalid manager role" 
+              ? "The provided username is not an admin."
+              : "The provided manager username does not exist.",
           });
           return;
         }
-
-        const managerData = await managerResponse.json();
-
-        // Verify the found user is actually an admin
-        if (managerData.role !== "admin") {
-          setFeedbackMessage({
-            title: "Invalid Manager",
-            description:
-              "The provided username does not belong to an admin user.",
-          });
-          return;
-        }
-
-        manager_id = managerData.id;
       }
-      // Case 3: User is registering as an admin - manager_id remains null
-      // (this is handled by default since manager_id is initialized as null)
 
-      const registerResponse = await fetch(`${proxy}/user/register`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({
-          display_name: data.displayName,
-          email: data.email,
-          username: data.username,
-          password_hash: data.password,
-          role: data.role,
-          manager_id: manager_id, // This will be admin's ID, looked up ID, or null
-        }),
+      // Prepare user data
+      const userData = {
+        display_name: data.displayName,
+        email: data.email,
+        username: data.username,
+        password_hash: data.password,
+        role: isAdmin ? "team_member" : data.role,
+        manager_id,
+      };
+
+      // Register user
+      await registerUser(userData);
+
+      setFeedbackMessage({
+        title: "Registration Successful",
+        description: isAdmin
+          ? "Team member has been successfully added."
+          : "You have successfully registered.",
       });
 
-      // Rest of the function remains the same
-      const registerData = await registerResponse.json();
+      registerForm.reset();
+      setOpen(false);
 
-      if (registerResponse.status !== 400) {
-        setFeedbackMessage({
-          title: "Registration Successful",
-          description: isAdmin
-            ? "Team member has been successfully added."
-            : "You have successfully registered.",
-        });
-
-        registerForm.reset({
-          username: "",
-          password: "",
-          displayName: "",
-          email: "",
-          role: "team_member",
-          manager_username: "",
-        });
-
-        setOpen(false);
-
-        // Call the onUserAdded callback if it exists and we're in admin mode
-        if (isAdmin && onUserAdded) {
-          onUserAdded();
-        }
-      } else {
-        setFeedbackMessage({
-          title: "Registration Failed",
-          description: registerData.message || "Failed to register user.",
-        });
+      if (isAdmin && onUserAdded) {
+        onUserAdded();
       }
     } catch (error) {
       console.error("Registration error:", error);
@@ -170,12 +194,32 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
     }
   };
 
+  // Render form field
+  const renderFormField = ({ name, label, icon: Icon, type, placeholder }) => (
+    <FormField
+      key={name}
+      control={registerForm.control}
+      name={name}
+      render={({ field }) => (
+        <FormItem>
+          <FormLabel className="flex items-center gap-2">
+            <Icon strokeWidth={2} size={18} /> {label}
+          </FormLabel>
+          <FormControl>
+            <Input type={type} placeholder={placeholder} {...field} />
+          </FormControl>
+          <FormMessage />
+        </FormItem>
+      )}
+    />
+  );
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button className={isAdmin ? "w-full md:w-auto" : "w-1/2"}>
           {isAdmin ? (
-            "Add User"
+            "Onboard Member"
           ) : (
             <>
               Sign Up
@@ -204,80 +248,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
             onSubmit={registerForm.handleSubmit(onRegisterSubmit)}
             className="flex flex-col space-y-4"
           >
-            <FormField
-              control={registerForm.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <User strokeWidth={2} size={18} /> Username
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      placeholder="Enter your unique username"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={registerForm.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Lock strokeWidth={2} size={18} /> Password
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="password"
-                      placeholder="Enter your password"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={registerForm.control}
-              name="displayName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Contact strokeWidth={2} size={18} /> Display Name
-                  </FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter your display name" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={registerForm.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Mail strokeWidth={2} size={18} /> Email
-                  </FormLabel>
-                  <FormControl>
-                    <Input
-                      type="email"
-                      placeholder="Enter your email"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {formFields.map(renderFormField)}
 
             {!isAdmin && (
               <FormField
@@ -288,69 +259,46 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
                     <FormLabel className="font-semibold text-md">
                       User Role
                     </FormLabel>
-                    <div className="flex space-x-4 justify-center text-center">
-                      <RadioGroup
-                        onValueChange={field.onChange}
-                        value={field.value}
-                        className="flex space-x-4 w-full"
-                      >
-                        <FormItem className="w-full">
+                    <RadioGroup
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      className="flex space-x-4 w-full"
+                    >
+                      {[
+                        {
+                          value: "team_member",
+                          label: "Team Member",
+                          icon: CircleUserRound,
+                        },
+                        {
+                          value: "admin",
+                          label: "Admin",
+                          icon: Shield,
+                        },
+                      ].map(({ value, label, icon: Icon }) => (
+                        <FormItem key={value} className="w-full">
                           <FormControl>
                             <label>
                               <RadioGroupItem
-                                value="team_member"
+                                value={value}
                                 className="sr-only"
                               />
                               <Badge
-                                variant={
-                                  field.value === "team_member"
-                                    ? "default"
-                                    : "outline"
-                                }
+                                variant={field.value === value ? "default" : "outline"}
                                 className={`w-full py-3 hover:bg-primary/90 cursor-pointer transition-colors ${
-                                  field.value === "team_member"
-                                    ? ""
-                                    : "hover:bg-secondary/80"
+                                  field.value === value ? "" : "hover:bg-secondary/80"
                                 }`}
                               >
                                 <div className="flex items-center justify-center gap-2">
-                                  <CircleUserRound size={20} strokeWidth={2} />
-                                  <span>Team Member</span>
+                                  <Icon size={20} strokeWidth={2} />
+                                  <span>{label}</span>
                                 </div>
                               </Badge>
                             </label>
                           </FormControl>
                         </FormItem>
-
-                        <FormItem className="w-full">
-                          <FormControl>
-                            <label>
-                              <RadioGroupItem
-                                value="admin"
-                                className="sr-only"
-                              />
-                              <Badge
-                                variant={
-                                  field.value === "admin"
-                                    ? "default"
-                                    : "outline"
-                                }
-                                className={`w-full py-3 hover:bg-primary/90 cursor-pointer transition-colors ${
-                                  field.value === "admin"
-                                    ? ""
-                                    : "hover:bg-secondary/80"
-                                }`}
-                              >
-                                <div className="flex items-center justify-center gap-2">
-                                  <Shield size={20} strokeWidth={2} />
-                                  <span>Admin</span>
-                                </div>
-                              </Badge>
-                            </label>
-                          </FormControl>
-                        </FormItem>
-                      </RadioGroup>
-                    </div>
+                      ))}
+                    </RadioGroup>
                     <FormMessage />
                   </FormItem>
                 )}
