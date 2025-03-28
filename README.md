@@ -14,6 +14,12 @@
 
 - 5% from each requirements are to be met in the future, we are covering minor edge cases, bug fixes (visual/backend) and code refactoring.
 
+## Known Bugs
+- Typing UI is not displaying when a user types on the Chat feature. 
+- Register feature isn’t working when a team member submits the registration form.
+- When you have all read notifications, if you toggle them to unread they will be listed at the bottom instead of going to the top
+- Admin’s with no tasks or users in their team shouldn’t have an Admin Page. 
+
 ## How to login?
 
 - You can login using the following credentials:
