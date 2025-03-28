@@ -49,8 +49,7 @@ jobs:
     needs: test
     runs-on: ubuntu-latest
     if: >
-      (github.event_name == 'push' && contains('refs/heads/main refs/heads/dev', github.ref)) || 
-      (github.event_name == 'pull_request' && contains('main dev', github.base_ref))
+      (github.event_name == 'push' && contains('refs/heads/main refs/heads/dev', github.ref))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
