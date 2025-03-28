@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/utils/AuthProvider";
 import { useToast } from "@/utils/ToastProvider";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { cn } from "@/lib/utils";
 
 import {
@@ -106,14 +106,16 @@ function Dashboard({ devMode }) {
         credentials: "include",
       });
       const data = await response.json();
-      console.log("Fetched tasks from database:", data);
 
       // Ensure we always set an array
       const tasksArray = Array.isArray(data) ? data : [];
       setAllTasks(tasksArray);
       setTasks(tasksArray);
     } catch (error) {
-      console.error("Error fetching tasks from database:", error.message);
+      setFeedbackMessage({
+        title: "Error",
+        description: "Failed to fetch tasks. Please try again later.",
+      });
       setAllTasks([]);
       setTasks([]);
     } finally {

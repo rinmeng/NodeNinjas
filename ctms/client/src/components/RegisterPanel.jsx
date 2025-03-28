@@ -45,9 +45,9 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
       password: "",
       displayName: "",
       email: "",
-      role:  "team_member",
+      role: "team_member",
       manager_username: "",
-    }
+    },
   });
   const { setFeedbackMessage } = useToast();
 
@@ -95,7 +95,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           email: data.email,
           username: data.username,
           password_hash: data.password,
-          role: data.role,// Always set to team_member when admin is registering
+          role: data.role, // Always set to team_member when admin is registering
           manager_id, // This will be the admin's ID
         }),
       });
@@ -105,8 +105,8 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
       if (registerResponse.status === 201) {
         setFeedbackMessage({
           title: "Registration Successful",
-          description: isAdmin 
-            ? "Team member has been successfully added." 
+          description: isAdmin
+            ? "Team member has been successfully added."
             : "You have successfully registered.",
         });
 
@@ -120,7 +120,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
         });
 
         setOpen(false);
-        
+
         // If there's a callback for refreshing the users list in Admin panel
         if (isAdmin && onUserAdded) {
           onUserAdded();
@@ -133,7 +133,6 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
         });
       }
     } catch (error) {
-      console.error(error);
       setFeedbackMessage({
         title: "Registration Failed",
         description: "An error occurred while trying to register.",
@@ -162,10 +161,9 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
             {isAdmin ? "Add Team Member" : "Register"}
           </DialogTitle>
           <DialogDescription>
-            {isAdmin 
-              ? "Add a new team member to the system." 
-              : "Let's get you started on your journey with our intuitive task manager."
-            }
+            {isAdmin
+              ? "Add a new team member to the system."
+              : "Let's get you started on your journey with our intuitive task manager."}
           </DialogDescription>
         </DialogHeader>
 
@@ -329,7 +327,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
               />
             )}
 
-            {(!isAdmin && registerForm.watch("role") === "team_member") && (
+            {!isAdmin && registerForm.watch("role") === "team_member" && (
               <FormField
                 control={registerForm.control}
                 name="manager_username"
