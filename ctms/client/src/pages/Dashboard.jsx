@@ -54,13 +54,81 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
+// Create a standalone SearchInput component to better manage focus
+const SearchInput = ({ value, onChange, onClear, onSubmit }) => {
+  const inputRef = useRef(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const isSearchActive = value.length > 0;
+
+  const handleChange = (e) => {
+    onChange(e.target.value);
+  };
+
+  const handleClear = () => {
+    onClear();
+    // Focus the input after clearing
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    onSubmit(value);
+  };
+
+  // Force focus when component mounts
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
+
+  return (
+    <div className="w-1/2 mx-auto">
+      <form className="relative" onSubmit={handleSubmit}>
+        <div className="relative">
+          <Input
+            type="text"
+            value={value}
+            placeholder="Search for tasks by title or description..."
+            className={`pl-10 pr-12`}
+            onChange={handleChange}
+            ref={inputRef}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            autoFocus
+          />
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
+            <Search
+              size={20}
+              className={`transition-colors duration-200 ${
+                isSearchActive || isFocused ? "text-blue-400" : "text-slate-400"
+              }`}
+            />
+          </div>
+          {value && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleClear}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
+            >
+              <X size={18} />
+            </Button>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+};
+
 function Dashboard({ devMode }) {
   const { user } = useAuth();
   const { setFeedbackMessage } = useToast();
   const [isRefetching, setIsRefetching] = useState(false);
-  const [isSearchActive, setIsSearchActive] = useState(false);
   const [localSearchValue, setLocalSearchValue] = useState("");
-  const searchInputRef = useRef(null);
 
   const {
     tasks: taskList,
@@ -74,55 +142,26 @@ function Dashboard({ devMode }) {
     triggerRefetch,
   } = useTasks(user, devMode);
 
-  // Sync local search value with the hook's searchCriteria on initial load
-  useEffect(() => {
-    if (localSearchValue === "" && searchCriteria !== "") {
-      setLocalSearchValue(searchCriteria);
-    }
-  }, [searchCriteria]);
-
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    const value = e.target.value;
-    setLocalSearchValue(value);
-    setIsSearchActive(value.length > 0);
-
-    // Use a small timeout to ensure React has time to update the state
-    setTimeout(() => {
-      if (searchInputRef.current) {
-        searchInputRef.current.focus();
-      }
-    }, 0);
-  };
-
-  // Update the hook's search criteria with debounce
+  // Handle search changes with debouncing
   useEffect(() => {
     const timer = setTimeout(() => {
-      setSearchCriteria(localSearchValue);
+      if (localSearchValue !== searchCriteria) {
+        setSearchCriteria(localSearchValue);
+      }
     }, 300);
 
     return () => clearTimeout(timer);
-  }, [localSearchValue, setSearchCriteria]);
-
-  // Handle search form submission
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setSearchCriteria(localSearchValue);
-    setIsSearchActive(localSearchValue.length > 0);
-  };
+  }, [localSearchValue, setSearchCriteria, searchCriteria]);
 
   // Clear search
   const handleClearSearch = () => {
     setLocalSearchValue("");
     setSearchCriteria("");
-    setIsSearchActive(false);
+  };
 
-    // Maintain focus after clearing
-    setTimeout(() => {
-      if (searchInputRef.current) {
-        searchInputRef.current.focus();
-      }
-    }, 0);
+  // Handle search submission
+  const handleSearchSubmit = (value) => {
+    setSearchCriteria(value);
   };
 
   const refetchTaskClicked = () => {
@@ -151,43 +190,6 @@ function Dashboard({ devMode }) {
       </div>
     );
   }
-
-  // SearchBar Component
-  const SearchBar = () => (
-    <div className="w-1/2 mx-auto">
-      <form className="relative" onSubmit={handleSearchSubmit}>
-        <div className="relative">
-          <Input
-            type="text"
-            value={localSearchValue}
-            placeholder="Search for tasks by title or description..."
-            className={`pl-10 pr-12`}
-            onChange={handleSearchChange}
-            ref={searchInputRef}
-          />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
-            <Search
-              size={20}
-              className={`transition-colors duration-200 ${
-                isSearchActive ? "text-blue-400" : "text-slate-400"
-              }`}
-            />
-          </div>
-          {localSearchValue && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleClearSearch}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
-            >
-              <X size={18} />
-            </Button>
-          )}
-        </div>
-      </form>
-    </div>
-  );
 
   // DateRangeSelector Component
   const DateRangeSelector = () => (
@@ -276,7 +278,12 @@ function Dashboard({ devMode }) {
     <Card className="container mx-auto w-full my-24 animate-fade-in">
       <CardHeader className={"space-y-4"}>
         {/* Search Section */}
-        <SearchBar />
+        <SearchInput
+          value={localSearchValue}
+          onChange={setLocalSearchValue}
+          onClear={handleClearSearch}
+          onSubmit={handleSearchSubmit}
+        />
 
         {/* Filter Options Section */}
         <div className="flex justify-center items-center gap-3">
