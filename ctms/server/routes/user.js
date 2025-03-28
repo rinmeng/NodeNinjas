@@ -43,8 +43,8 @@ router.post('/register', async (req, res) => {
     // Add validation for required fields
     if (!username || !email || !password_hash || !role || !display_name) {
         return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
-
     }
+
     // check if user already exists
     const userExists = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     // check if email already exists
@@ -59,10 +59,20 @@ router.post('/register', async (req, res) => {
 
     try {
         const hashedPassword = await hashPassword(password_hash);
-        const data = await pool.query(`
+
+        // Insert the user initially with provided manager_id
+        const insertResult = await pool.query(`
             INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [username, email, hashedPassword, role, display_name, manager_id]);
+
+        // If the user is an admin and manager_id is null, update them to be their own manager
+        if (role === 'admin' && !manager_id) {
+            const userId = insertResult.rows[0].id;
+            await pool.query('UPDATE users SET manager_id = $1 WHERE id = $2',
+                [userId, userId]);
+        }
+
         res.status(201).json({ message: "User registered successfully" });
     } catch (err) {
         console.error(err.message);
@@ -86,7 +96,7 @@ router.get('/userid/:id', isAuthenticated, async (req, res) => {
 });
 
 // GET /user/username/:username
-router.get('/username/:username', isAuthenticated, async (req, res) => {
+router.get('/username/:username', async (req, res) => {
     const username = req.body.username || req.params.username;
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -96,6 +106,25 @@ router.get('/username/:username', isAuthenticated, async (req, res) => {
         return res.status(200).json(data.rows[0]);
     } catch (err) {
         console.error(err.message);
+        res.status(500).send({ message: 'Error searching up username.' });
+    }
+});
+
+// GET /user/isAdmin/:username
+router.get('/isAdmin/:username', async (req, res) => {
+    const username = req.body.username || req.params.username;
+    try {
+        const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (data.rowCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const user = data.rows[0];
+        if (user.role === 'admin') {
+            return res.status(200).json({ isAdmin: true });
+        } else {
+            return res.status(200).json({ isAdmin: false });
+        }
+    } catch (err) {
         res.status(500).send({ message: 'Error searching up username.' });
     }
 });

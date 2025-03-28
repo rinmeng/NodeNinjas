@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Dialog,
   DialogContent,
@@ -38,8 +40,20 @@ import { useAuth } from "@/utils/AuthProvider"; // Add this to get current admin
 
 export function RegisterPanel({ isAdmin, onUserAdded }) {
   const [open, setOpen] = useState(false);
-  const { user } = useAuth(); // Add this to get current admin user
+  const { user } = useAuth();
+
+  // Define Zod schema for form validation
+  const formSchema = z.object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    displayName: z.string().min(2, "Display name is required"),
+    email: z.string().email("Invalid email address"),
+    role: z.enum(["team_member", "admin"]),
+    manager_username: z.string().optional(),
+  });
+
   const registerForm = useForm({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
       password: "",
@@ -55,11 +69,14 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
     try {
       let manager_id = null;
 
-      // If admin is registering, use their ID as manager_id
+      // Case 1: Admin is adding a team member - use admin's ID as manager_id
       if (isAdmin) {
         manager_id = user.id; // Current admin's ID
         data.role = "team_member"; // Force role to team_member
-      } else if (data.role === "team_member") {
+      }
+      // Case 2: User is registering as a team member - look up their manager's ID
+      else if (data.role === "team_member" && data.manager_username) {
+        // Get manager's user data from username
         const managerResponse = await fetch(
           `${proxy}/user/username/${data.manager_username}`,
           {
@@ -71,9 +88,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           }
         );
 
-        const managerData = await managerResponse.json();
-
-        if (managerResponse.status !== 200) {
+        if (!managerResponse.ok) {
           setFeedbackMessage({
             title: "Manager Not Found",
             description: "The provided manager username does not exist.",
@@ -81,8 +96,22 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           return;
         }
 
+        const managerData = await managerResponse.json();
+
+        // Verify the found user is actually an admin
+        if (managerData.role !== "admin") {
+          setFeedbackMessage({
+            title: "Invalid Manager",
+            description:
+              "The provided username does not belong to an admin user.",
+          });
+          return;
+        }
+
         manager_id = managerData.id;
       }
+      // Case 3: User is registering as an admin - manager_id remains null
+      // (this is handled by default since manager_id is initialized as null)
 
       const registerResponse = await fetch(`${proxy}/user/register`, {
         method: "POST",
@@ -95,14 +124,15 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           email: data.email,
           username: data.username,
           password_hash: data.password,
-          role: data.role, // Always set to team_member when admin is registering
-          manager_id, // This will be the admin's ID
+          role: data.role,
+          manager_id: manager_id, // This will be admin's ID, looked up ID, or null
         }),
       });
 
+      // Rest of the function remains the same
       const registerData = await registerResponse.json();
 
-      if (registerResponse.status === 201) {
+      if (registerResponse.status !== 400) {
         setFeedbackMessage({
           title: "Registration Successful",
           description: isAdmin
@@ -121,18 +151,18 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
 
         setOpen(false);
 
-        // If there's a callback for refreshing the users list in Admin panel
+        // Call the onUserAdded callback if it exists and we're in admin mode
         if (isAdmin && onUserAdded) {
           onUserAdded();
         }
       } else {
         setFeedbackMessage({
           title: "Registration Failed",
-          description:
-            registerData.message || "An error occurred while registering.",
+          description: registerData.message || "Failed to register user.",
         });
       }
     } catch (error) {
+      console.error("Registration error:", error);
       setFeedbackMessage({
         title: "Registration Failed",
         description: "An error occurred while trying to register.",

@@ -1463,6 +1463,78 @@ CREATE INDEX idx_notifications_status ON notifications (user_id, status);`}
                 </div>
               </CardContent>
             </Card>
+
+            {/* GET /user/isAdmin/:username */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle className="text-xl">
+                    <Badge variant="outline" className="mr-2 font-mono">
+                      GET
+                    </Badge>
+                    /user/isAdmin/:username
+                  </CardTitle>
+                </div>
+                <CardDescription>
+                  Checks if the specified user has admin privileges
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <h4 className="mb-2 font-medium">Parameters:</h4>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Name</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Description</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-mono">username</TableCell>
+                        <TableCell>string</TableCell>
+                        <TableCell>The username to check</TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+                <div>
+                  <h4 className="mb-2 font-medium">Response:</h4>
+                  <pre className="p-3 overflow-x-auto font-mono text-sm rounded-md bg-muted">
+                    {`{
+  "isAdmin": true | false
+}`}
+                  </pre>
+                </div>
+                <div>
+                  <h4 className="mb-2 font-medium">Example:</h4>
+                  <pre className="p-3 overflow-x-auto font-mono text-sm rounded-md bg-muted">
+                    GET /user/isAdmin/johndoe
+                  </pre>
+                  <h4 className="mt-3 mb-2 font-medium">Example Response:</h4>
+                  <pre className="p-3 overflow-x-auto font-mono text-sm rounded-md bg-muted">
+                    {`{
+  "isAdmin": true
+}`}
+                  </pre>
+                </div>
+                <div>
+                  <h4 className="mb-2 font-medium">Status Codes:</h4>
+                  <ul className="ml-6 list-disc">
+                    <li>
+                      <strong>200:</strong> Success - Returns admin status
+                    </li>
+                    <li>
+                      <strong>404:</strong> User not found
+                    </li>
+                    <li>
+                      <strong>500:</strong> Server error
+                    </li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           <div className="space-y-6">
