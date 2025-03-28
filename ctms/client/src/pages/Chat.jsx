@@ -101,22 +101,24 @@ const Chat = () => {
     setNewMessage(e.target.value);
 
     // don't emit typing events if not in a conversation
-    if (!recipient || !socket) return;
+    if (!recipient || !user) return;
 
+    // First clear any existing timeout
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+    }
+
+    // Only emit typing if not already in typing state
     if (!isTyping) {
       setIsTyping(true);
       emitTyping(user.id, recipient.id);
     }
 
-    if (typingTimeoutRef.current) {
-      clearTimeout(typingTimeoutRef.current);
-    }
-
-    // set a new time out
+    // Always set a new timeout when typing
     typingTimeoutRef.current = setTimeout(() => {
       setIsTyping(false);
       emitStopTyping(user.id, recipient.id);
-    }, 1000);
+    }, 2000); // Increased to 2 seconds for better UX
   };
 
   // **********************************
@@ -281,6 +283,16 @@ const Chat = () => {
   const handleSendMessage = async () => {
     if (!newMessage.trim() || !recipient) return;
 
+    // Clear typing timeout and state immediately
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+
+    // Stop typing indication before sending
+    setIsTyping(false);
+    emitStopTyping(user.id, recipient.id);
+
     const messageData = {
       sender_id: user.id,
       recipient_id: recipient.id,
@@ -298,9 +310,6 @@ const Chat = () => {
       });
       if (!response.ok) throw new Error("Failed to send message");
       setNewMessage("");
-
-      // Stop typing indication
-      emitStopTyping(user.id, recipient.id);
 
       // Manually fetch messages after sending
       fetchMessages();
