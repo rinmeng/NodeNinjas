@@ -160,6 +160,7 @@ router.put('/update/:id', isAuthAsAdmin, async (req, res) => {
         res.status(500).send({ message: 'Error updating user.' });
     }
 });
+
 //updating the user's role
 router.put('/updateRole/:id', isAuthAsAdmin, async (req, res) => {
     const id = req.params.id;
@@ -174,8 +175,22 @@ router.put('/updateRole/:id', isAuthAsAdmin, async (req, res) => {
         if (user.rowCount === 0) {
             return res.status(404).json({ message: "User not found" });
         }
-        const updatedUser = await pool.query('UPDATE users SET role = $1 WHERE id = $2 RETURNING *', [role, id]);
-        res.status(200).json(updatedUser.rows[0]);
+
+        // If role is being set to admin, make the user their own manager
+        if (role === 'admin') {
+            const updatedUser = await pool.query(
+                'UPDATE users SET role = $1, manager_id = $2 WHERE id = $3 RETURNING *',
+                [role, id, id]
+            );
+            res.status(200).json(updatedUser.rows[0]);
+        } else {
+            // Keep original behavior for non-admin roles
+            const updatedUser = await pool.query(
+                'UPDATE users SET role = $1 WHERE id = $2 RETURNING *',
+                [role, id]
+            );
+            res.status(200).json(updatedUser.rows[0]);
+        }
 
     } catch (error) {
         console.error("Error updating user role:", error);
