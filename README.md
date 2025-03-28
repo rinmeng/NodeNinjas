@@ -59,7 +59,7 @@ Statements: 65.28%
 
 Branches: 68.32%
 
-Functions: 49.27%
+Functions: 50%
 
 Lines: 65.67%
 
