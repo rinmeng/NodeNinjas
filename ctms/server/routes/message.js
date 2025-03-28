@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const pool = require("../db"); // Import database connection
+const { isAuthenticated } = require('../auth');
 
 // GET /message (documentation)
 router.get('/', (req, res) => {
@@ -155,7 +156,7 @@ CREATE INDEX idx_messages_task_id ON messages (task_id);
 });
 
 //  Send a message
-router.post("/", async (req, res) => {
+router.post("/", isAuthenticated, async (req, res) => {
   const { sender_id, recipient_id, text } = req.body; // Use correct column names
 
   if (!sender_id || !recipient_id || !text.trim()) {
@@ -191,7 +192,7 @@ router.post("/", async (req, res) => {
 });
 
 //  Get messages between two users
-router.get("/:sender_id/:recipient_id", async (req, res) => {
+router.get("/:sender_id/:recipient_id", isAuthenticated, async (req, res) => {
   const { sender_id, recipient_id } = req.params;
 
   try {
