@@ -180,9 +180,7 @@ const NotificationPanel = ({
                 }, 750);
               }}
             >
-              {isRefreshing && (
-                <RefreshCw className="animate-spin mr-2 h-4 w-4" />
-              )}
+              {isRefreshing && <RefreshCw className="animate-spin" />}
               Sync Notifications
             </Button>
           </SheetHeader>
