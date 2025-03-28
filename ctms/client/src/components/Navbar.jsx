@@ -95,7 +95,7 @@ function Navbar({ devMode }) {
   // Notification bell with count
   function NotificationBell({ unreadCount, ...props }, ref) {
     return (
-      <Button ref={ref} variant="secondary" className="relative p-2" {...props}>
+      <Button ref={ref} variant="outline" className="relative" {...props}>
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 bg-destructive text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
@@ -133,13 +133,14 @@ function Navbar({ devMode }) {
           {links.map((link) => (
             <NavigationMenuItem key={link.route}>
               <Button
-                variant="ghost"
+                variant="outline"
                 asChild
                 className={cn(
                   "transition-colors",
                   isActive(link.route) &&
-                    "bg-secondary text-secondary-foreground font-medium",
-                  !isActive(link.route) && "text-primary-foreground bg-primary"
+                    "not-dark:bg-primary not-dark:text-primary-foreground dark:bg-primary dark:text-primary-foreground",
+                  !isActive(link.route) &&
+                    "dark:hover:bg-primary dark:hover:text-primary-foreground hover:bg-primary hover:text-primary-foreground"
                 )}
                 onClick={() => handleNavigation(link.route)}
               >
