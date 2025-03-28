@@ -44,7 +44,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useAuth } from "@/utils/AuthProvider";
 import { useToast } from "@/utils/ToastProvider";
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { cn } from "@/lib/utils";
 
 import {
@@ -60,17 +60,7 @@ function Dashboard({ devMode }) {
   const [isRefetching, setIsRefetching] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
 
-  const {
-    tasks: taskList,
-    isLoading,
-    searchCriteria,
-    filterOptions,
-    isAnyFilterActive,
-    setSearchCriteria,
-    handleFilterChange,
-    removeAllFilters,
-    triggerRefetch,
-  } = useTasks(user, devMode);
+);
 
   // Handle search input change
   const handleSearchChange = (e) => {

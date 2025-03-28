@@ -28,9 +28,7 @@ function Admin({ devMode }) {
     updateUserRole,
   } = useUserManagement(user, devMode);
 
-  const handleUserAdded = () => {
-    // Refresh the users list when a new user is added
-    fetchUsers();
+
   };
 
   if ((!user || user.role !== "admin") && !devMode) {
@@ -45,6 +43,7 @@ function Admin({ devMode }) {
       </div>
     );
   }
+
 
   return (
     <div className="w-full my-30 animate-fade-in">
