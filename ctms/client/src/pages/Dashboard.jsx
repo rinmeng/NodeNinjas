@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import {
   CalendarIcon,
@@ -59,6 +59,8 @@ function Dashboard({ devMode }) {
   const { setFeedbackMessage } = useToast();
   const [isRefetching, setIsRefetching] = useState(false);
   const [isSearchActive, setIsSearchActive] = useState(false);
+  const [localSearchValue, setLocalSearchValue] = useState("");
+  const searchInputRef = useRef(null);
 
   const {
     tasks: taskList,
@@ -72,22 +74,55 @@ function Dashboard({ devMode }) {
     triggerRefetch,
   } = useTasks(user, devMode);
 
+  // Sync local search value with the hook's searchCriteria on initial load
+  useEffect(() => {
+    if (localSearchValue === "" && searchCriteria !== "") {
+      setLocalSearchValue(searchCriteria);
+    }
+  }, [searchCriteria]);
+
   // Handle search input change
   const handleSearchChange = (e) => {
-    setSearchCriteria(e.target.value);
-    setIsSearchActive(e.target.value.length > 0);
+    const value = e.target.value;
+    setLocalSearchValue(value);
+    setIsSearchActive(value.length > 0);
+
+    // Use a small timeout to ensure React has time to update the state
+    setTimeout(() => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    }, 0);
   };
+
+  // Update the hook's search criteria with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchCriteria(localSearchValue);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [localSearchValue, setSearchCriteria]);
 
   // Handle search form submission
   const handleSearchSubmit = (e) => {
     e.preventDefault();
-    setIsSearchActive(searchCriteria.length > 0);
+    setSearchCriteria(localSearchValue);
+    setIsSearchActive(localSearchValue.length > 0);
   };
 
   // Clear search
   const handleClearSearch = () => {
+    setLocalSearchValue("");
     setSearchCriteria("");
     setIsSearchActive(false);
+
+    // Maintain focus after clearing
+    setTimeout(() => {
+      if (searchInputRef.current) {
+        searchInputRef.current.focus();
+      }
+    }, 0);
   };
 
   const refetchTaskClicked = () => {
@@ -124,10 +159,11 @@ function Dashboard({ devMode }) {
         <div className="relative">
           <Input
             type="text"
-            value={searchCriteria}
+            value={localSearchValue}
             placeholder="Search for tasks by title or description..."
             className={`pl-10 pr-12`}
             onChange={handleSearchChange}
+            ref={searchInputRef}
           />
           <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
             <Search
@@ -137,7 +173,7 @@ function Dashboard({ devMode }) {
               }`}
             />
           </div>
-          {searchCriteria && (
+          {localSearchValue && (
             <Button
               type="button"
               variant="ghost"
@@ -218,9 +254,9 @@ function Dashboard({ devMode }) {
       <ClipboardList size={48} className="mb-4" />
       <p className="text-lg">
         No tasks available matching<br></br>
-        {searchCriteria && `\"${searchCriteria}\"`}
+        {localSearchValue && `\"${localSearchValue}\"`}
       </p>
-      {!searchCriteria && (
+      {!localSearchValue && (
         <p className="text-sm mt-2">
           Click 'Create Task' to add your first task
         </p>
