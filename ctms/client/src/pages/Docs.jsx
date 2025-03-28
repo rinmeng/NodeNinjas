@@ -1692,6 +1692,28 @@ CREATE INDEX idx_notifications_status ON notifications (user_id, status);`}
                             - User ID (number)
                           </p>
                         </div>
+                        <div>
+                          <h4 className="mb-1 text-sm font-medium">
+                            Request Body:
+                          </h4>
+                          <pre className="p-2 overflow-x-auto text-xs font-mono rounded bg-muted">
+                            {`{
+  "role": string  // Required - The new role to assign
+}`}
+                          </pre>
+                        </div>
+                        <div>
+                          <h4 className="mb-1 text-sm font-medium">Notes:</h4>
+                          <ul className="ml-4 text-xs list-disc">
+                            <li>
+                              When role is set to 'admin', the user's manager_id
+                              is automatically set to their own ID
+                            </li>
+                            <li>
+                              Cannot change the role of an existing admin user
+                            </li>
+                          </ul>
+                        </div>
                       </CardContent>
                     </Card>
 
