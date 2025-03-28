@@ -40,7 +40,6 @@ export function CustomPieChart({
     ...(display && { [dataType]: display }),
   };
 
-
   useEffect(() => {
     fetch(`${proxy}/task/assignedto/manager/${user.id}`, {
       credentials: "include",
