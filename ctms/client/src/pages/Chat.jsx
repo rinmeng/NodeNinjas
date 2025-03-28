@@ -191,7 +191,7 @@ const Chat = () => {
   // Fetch users under manager
   useEffect(() => {
     if (!user?.manager_id) return;
-    fetch(`${proxy}/user/under/${user.manager_id}`)
+    fetch(`${proxy}/user/under/${user.manager_id}`, { credentials: "include" })
       .then((res) => {
         if (!res.ok) {
           throw new Error(`Error: ${res.status}`);
@@ -228,7 +228,9 @@ const Chat = () => {
     if (!user?.id || !recipient?.id) return;
 
     setIsLoading(true);
-    fetch(`${proxy}/message/${user.id}/${recipient.id}`)
+    fetch(`${proxy}/message/${user.id}/${recipient.id}`, {
+      credentials: "include",
+    })
       .then((res) => {
         if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
         return res.json();
@@ -288,6 +290,7 @@ const Chat = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(messageData),
       });
       if (!response.ok) throw new Error("Failed to send message");
