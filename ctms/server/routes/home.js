@@ -1,7 +1,7 @@
 const express = require('express');
 const pool = require('../db'); // Database connection
 const router = express.Router();
-const proxy = "http://localhost:15000"; // Store base URL in a variable
+const proxy = "http://localhost:15000";
 
 router.get('/', (req, res) => {
     res.send(`

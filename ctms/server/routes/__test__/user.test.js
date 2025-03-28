@@ -428,7 +428,7 @@ describe('User Routes', () => {
     });
 
 
-        // checking user_role update
+    // checking user_role update
 
     describe('PUT /user/updateRole/:id', () => {
         it('returns status code 200 if user role was updated successfully', async () => {
@@ -495,83 +495,83 @@ describe('User Routes', () => {
         });
     });
 
-        describe('PUT /user/change_manager_id/:id', () => {
-            it('returns status code 200 if manager ID was updated successfully', async () => {
-                const updatedUser = {
-                    id: 1,
-                    username: 'testuser',
-                    email: 'testemail',
-                    password_hash: 'testpassword',
-                    role: 'testrole',
-                    display_name: 'testdisplayname',
-                    manager_id: 2
-                };
+    describe('PUT /user/change_manager_id/:id', () => {
+        it('returns status code 200 if manager ID was updated successfully', async () => {
+            const updatedUser = {
+                id: 1,
+                username: 'testuser',
+                email: 'testemail',
+                password_hash: 'testpassword',
+                role: 'testrole',
+                display_name: 'testdisplayname',
+                manager_id: 2
+            };
 
-                // Mock both queries: first the SELECT query, then the UPDATE query
-                pool.query
-                    .mockResolvedValueOnce({
-                        rows: [sampleUser],
-                        rowCount: 1
-                    })
-                    .mockResolvedValueOnce({
-                        rows: [updatedUser]
-                    });
-
-                const response = await request(app)
-                    .put('/user/change_manager_id/1')
-                    .send({ manager_id: 2 });
-
-                expect(response.statusCode).toBe(200);
-                expect(response.body).toEqual(updatedUser);
-            });
-
-            it('returns status code 404 if user is not found', async () => {
-                pool.query.mockResolvedValueOnce({
-                    rows: [],
-                    rowCount: 0
+            // Mock both queries: first the SELECT query, then the UPDATE query
+            pool.query
+                .mockResolvedValueOnce({
+                    rows: [sampleUser],
+                    rowCount: 1
+                })
+                .mockResolvedValueOnce({
+                    rows: [updatedUser]
                 });
 
-                const response = await request(app)
-                    .put('/user/change_manager_id/999')
-                    .send({ manager_id: 2 });
+            const response = await request(app)
+                .put('/user/change_manager_id/1')
+                .send({ manager_id: 2 });
 
-                expect(response.statusCode).toBe(404);
-                expect(response.body).toEqual({ message: 'User not found' });
-            });
-
-            it('returns status code 400 if manager ID is missing', async () => {
-                const response = await request(app)
-                    .put('/user/change_manager_id/1')
-                    .send({});
-
-                expect(response.statusCode).toBe(400);
-                expect(response.body).toEqual({ message: 'Manager ID is required' });
-            });
-
-           
-
-            it('returns status code 500 if database error occurs', async () => {
-                pool.query.mockRejectedValueOnce(new Error('Database error'));
-
-                const response = await request(app)
-                    .put('/user/change_manager_id/1')
-                    .send({ manager_id: 2 });
-
-                expect(response.statusCode).toBe(500);
-                expect(response.body).toEqual({ message: 'Something went wrong while updating user role' });
-            });
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual(updatedUser);
         });
-   
+
+        it('returns status code 404 if user is not found', async () => {
+            pool.query.mockResolvedValueOnce({
+                rows: [],
+                rowCount: 0
+            });
+
+            const response = await request(app)
+                .put('/user/change_manager_id/999')
+                .send({ manager_id: 2 });
+
+            expect(response.statusCode).toBe(404);
+            expect(response.body).toEqual({ message: 'User not found' });
+        });
+
+        it('returns status code 400 if manager ID is missing', async () => {
+            const response = await request(app)
+                .put('/user/change_manager_id/1')
+                .send({});
+
+            expect(response.statusCode).toBe(400);
+            expect(response.body).toEqual({ message: 'Manager ID is required' });
+        });
 
 
 
-    
-    
+        it('returns status code 500 if database error occurs', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
 
-       
-        
-            
-       
+            const response = await request(app)
+                .put('/user/change_manager_id/1')
+                .send({ manager_id: 2 });
+
+            expect(response.statusCode).toBe(500);
+            expect(response.body).toEqual({ message: 'Something went wrong while updating user role' });
+        });
+    });
+
+
+
+
+
+
+
+
+
+
+
 
     // it('returns status code 200 if session is active', async () => {
     //     //first add the user in the database, then log them in, then check if session is 200

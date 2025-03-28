@@ -102,7 +102,9 @@ function Dashboard({ devMode }) {
   const fetchTaskFromDatabase = useCallback(async () => {
     try {
       setIsLoading(true);
-      const response = await fetch(`${proxy}/task/assignedto/user/${user.id}`);
+      const response = await fetch(`${proxy}/task/assignedto/user/${user.id}`, {
+        credentials: "include",
+      });
       const data = await response.json();
       console.log("Fetched tasks from database:", data);
 

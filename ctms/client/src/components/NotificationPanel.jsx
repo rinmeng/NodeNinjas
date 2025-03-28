@@ -55,6 +55,7 @@ const NotificationPanel = ({
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
       });
       setNotificationsNeedRefetch(true);
     } catch (error) {

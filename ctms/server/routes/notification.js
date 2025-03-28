@@ -3,7 +3,7 @@ const pool = require('../db');
 const router = express.Router();
 const { isAuthenticated } = require('../auth');
 
-// GET /notification
+// GET /notification (documentation)
 router.get('/', (req, res) => {
     res.send(`<!DOCTYPE html>
 <html lang="en">
@@ -134,6 +134,29 @@ router.get('/', (req, res) => {
                         </pre>
                     </div>
                 </div>
+
+                <!-- DELETE /notification/delete/:id -->
+                <div class="border-l-4 border-red-500 pl-4">
+                    <h3 class="text-xl font-semibold text-gray-100">DELETE /notification/delete/:id</h3>
+                    <p class="text-gray-300 mt-2">Deletes a notification by its ID.</p>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Parameters:</h4>
+                        <p class="text-gray-300"><code class="bg-gray-600 px-1 rounded">id</code> - Notification ID (number)</p>
+                    </div>
+                    <div class="mt-3">
+                        <h4 class="font-medium text-gray-200">Response:</h4>
+                        <pre class="bg-gray-700 p-3 rounded mt-2 text-sm text-gray-200">
+{
+    "id": number,
+    "message": string,
+    "user_id": number,
+    "type": string,
+    "status": string,
+    "created_at": timestamp
+}
+                        </pre>
+                    </div>
+                </div>
             </div>
 
             <!-- Error Handling -->
@@ -153,6 +176,7 @@ router.get('/', (req, res) => {
                         <li>"Failed to add notification"</li>
                         <li>"Failed to fetch notifications"</li>
                         <li>"Failed to update notification"</li>
+                        <li>"Failed to delete notification"</li>
                     </ul>
                 </div>
             </div>
@@ -161,6 +185,7 @@ router.get('/', (req, res) => {
             <div class="bg-gray-700 p-4 rounded-lg mt-8">
                 <h2 class="text-xl font-semibold text-purple-300 mb-2">Notification Schema</h2>
                 <pre class="bg-gray-600 p-3 rounded mt-2 text-sm text-gray-200">
+DROP TABLE IF EXISTS notifications CASCADE;
 CREATE TABLE notifications (
     id SERIAL PRIMARY KEY,
     user_id INT NOT NULL,
@@ -259,7 +284,7 @@ router.put('/unread/:id', isAuthenticated, async (req, res) => {
     }
 }
 );
-//delete a notification back-end
+// DELETE /notification/delete/:id
 router.delete('/delete/:id', isAuthenticated, async (req, res) => {
     const id = req.params.id;
     try {
