@@ -1,4 +1,4 @@
-const devMode = true;
+const devMode = false;
 
 // For normal authentication, we check if the user is authenticated
 const isAuthenticated = (req, res, next) => {
