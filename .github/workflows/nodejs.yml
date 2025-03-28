@@ -1,4 +1,4 @@
-name: Run Tests
+name: Run Tests and Deploy
 on:
   push:
     branches:
@@ -8,6 +8,7 @@ on:
     branches:
       - main
       - dev
+
 jobs:
   test:
     runs-on: ubuntu-latest
@@ -32,7 +33,6 @@ jobs:
           cd ctms/server
           npm install
 
-      # Mock session for tests
       - name: Setup test environment
         run: |
           echo "NODE_ENV=test" >> $GITHUB_ENV
@@ -45,3 +45,23 @@ jobs:
         env:
           NODE_ENV: test
           SESSION_SECRET: test-secret
+
+  deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Install Vercel CLI
+        run: npm install -g vercel
+
+      - name: Pull Vercel Environment Variables
+        run: vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Build Project
+        run: vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
+
+      - name: Deploy to Vercel
+        run: vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }}
