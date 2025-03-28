@@ -101,7 +101,10 @@ const Admin = ({ devMode }) => {
         setInitialLoad(false);
       })
       .catch((error) => {
-        console.error("Error fetching data:", error);
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to load users",
+        });
         setUsersList([]);
         setInitialLoad(false);
       });
@@ -260,14 +263,20 @@ const Admin = ({ devMode }) => {
 
           if (!res.ok) {
             const errorData = await res.json();
-            console.error(`Failed to delete user ${userId}:`, errorData);
+            setFeedbackMessage({
+              title: "Error",
+              description: `Failed to delete user ${userId}: ${errorData.message}`,
+            });
             continue;
           }
 
           const data = await res.json();
           validDeletions.push(userId);
         } catch (error) {
-          console.error(`Error deleting user ${userId}:`, error);
+          setFeedbackMessage({
+            title: "Error",
+            description: `Failed to delete user ${userId}: ${error.message}`,
+          });
         }
       }
 
@@ -291,7 +300,6 @@ const Admin = ({ devMode }) => {
         fetchUsers();
       }
     } catch (error) {
-      console.error("Error in delete operation:", error);
       setFeedbackMessage({
         title: "Error",
         description: "An unexpected error occurred while deleting users",
@@ -327,7 +335,6 @@ const Admin = ({ devMode }) => {
         // Loading indicator will be cleared by the useEffect
       })
       .catch((error) => {
-        console.error("Error fetching data:", error);
         setFeedbackMessage({
           title: "Error",
           description: "Failed to load users",
@@ -391,7 +398,6 @@ const Admin = ({ devMode }) => {
         setIsRefetching(false);
       })
       .catch((error) => {
-        console.error("Error updating role:", error);
         setFeedbackMessage({
           title: "Error",
           description: "Failed to update role: " + error.message,

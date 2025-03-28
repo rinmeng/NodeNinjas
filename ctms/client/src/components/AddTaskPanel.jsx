@@ -69,7 +69,6 @@ const AddTaskPanel = ({ user, setNeedsRefetch }) => {
       await addTaskToDatabase();
       setOpen(false);
     } catch (error) {
-      console.error("Error adding task:", error);
       setFeedbackMessage({
         title: "Failed to Add Task",
         description: error.message,
