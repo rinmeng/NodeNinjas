@@ -413,7 +413,7 @@ router.get('/userid/:id', isAuthenticated, async (req, res) => {
 });
 
 // GET /user/username/:username
-router.get('/username/:username', async (req, res) => {
+router.get('/username/:username', isAuthenticated, async (req, res) => {
     const username = req.body.username || req.params.username;
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -581,7 +581,7 @@ router.post('/logout', (req, res) => {
 });
 
 // GET /user/under/:manager_id
-router.get('/under/:manager_id', async (req, res) => {
+router.get('/under/:manager_id', isAuthenticated, async (req, res) => {
     const manager_id = req.params.manager_id;
     try {
         const data = await pool.query('SELECT * FROM users WHERE manager_id = $1', [manager_id]);
