@@ -45,11 +45,12 @@ jobs:
         env:
           NODE_ENV: test
           SESSION_SECRET: test-secret
-
   deploy:
     needs: test
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' || github.event_name == 'pull_request'
+    if: >
+      (github.event_name == 'push' && contains('refs/heads/main refs/heads/dev', github.ref)) || 
+      (github.event_name == 'pull_request' && contains('main dev', github.base_ref))
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
