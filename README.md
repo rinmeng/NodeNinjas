@@ -16,6 +16,7 @@
 
 ## Known Bugs
 - Typing UI is not displaying when a user types on the Chat feature.
+  
 The typing indicator UI is not displaying when a user begins typing in the chat input field  The issue was observed while testing commit #232. Normally when a user types, the UI should show a typing indicator to signal activity, but currently there is no visual feedback. This affects the features of frontend components, specifically the typing status handling. The absence of the indicator can impact user experience. The issue is considered moderate in severity, as it does not block functionally but affects usability.
 
 - Register feature isn’t working when a team member submits the registration form.
