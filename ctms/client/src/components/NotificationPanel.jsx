@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import {
   MailWarning,
   MailCheck,
@@ -41,16 +41,6 @@ const NotificationPanel = ({
   useEffect(() => {
     setNotifications(initialNotifications);
   }, [initialNotifications]);
-
-  const SortNotifications = useMemo(() => {
-    if (!notifications || notifications.length === 0) return [];
-    return notifications.sort((a, b) => {
-      if (a.status === "unread" && b.status === "read") return -1;
-      if (b.status === "read" && b.status === "unread") return 1;
-
-      return new Date(b.created_at) - new Date(a.created_at);
-    });
-  }, [notifications]);
 
   const isNotificationRead = (notification) => {
     return notification.status === "read";
