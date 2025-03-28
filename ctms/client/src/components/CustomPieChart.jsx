@@ -20,9 +20,26 @@ import {
 import proxy from "@/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 
-export function CustomPieChart({ height }) {
+export function CustomPieChart({
+  height,
+  dataType,
+  title = "Task Info",
+  description = "Here is data on tasks!",
+  colours,
+  display,
+  info,
+}) {
   const { user } = useAuth();
   const [chartData, setChartData] = useState([]);
+
+  const confirmColourPalette = {
+    ...(colours && { [dataType]: colours }),
+  };
+
+  const confirmDisplayNames = {
+    ...(display && { [dataType]: display }),
+  };
+
   useEffect(() => {
     fetch(`${proxy}/task/assignedto/manager/${user.id}`, {
       credentials: "include",
@@ -36,48 +53,33 @@ export function CustomPieChart({ height }) {
         return res.json();
       })
       .then((data) => {
-        const taskStatusCounting = data.reduce(
-          (count, task) => {
-            if (task.status === "completed") {
-              count.completed++;
-            } else if (task.status === "in_progress") {
-              count.inProg++;
-            } else if (task.status === "pending") {
-              count.pending++;
-            }
-            return count;
-          },
-          { inProg: 0, pending: 0, completed: 0 }
-        );
-
-        console.log("Task Status Counts: ", taskStatusCounting);
-
-        setChartData([
-          {
-            status: "Pending",
-            count: taskStatusCounting.pending,
-            fill: "var(--chart-1)",
-          },
-          {
-            status: "In-Progress",
-            count: taskStatusCounting.inProg,
-            fill: "var(--chart-3)",
-          },
-          {
-            status: "Completed",
-            count: taskStatusCounting.completed,
-            fill: "var(--chart-2)",
-          },
-        ]);
+        let dataSet;
+        dataSet = processData(data);
+        setChartData(dataSet);
       })
       .catch((error) => console.error("Error fetching tasks: ", error));
-  }, []);
+  }, [user.id, dataType, confirmColourPalette, confirmDisplayNames]);
+
+  const processData = (tasks) => {
+    const counts = tasks.reduce((count, task) => {
+      const value = task[dataType];
+      count[value] = (count[value] || 0) + 1;
+      return count;
+    }, {});
+
+    return Object.keys(counts).map((key) => ({
+      category: key,
+      count: counts[key],
+      fill: confirmColourPalette[dataType]?.[key] || "var(--chart-5)",
+      displayName: confirmDisplayNames[dataType]?.[key] || key,
+    }));
+  };
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Status of Tasks</CardTitle>
-        <CardDescription>March 2025</CardDescription>
+        <CardTitle>{`${title}`}</CardTitle>
+        <CardDescription>{`${description}`}</CardDescription>
       </CardHeader>
       <CardContent className="flex-1 pb-0">
         <ChartContainer
@@ -87,15 +89,18 @@ export function CustomPieChart({ height }) {
         >
           <PieChart>
             <ChartTooltip
-              content={<ChartTooltipContent nameKey="status" hideLabel />}
+              content={<ChartTooltipContent nameKey="displayName" hideLabel />}
             />
-            <Pie data={chartData} dataKey="count" nameKey="status">
+            <Pie data={chartData} dataKey="count" nameKey="displayName">
+              {chartData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
               <LabelList
-                dataKey="status"
+                dataKey="displayName"
                 className="fill-background"
                 stroke="none"
                 fontSize={12}
-                formatter={(status) => status}
+                formatter={(value) => value}
               />
             </Pie>
             <Tooltip />
@@ -105,11 +110,9 @@ export function CustomPieChart({ height }) {
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex items-center gap-2">
           <TrendingUp size={16} />
-          <span>Statuses of all tasks for your team</span>
+          <span>Information of all tasks for your team</span>
         </div>
-        <div className="leading-none text-muted-foreground">
-          Showing status of all tasks under your management.
-        </div>
+        <div className="leading-none text-muted-foreground">{`${info}`}</div>
       </CardFooter>
     </Card>
   );
