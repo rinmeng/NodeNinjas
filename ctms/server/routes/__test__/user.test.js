@@ -143,6 +143,59 @@ describe('User Routes', () => {
         });
     });
 
+    describe('GET /user/isAdmin/:username', () => {
+        it('returns isAdmin: true when username belongs to admin user', async () => {
+            const adminUser = { ...sampleUser, role: 'admin' };
+            pool.query.mockResolvedValueOnce({
+                rows: [adminUser],
+                rowCount: 1
+            });
+
+            const response = await request(app)
+                .get('/user/isAdmin/adminuser');
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual({ isAdmin: true });
+        });
+
+        it('returns isAdmin: false when username belongs to non-admin user', async () => {
+            const nonAdminUser = { ...sampleUser, role: 'team_member' };
+            pool.query.mockResolvedValueOnce({
+                rows: [nonAdminUser],
+                rowCount: 1
+            });
+
+            const response = await request(app)
+                .get('/user/isAdmin/teammember');
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual({ isAdmin: false });
+        });
+
+        it('returns 404 when username is not found', async () => {
+            pool.query.mockResolvedValueOnce({
+                rows: [],
+                rowCount: 0
+            });
+
+            const response = await request(app)
+                .get('/user/isAdmin/nonexistent');
+
+            expect(response.statusCode).toBe(404);
+            expect(response.body).toEqual({ message: 'User not found' });
+        });
+
+        it('returns 500 on database error', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            const response = await request(app)
+                .get('/user/isAdmin/adminuser');
+
+            expect(response.statusCode).toBe(500);
+            expect(response.body).toEqual({ message: 'Error searching up username.' });
+        });
+    });
+
     describe('DELETE /user/delete/:id', () => {
         it('successfully deletes existing user', async () => {
             pool.query.mockResolvedValueOnce({

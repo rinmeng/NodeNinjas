@@ -86,7 +86,7 @@ router.get('/userid/:id', isAuthenticated, async (req, res) => {
 });
 
 // GET /user/username/:username
-router.get('/username/:username', isAuthenticated, async (req, res) => {
+router.get('/username/:username', async (req, res) => {
     const username = req.body.username || req.params.username;
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
@@ -96,6 +96,25 @@ router.get('/username/:username', isAuthenticated, async (req, res) => {
         return res.status(200).json(data.rows[0]);
     } catch (err) {
         console.error(err.message);
+        res.status(500).send({ message: 'Error searching up username.' });
+    }
+});
+
+// GET /user/isAdmin/:username
+router.get('/isAdmin/:username', async (req, res) => {
+    const username = req.body.username || req.params.username;
+    try {
+        const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        if (data.rowCount === 0) {
+            return res.status(404).json({ message: "User not found" });
+        }
+        const user = data.rows[0];
+        if (user.role === 'admin') {
+            return res.status(200).json({ isAdmin: true });
+        } else {
+            return res.status(200).json({ isAdmin: false });
+        }
+    } catch (err) {
         res.status(500).send({ message: 'Error searching up username.' });
     }
 });
