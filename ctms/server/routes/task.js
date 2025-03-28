@@ -605,7 +605,7 @@ router.get('/assignedto/all', isAuthenticated, async (req, res) => {
 );
 
 // PUT /task/lock/:id - Lock a task by ID
-router.put('/lock/:id', isAuthenticated, async (req, res) => {
+router.put('/lock/:id', isAuthAsAdmin, async (req, res) => {
     const { id } = req.body;
     if (!id) {
         return res.status(400).json({ message: 'Task ID is required' });
@@ -627,7 +627,7 @@ router.put('/lock/:id', isAuthenticated, async (req, res) => {
 });
 
 // PUT /task/unlock/:id - Unlock a task by ID
-router.put('/unlock/:id', isAuthenticated, async (req, res) => {
+router.put('/unlock/:id', isAuthAsAdmin, async (req, res) => {
     const { id } = req.body;
     if (!id) {
         return res.status(400).json({ message: 'Task ID is required' });
@@ -649,7 +649,7 @@ router.put('/unlock/:id', isAuthenticated, async (req, res) => {
 });
 
 // POST /task/assign/:id - Assign a task to a user
-router.post('/assign/:id', isAuthenticated, async (req, res) => {
+router.post('/assign/:id', isAuthAsAdmin, async (req, res) => {
     const { id } = req.params;
     const { user_ids } = req.body;
 
@@ -693,7 +693,7 @@ router.post('/assign/:id', isAuthenticated, async (req, res) => {
 });
 
 // DELETE /task/unassign/:id - Unassign a task from a user
-router.delete('/unassign/:id', isAuthenticated, async (req, res) => {
+router.delete('/unassign/:id', isAuthAsAdmin, async (req, res) => {
     const { id } = req.params;
     const { user_ids } = req.body;
 
