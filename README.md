@@ -48,5 +48,19 @@ Newly registered admins who have no tasks assigned and no users in their team ar
 
 - Or pull the [Docker Image](https://hub.docker.com/r/rinmeng/nodeninjas-ctms/tags) from Docker Hub and run it locally with the [`docker-compose.yml`](./ctms/docker-compose.yml) file.
 
-- Test Coverage
+## Test Coverage
   ![Test Coverage](Test%20coverage%20reports.png)
+
+
+  server.js : 59.64%
+  message.js:
+  notification.js: 100%
+
+  Test Suites: 4 passed, 4 total
+  Tests: 73 passed, 73 total
+  Snapshots: 0 total
+  Time: 1.535 s
+  
+
+
+  
