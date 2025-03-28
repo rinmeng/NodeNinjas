@@ -69,6 +69,12 @@ function Navbar({ devMode }) {
       icon: User,
     });
 
+    links.push({
+      label: "Docs",
+      route: "/docs",
+      icon: MessageSquare,
+    });
+
     return links;
   };
 
