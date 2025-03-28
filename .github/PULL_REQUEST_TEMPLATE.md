@@ -18,6 +18,5 @@ Fixes # (issue number)
 ## Checklist
 
 - [ ] My code follows the project's coding style.
-- [ ] I have added necessary tests.
-- [ ] My changes require documentation updates.
-- [ ] I have updated the documentation accordingly.
+- [ ] I have added necessary tests (if applicable).
+- [ ] I have updated the documentation accordingly (if applicable).
