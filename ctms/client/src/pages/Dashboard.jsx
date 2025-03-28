@@ -384,9 +384,7 @@ function Dashboard({ devMode }) {
               <TooltipTrigger asChild>
                 <Button
                   variant={
-                    filterOptions.sortTitleAsc !== null
-                      ? "default"
-                      : "secondary"
+                    filterOptions.sortTitleAsc !== null ? "default" : "outline"
                   }
                   onClick={filterTaskByTitle}
                   className="flex items-center gap-2 transition-all"
@@ -423,7 +421,7 @@ function Dashboard({ devMode }) {
               <TooltipTrigger asChild>
                 <Button
                   variant={
-                    filterOptions.sortStatusAsc !== "" ? "default" : "secondary"
+                    filterOptions.sortStatusAsc !== "" ? "default" : "outline"
                   }
                   onClick={filterTaskByStatus}
                   className="flex items-center gap-2 transition-all"
@@ -455,9 +453,7 @@ function Dashboard({ devMode }) {
               <TooltipTrigger asChild>
                 <Button
                   variant={
-                    filterOptions.sortPriorityAsc !== ""
-                      ? "default"
-                      : "secondary"
+                    filterOptions.sortPriorityAsc !== "" ? "default" : "outline"
                   }
                   onClick={filterTaskByPriority}
                   className="flex items-center gap-2 transition-all"
@@ -491,7 +487,7 @@ function Dashboard({ devMode }) {
               <TooltipTrigger asChild>
                 <Button
                   variant={
-                    filterOptions.sortDateAsc !== null ? "default" : "secondary"
+                    filterOptions.sortDateAsc !== null ? "default" : "outline"
                   }
                   onClick={filterTaskByDate}
                   className="flex items-center gap-2 transition-all"

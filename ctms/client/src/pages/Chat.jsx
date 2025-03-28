@@ -316,7 +316,7 @@ const Chat = () => {
   }
 
   return (
-    <div className="flex h-[calc(100vh-5rem)] bg-background mt-18">
+    <div className="animate-fade-in flex h-[calc(100vh-5rem)] bg-background mt-18">
       {/* Sidebar Card */}
       <Card className="w-1/4 border-r rounded-none gap-0">
         <CardHeader>
