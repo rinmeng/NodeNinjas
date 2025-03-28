@@ -12,9 +12,7 @@ import Chat from "./pages/Chat";
 import Login from "@/src/pages/Login";
 import NotFound from "@/src/pages/NotFound";
 import Dashboard from "@/src/pages/Dashboard";
-import ChatWidget from "@/src/components/ChatWidget";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
-
 import { ToastProvider } from "@/utils/ToastProvider";
 import Docs from "@/src/pages/Docs";
 
@@ -34,7 +32,6 @@ function AppContent() {
         <Route path="/docs" element={<Docs />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-      {/* <ChatWidget /> */}
     </Router>
   );
 }

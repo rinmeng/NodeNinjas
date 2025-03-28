@@ -129,7 +129,6 @@ const EditTaskPanel = ({ taskToEdit, setNeedsRefetch, user }) => {
       }
 
       const data = await response.json();
-      console.log("Updated task:", data);
       setNeedsRefetch(true);
       setFeedbackMessage({
         title: "Success",
@@ -148,7 +147,6 @@ const EditTaskPanel = ({ taskToEdit, setNeedsRefetch, user }) => {
         });
       }
     } catch (error) {
-      console.error("Failed to update task:", error);
       setFeedbackMessage({
         title: "Error",
         description: error.message || "Failed to update task.",
