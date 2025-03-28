@@ -1,412 +1,623 @@
-import React, { useState, useCallback } from "react";
-import { Navigate } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
+import { MoreHorizontal, ArrowUpDown, RefreshCw, Trash2 } from "lucide-react";
 import {
-  CalendarIcon,
-  ClipboardList,
-  RefreshCw,
-  Search,
-  X,
-  FilterX,
-  Filter,
-  ArrowDownAZ,
-  ArrowDownZA,
-  ChevronsUpDown,
-  CalendarArrowUp,
-  CalendarArrowDown,
-  ClockAlert,
-  ClockArrowUp,
-  ClockArrowDown,
-  CircleDashed,
-  CircleDotDashed,
-  CircleCheck,
-  Loader2,
-} from "lucide-react";
-import TaskCard from "@/src/components/subcomponents/TaskCard";
-import AddTaskPanel from "@/src/components/AddTaskPanel";
-import FilterButton from "@/src/components/subcomponents/FilterButton";
-import useTasks from "@/hooks/useTasks";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+
+import React, { useEffect, useState } from "react";
+import { Navigate } from "react-router-dom";
+import { CustomBarChart } from "@/src/components/CustomBarChart";
+import { CustomPieChart } from "@/src/components/CustomPieChart";
+
+import DataTable from "@/src/components/DataTable";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
   CardTitle,
+  CardHeader,
+  CardDescription,
 } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { Input } from "@/components/ui/input";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import proxy from "@/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
 import { useToast } from "@/utils/ToastProvider";
-import { format } from "date-fns";
-import { cn } from "@/lib/utils";
+import { Separator } from "@/components/ui/separator";
+import { RegisterPanel } from "@/src/components/RegisterPanel";
 
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import { Calendar } from "@/components/ui/calendar";
-
-function Dashboard({ devMode }) {
+const Admin = ({ devMode }) => {
   const { user } = useAuth();
   const { setFeedbackMessage } = useToast();
+
+  // State for managing users
+  const [usersList, setUsersList] = useState([]);
+  const [deleteUser, setDeleteUser] = useState(null);
+  const [chosenUserIds, setChosenUserIds] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
-  const [isSearchActive, setIsSearchActive] = useState(false);
+  const [sortDirection, setSortDirection] = useState("none"); // 'none', 'asc', or 'desc'
+  const [initialLoad, setInitialLoad] = useState(true);
+  const tableRef = React.useRef(null);
 
-  const {
-    tasks: taskList,
-    isLoading,
-    searchCriteria,
-    filterOptions,
-    isAnyFilterActive,
-    setSearchCriteria,
-    handleFilterChange,
-    removeAllFilters,
-    triggerRefetch,
-  } = useTasks(user, devMode);
+  //State for Deletion dialog
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearchCriteria(e.target.value);
-    setIsSearchActive(e.target.value.length > 0);
-  };
+  useEffect(() => {
+    // Initial load without visual feedback
+    if (initialLoad) {
+      loadUsersInitially();
+    }
+  }, []);
 
-  // Handle search form submission
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setIsSearchActive(searchCriteria.length > 0);
-  };
+  // Handle loading state and feedback only for user-initiated refreshes
+  useEffect(() => {
+    if (isRefetching && !initialLoad) {
+      const timer = setTimeout(() => {
+        setIsRefetching(false);
+        setIsLoading(false);
+        setFeedbackMessage({
+          title: "Success",
+          description: "User data has been successfully synced",
+        });
+      }, 500);
 
-  // Clear search
-  const handleClearSearch = () => {
-    setSearchCriteria("");
-    setIsSearchActive(false);
-  };
+      return () => clearTimeout(timer);
+    }
+  }, [isRefetching, setFeedbackMessage, initialLoad]);
 
-  const refetchTaskClicked = () => {
-    setIsRefetching(true);
-    triggerRefetch();
-
-    // Set timeout for 750ms to ensure animation is visible
-    setTimeout(() => {
-      setIsRefetching(false);
-      setFeedbackMessage({
-        title: "Success",
-        description: "Tasks have been successfully synced",
+  // Initial load function without visual feedback
+  const loadUsersInitially = () => {
+    fetch(`${proxy}/user/under/${user.id}`, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "The users can't be loaded");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // Filter out admin users and add ordered IDs
+        const filteredData = data
+          .filter((user) => user.role !== "admin")
+          .map((user, index) => ({
+            ...user,
+            orderId: index + 1,
+          }));
+        setUsersList(filteredData);
+        setInitialLoad(false);
+      })
+      .catch((error) => {
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to load users",
+        });
+        setUsersList([]);
+        setInitialLoad(false);
       });
-    }, 750);
   };
 
-  if (!user && !devMode) {
+  if ((!user || user.role !== "admin") && !devMode) {
     return (
       <div className="mp5 my-16 animate-fadein">
-        <h1 className="title text-center">Welcome to your Dashboard!</h1>
+        <h1 className="title text-center">Welcome to the Admin Page!</h1>
         <p className="text-center text-xl">
-          Please log in to view this page, or enable <code>devMode</code> to
-          bypass authentication in <code>App.jsx</code>
+          Please log in as admin to view this page, or enable{" "}
+          <code>devMode</code> to bypass authentication in <code>App.jsx</code>
         </p>
         <Navigate to="/login" />
       </div>
     );
   }
 
-  // SearchBar Component
-  const SearchBar = () => (
-    <div className="w-1/2 mx-auto">
-      <form className="relative" onSubmit={handleSearchSubmit}>
-        <div className="relative">
-          <Input
-            type="text"
-            value={searchCriteria}
-            placeholder="Search for tasks by title or description..."
-            className={`pl-10 pr-12`}
-            onChange={handleSearchChange}
-          />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
-            <Search
-              size={20}
-              className={`transition-colors duration-200 ${
-                isSearchActive ? "text-blue-400" : "text-slate-400"
-              }`}
-            />
-          </div>
-          {searchCriteria && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleClearSearch}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
-            >
-              <X size={18} />
-            </Button>
-          )}
-        </div>
-      </form>
-    </div>
-  );
+  // Sort users based on current sort direction
+  const sortUsers = () => {
+    // Toggle sort direction
+    const newDirection =
+      sortDirection === "none" || sortDirection === "desc" ? "asc" : "desc";
+    setSortDirection(newDirection);
 
-  // DateRangeSelector Component
-  const DateRangeSelector = () => (
-    <div className="flex justify-center items-center gap-3 mt-4">
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant={"outline"}
-            className={cn(
-              "w-[240px] justify-start text-center font-normal",
-              !filterOptions.fromDate && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {filterOptions.fromDate ? (
-              format(filterOptions.fromDate, "PPP")
-            ) : (
-              <span>From Date</span>
-            )}
+    // Create a new sorted array without modifying the original data
+    const sortedUsers = [...usersList].sort((a, b) => {
+      const useA = a.username.toLowerCase();
+      const useB = b.username.toLowerCase();
+
+      if (newDirection === "asc") {
+        return useA < useB ? -1 : useA > useB ? 1 : 0;
+      } else {
+        return useA > useB ? -1 : useA < useB ? 1 : 0;
+      }
+    });
+
+    setUsersList(sortedUsers);
+  };
+
+  const usersColumns = [
+    {
+      id: "select",
+      header: ({ table }) => (
+        <Checkbox
+          checked={
+            table.getIsAllPageRowsSelected() ||
+            (table.getIsSomePageRowsSelected() && "indeterminate")
+          }
+          onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+          aria-label="Select all"
+        />
+      ),
+      cell: ({ row }) => (
+        <Checkbox
+          checked={row.getIsSelected()}
+          onCheckedChange={(value) => row.toggleSelected(!!value)}
+          aria-label="Select row"
+        />
+      ),
+      enableSorting: false,
+      enableHiding: false,
+    },
+    {
+      header: "Number",
+      accessorKey: "orderId", // Add this new accessor
+      cell: ({ row, table }) => {
+        // Get the current page number and page size
+        const pageIndex = table.getState().pagination.pageIndex;
+        const pageSize = table.getState().pagination.pageSize;
+
+        // Calculate the ordered ID
+        const orderId = pageIndex * pageSize + row.index + 1;
+
+        return <span className="font-mono text-xs">{orderId}</span>;
+      },
+    },
+
+    {
+      accessorKey: "username",
+      header: ({ column }) => {
+        return (
+          <Button variant="ghost" onClick={sortUsers}>
+            Username
+            <ArrowUpDown />
           </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={filterOptions.fromDate}
-            onSelect={(date) => handleFilterChange("fromDate", date)}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-      <span>-</span>
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant={"outline"}
-            className={cn(
-              "w-[240px] justify-start text-center font-normal",
-              !filterOptions.toDate && "text-muted-foreground"
-            )}
-          >
-            <CalendarIcon className="mr-2 h-4 w-4" />
-            {filterOptions.toDate ? (
-              format(filterOptions.toDate, "PPP")
-            ) : (
-              <span>To Date</span>
-            )}
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent className="w-auto p-0" align="start">
-          <Calendar
-            mode="single"
-            selected={filterOptions.toDate}
-            onSelect={(date) => handleFilterChange("toDate", date)}
-            initialFocus
-          />
-        </PopoverContent>
-      </Popover>
-    </div>
-  );
+        );
+      },
+    },
+    { header: "Email Address", accessorKey: "email" },
+    { header: "Role", accessorKey: "role" },
+    {
+      id: "actions",
+      cell: ({ row }) => {
+        const user = row.original;
 
-  // Empty Tasks Component
-  const EmptyTasks = () => (
-    <div className="flex w-full flex-col items-center justify-center py-8 text-muted-foreground">
-      <ClipboardList size={48} className="mb-4" />
-      <p className="text-lg">
-        No tasks available matching<br></br>
-        {searchCriteria && `\"${searchCriteria}\"`}
-      </p>
-      {!searchCriteria && (
-        <p className="text-sm mt-2">
-          Click 'Create Task' to add your first task
-        </p>
-      )}
-    </div>
-  );
+        return (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" className="h-8 w-8">
+                <MoreHorizontal className="h-4 w-4" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuLabel>Actions</DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() =>
+                  updateUserRole(
+                    user.id,
+                    user.role === "admin" ? "team_member" : "admin"
+                  )
+                }
+              >
+                Change Role to {user.role === "admin" ? "Team Member" : "Admin"}
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={() => {
+                  setDeleteUser(user);
+                  setIsDeleting(true);
+                }}
+                className="text-destructive focus:text-destructive"
+              >
+                Delete User
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        );
+      },
+    },
+  ];
 
-  // LoadingIndicator Component
-  const LoadingIndicator = () => (
-    <div className="flex w-full flex-col items-center justify-center py-8 text-muted-foreground">
-      <Loader2 size={48} className="animate-spin mb-4" />
-      <p className="text-lg">Loading tasks...</p>
-    </div>
-  );
+  // Modify your deleteUsers function to accept an array of IDs:
+  const deleteUsers = async (userIds = chosenUserIds) => {
+    if (userIds.length === 0) {
+      setFeedbackMessage({
+        title: "Error",
+        description: "No users are selected!",
+      });
+      return;
+    }
+
+    setIsDeleting(true);
+    const validDeletions = [];
+
+    try {
+      for (const userId of userIds) {
+        try {
+          const res = await fetch(`${proxy}/user/delete/${userId}`, {
+            method: "DELETE",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            credentials: "include",
+          });
+
+          if (!res.ok) {
+            const errorData = await res.json();
+            setFeedbackMessage({
+              title: "Error",
+              description: `Failed to delete user ${userId}: ${errorData.message}`,
+            });
+            continue;
+          }
+
+          const data = await res.json();
+          validDeletions.push(userId);
+        } catch (error) {
+          setFeedbackMessage({
+            title: "Error",
+            description: `Failed to delete user ${userId}: ${error.message}`,
+          });
+        }
+      }
+
+      if (validDeletions.length > 0) {
+        setUsersList((prev) =>
+          prev.filter((user) => !validDeletions.includes(user.id))
+        );
+        setChosenUserIds((prev) =>
+          prev.filter((id) => !validDeletions.includes(id))
+        );
+        setFeedbackMessage({
+          title: "Success",
+          description: `Successfully deleted ${validDeletions.length} user(s)`,
+        });
+      } else {
+        setFeedbackMessage({
+          title: "Error",
+          description:
+            "No users were deleted. Users with admin role or active assignments cannot be deleted.",
+        });
+        fetchUsers();
+      }
+    } catch (error) {
+      setFeedbackMessage({
+        title: "Error",
+        description: "An unexpected error occurred while deleting users",
+      });
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  // User-initiated fetch with loading indicators
+  const fetchUsers = () => {
+    setIsLoading(true);
+    setIsRefetching(true);
+    fetch(`${proxy}/user/under/${user.id}`, { credentials: "include" })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "The users can't be loaded");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        // Filter out admin users and add ordered IDs
+        const filteredData = data
+          .filter((user) => user.role !== "admin")
+          .map((user, index) => ({
+            ...user,
+            orderId: index + 1,
+          }));
+        setUsersList(filteredData);
+        setSortDirection("none"); // Reset sort direction when fetching new data
+        // Loading indicator will be cleared by the useEffect
+      })
+      .catch((error) => {
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to load users",
+        });
+        setUsersList([]);
+        setIsLoading(false);
+        setIsRefetching(false);
+      });
+  };
+
+  const resetSelection = () => {
+    setChosenUserIds([]);
+    if (tableRef.current) {
+      tableRef.current.resetRowSelection();
+    }
+  };
+
+  const updateUserRole = (userId, newRole) => {
+    // Find the user in the usersList
+    const userToUpdate = usersList.find((user) => user.id === userId);
+
+    // Check if the user is an admin
+    if (userToUpdate.role === "admin") {
+      setFeedbackMessage({
+        title: "Error",
+        description: "Cannot change the role of an admin user.",
+      });
+      return;
+    }
+
+    setIsRefetching(true);
+
+    fetch(`${proxy}/user/updateRole/${userId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify({ role: newRole }),
+    })
+      .then((res) => {
+        if (!res.ok) {
+          return res.json().then((error) => {
+            throw new Error(error.message || "Failed to update role");
+          });
+        }
+        return res.json();
+      })
+      .then((data) => {
+        setFeedbackMessage({
+          title: "Success",
+          description: "Role updated successfully",
+        });
+
+        // Update local state with the new role
+        setUsersList((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, role: newRole } : user
+          )
+        );
+        setIsRefetching(false);
+      })
+      .catch((error) => {
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to update role: " + error.message,
+        });
+        setUsersList((prev) =>
+          prev.map((user) =>
+            user.id === userId ? { ...user, role: userToUpdate.role } : user
+          )
+        );
+        setIsRefetching(false);
+      });
+  };
+
+  const handleUserAdded = () => {
+    // Refresh the users list
+    fetchUsers();
+  };
 
   return (
-    <Card className="container mx-auto w-full my-24 animate-fade-in">
-      <CardHeader className={"space-y-4"}>
-        {/* Search Section */}
-        <SearchBar />
-
-        {/* Filter Options Section */}
-        <div className="flex justify-center items-center gap-3">
-          <TooltipProvider>
-            {/* Reset Filter Button */}
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button
-                  variant={isAnyFilterActive ? "destructive" : "secondary"}
-                  size="icon"
-                  onClick={removeAllFilters}
-                  className="transition-all"
-                >
-                  {isAnyFilterActive ? (
-                    <FilterX size={18} />
-                  ) : (
-                    <Filter size={18} />
-                  )}
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>
-                  {isAnyFilterActive
-                    ? "Reset all filters"
-                    : "No active filters"}
-                </p>
-              </TooltipContent>
-            </Tooltip>
-
-            {/* Title Filter */}
-            <FilterButton
-              active={filterOptions.sortTitleAsc}
-              onClick={() => handleFilterChange("sortTitleAsc")}
-              icon={ChevronsUpDown}
-              activeIcon={
-                filterOptions.sortTitleAsc ? ArrowDownAZ : ArrowDownZA
-              }
-              label="Title"
-              badgeText={filterOptions.sortTitleAsc ? "A-Z" : "Z-A"}
-              tooltipText={`Sort by title ${
-                filterOptions.sortTitleAsc !== null
-                  ? filterOptions.sortTitleAsc
-                    ? "ascending"
-                    : "descending"
-                  : ""
-              }`}
-            />
-
-            {/* Status Filter */}
-            <FilterButton
-              active={filterOptions.sortStatusAsc}
-              onClick={() => handleFilterChange("sortStatusAsc")}
-              icon={ChevronsUpDown}
-              activeIcon={
-                filterOptions.sortStatusAsc === "pending"
-                  ? CircleDashed
-                  : filterOptions.sortStatusAsc === "in_progress"
-                  ? CircleDotDashed
-                  : CircleCheck
-              }
-              label="Status"
-              badgeText={filterOptions.sortStatusAsc.replace("_", " ")}
-              tooltipText={`Filter by ${
-                filterOptions.sortStatusAsc || "status"
-              }`}
-            />
-
-            {/* Priority Filter */}
-            <FilterButton
-              active={filterOptions.sortPriorityAsc}
-              onClick={() => handleFilterChange("sortPriorityAsc")}
-              icon={ChevronsUpDown}
-              activeIcon={
-                filterOptions.sortPriorityAsc === "high"
-                  ? ClockAlert
-                  : filterOptions.sortPriorityAsc === "medium"
-                  ? ClockArrowUp
-                  : ClockArrowDown
-              }
-              label="Priority"
-              badgeText={filterOptions.sortPriorityAsc}
-              tooltipText={`Filter by ${
-                filterOptions.sortPriorityAsc || "priority"
-              }`}
-            />
-
-            {/* Date Filter */}
-            <FilterButton
-              active={filterOptions.sortDateAsc}
-              onClick={() => handleFilterChange("sortDateAsc")}
-              icon={ChevronsUpDown}
-              activeIcon={
-                filterOptions.sortDateAsc ? CalendarArrowUp : CalendarArrowDown
-              }
-              label="Due Date"
-              badgeText={
-                filterOptions.sortDateAsc ? "Upcoming" : "Not Imminent"
-              }
-              tooltipText={`Sort by date ${
-                filterOptions.sortDateAsc !== null
-                  ? filterOptions.sortDateAsc
-                    ? "ascending"
-                    : "descending"
-                  : ""
-              }`}
-            />
-          </TooltipProvider>
-        </div>
-
-        {/* Date Range Filter */}
-        <DateRangeSelector />
-
-        {/* Actions */}
-        <div className="flex justify-center items-center gap-3">
-          <AddTaskPanel user={user} setNeedsRefetch={triggerRefetch} />
-
-          <Button
-            variant="outline"
-            onClick={refetchTaskClicked}
-            disabled={isRefetching}
-            className="flex gap-2"
-          >
-            {isRefetching && <RefreshCw className="animate-spin" />}
-            Sync Tasks
-          </Button>
-        </div>
-
-        {/* Task Count */}
-        {!isRefetching && (
-          <CardDescription className="text-center">
-            Showing {taskList.length} tasks
-          </CardDescription>
-        )}
-      </CardHeader>
-
-      <Separator />
-
-      <CardContent>
-        {/* Loading State */}
-        {isLoading && <LoadingIndicator />}
-
-        <div>
-          <CardTitle className="text-center text-muted-foreground mb-6">
-            {taskList.length === 0 && !isLoading && <EmptyTasks />}
+    <div className="w-full my-30 animate-fade-in ">
+      <Card className="container mx-auto flex flex-col items-center">
+        <CardHeader>
+          <CardTitle>
+            <h2 className="text-2xl font-semibold">Admin Functionality</h2>
           </CardTitle>
+          <CardDescription>Manage users, roles, and more.</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col md:flex-row gap-4">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button className="w-full md:w-auto">Manage Users</Button>
+            </DialogTrigger>
 
-          {/* Task List */}
-          <div className="flex flex-col gap-4 w-1/2 mx-auto">
-            {taskList.map((task) => (
-              <TaskCard
-                key={task.id}
-                task={task}
-                user={user}
-                setNeedsRefetch={triggerRefetch}
-                devMode={devMode}
+            {/* Make the dialog much larger */}
+            <DialogContent className="min-w-[90vw] md:min-w-[900px]">
+              <DialogHeader>
+                <DialogTitle className="text-primary flex items-center gap-4 text-xl">
+                  Manage Users
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={fetchUsers}
+                    disabled={isLoading}
+                  >
+                    <RefreshCw
+                      className={`h-4 w-4 mr-1 ${
+                        isLoading || isRefetching ? "animate-spin" : ""
+                      }`}
+                    />
+                    Sync Users
+                  </Button>
+                </DialogTitle>
+                <DialogDescription>
+                  View and manage all users in the system
+                </DialogDescription>
+              </DialogHeader>
+
+              <DataTable
+                columns={usersColumns}
+                data={usersList}
+                loading={isLoading && !initialLoad}
+                initialPageSize={5}
+                onSelectionChange={setChosenUserIds}
+                tableRef={tableRef}
               />
-            ))}
+
+              <DialogFooter>
+                {chosenUserIds.length > 0 && (
+                  <div className="flex items-center gap-2 mb-4">
+                    <Button
+                      variant="destructive"
+                      size="sm"
+                      onClick={() => {
+                        setChosenUserIds(chosenUserIds);
+                        setIsDeleting(true);
+                      }}
+                      disabled={isDeleting}
+                      className="flex items-center"
+                    >
+                      <Trash2 className="h-4 w-4 mr-1" />
+                      Delete Selected ({chosenUserIds.length})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={resetSelection}
+                    >
+                      Clear Selection
+                    </Button>
+                  </div>
+                )}
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          <RegisterPanel isAdmin={true} onUserAdded={handleUserAdded} />
+          <Button className="w-full md:w-auto">To Be Added</Button>
+        </CardContent>
+      </Card>
+
+      <Separator className="my-10" />
+
+      {/* Analytics Grid */}
+      <Card className="container mx-auto">
+        <CardHeader>
+          <CardTitle>
+            <h2 className="text-4xl font-semibold">Analytics</h2>
+          </CardTitle>
+          <CardDescription>
+            Here's a quick overview of what's going on.
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent className="h-auto grid grid-cols-2 gap-4">
+          <div className=" flex flex-col w-full gap-4">
+            <CustomPieChart
+              height="300px"
+              dataType="status"
+              displayName="displayName"
+              title="Task Statuses"
+              description="March 2025"
+              colours={{
+                pending: "var(--chart-1)",
+                in_progress: "var(--chart-3)",
+                completed: "var(--chart-2)",
+              }}
+              display={{
+                pending: "Pending",
+                in_progress: "In Progress",
+                completed: "Completed",
+              }}
+              info="Sorted by: Pending, In Progress and Completed"
+            />
+
+            <CustomPieChart
+              height="300px"
+              dataType="priority"
+              displayName="DisplayName"
+              title="Task Priorities"
+              description="March 2025"
+              colours={{
+                low: "var(--chart-2)",
+                medium: "var(--chart-3)",
+                high: "var(--chart-1)",
+              }}
+              display={{
+                low: "Low",
+                medium: "Medium",
+                high: "High",
+              }}
+              info="Sorted by: Low, Medium and High"
+            />
           </div>
-        </div>
-      </CardContent>
 
-      <CardFooter>
-        <Separator className="w-full" />
-      </CardFooter>
-    </Card>
+          <div className="w-full h-full">
+            <CustomBarChart height="100%" width="100%" />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Dialog
+        open={isDeleting}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDeleteUser(null);
+            setChosenUserIds([]);
+            setIsDeleting(false);
+            if (tableRef.current) {
+              tableRef.current.resetRowSelection();
+            }
+          }
+        }}
+      >
+        {/* Dialog to confirm when the admin wants to delete user(s) */}
+
+        <DialogContent>
+          <DialogTitle> Confirm Deletion</DialogTitle>
+          <DialogHeader>
+            <DialogDescription>
+              {deleteUser
+                ? `Would you like to delete ${deleteUser.display_name}? This action is irreversible!`
+                : `You liked to delete these ${chosenUserIds.length} users? This action is irreversible!`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setIsDeleting(false);
+                setDeleteUser(null);
+                setChosenUserIds([]);
+                if (tableRef.current) {
+                  tableRef.current.resetRowSelection();
+                }
+              }}
+            >
+              Don't Delete
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (deleteUser) {
+                  deleteUsers([deleteUser.id]);
+                } else {
+                  deleteUsers(chosenUserIds);
+                }
+                setIsDeleting(false);
+                setDeleteUser(null);
+                setChosenUserIds([]);
+                if (tableRef.current) {
+                  tableRef.current.resetRowSelection();
+                }
+              }}
+            >
+              Delete Selected User(s)
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
-}
+};
 
-export default Dashboard;
+export default Admin;
