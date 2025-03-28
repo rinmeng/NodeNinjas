@@ -90,12 +90,21 @@ const Admin = ({ devMode }) => {
         return res.json();
       })
       .then((data) => {
-        data = data.filter((user) => user.role !== "admin");
-        setUsersList(data);
+        // Filter out admin users and add ordered IDs
+        const filteredData = data
+          .filter((user) => user.role !== "admin")
+          .map((user, index) => ({
+            ...user,
+            orderId: index + 1
+          }));
+        setUsersList(filteredData);
         setInitialLoad(false);
       })
       .catch((error) => {
-        console.error("Error fetching data:", error);
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to load users",
+        });
         setUsersList([]);
         setInitialLoad(false);
       });
@@ -160,12 +169,20 @@ const Admin = ({ devMode }) => {
       enableHiding: false,
     },
     {
-      header: "ID",
-      accessorKey: "id",
-      cell: ({ row }) => (
-        <span className="font-mono text-xs">{row.getValue("id")}</span>
-      ),
+      header: "Number",
+      accessorKey: "orderId", // Add this new accessor
+      cell: ({ row, table }) => {
+        // Get the current page number and page size
+        const pageIndex = table.getState().pagination.pageIndex;
+        const pageSize = table.getState().pagination.pageSize;
+        
+        // Calculate the ordered ID
+        const orderId = pageIndex * pageSize + row.index + 1;
+        
+        return <span className="font-mono text-xs">{orderId}</span>;
+      },
     },
+    
     {
       accessorKey: "username",
       header: ({ column }) => {
@@ -246,14 +263,20 @@ const Admin = ({ devMode }) => {
 
           if (!res.ok) {
             const errorData = await res.json();
-            console.error(`Failed to delete user ${userId}:`, errorData);
+            setFeedbackMessage({
+              title: "Error",
+              description: `Failed to delete user ${userId}: ${errorData.message}`,
+            });
             continue;
           }
 
           const data = await res.json();
           validDeletions.push(userId);
         } catch (error) {
-          console.error(`Error deleting user ${userId}:`, error);
+          setFeedbackMessage({
+            title: "Error",
+            description: `Failed to delete user ${userId}: ${error.message}`,
+          });
         }
       }
 
@@ -277,7 +300,6 @@ const Admin = ({ devMode }) => {
         fetchUsers();
       }
     } catch (error) {
-      console.error("Error in delete operation:", error);
       setFeedbackMessage({
         title: "Error",
         description: "An unexpected error occurred while deleting users",
@@ -301,13 +323,18 @@ const Admin = ({ devMode }) => {
         return res.json();
       })
       .then((data) => {
-        data = data.filter((user) => user.role !== "admin");
-        setUsersList(data);
+        // Filter out admin users and add ordered IDs
+        const filteredData = data
+          .filter((user) => user.role !== "admin")
+          .map((user, index) => ({
+            ...user,
+            orderId: index + 1
+          }));
+        setUsersList(filteredData);
         setSortDirection("none"); // Reset sort direction when fetching new data
         // Loading indicator will be cleared by the useEffect
       })
       .catch((error) => {
-        console.error("Error fetching data:", error);
         setFeedbackMessage({
           title: "Error",
           description: "Failed to load users",
@@ -371,7 +398,6 @@ const Admin = ({ devMode }) => {
         setIsRefetching(false);
       })
       .catch((error) => {
-        console.error("Error updating role:", error);
         setFeedbackMessage({
           title: "Error",
           description: "Failed to update role: " + error.message,

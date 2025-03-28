@@ -223,7 +223,6 @@ const AssignTaskPanel = ({ task, setNeedsRefetch, user }) => {
       setAvailableUsers(data);
       return data; // Return the users data for potential use
     } catch (error) {
-      console.error("Error fetching available users:", error);
       // Only show feedback for non-404 errors
       setFeedbackMessage({
         title: "Error",
@@ -278,7 +277,6 @@ const AssignTaskPanel = ({ task, setNeedsRefetch, user }) => {
         setSelectedUsers(assignedUsers);
         setPreAssignedUsers(assignedUsers);
       } catch (error) {
-        console.error("Error fetching assigned users:", error);
         setFeedbackMessage({
           title: "Error",
           description:
@@ -311,7 +309,6 @@ const AssignTaskPanel = ({ task, setNeedsRefetch, user }) => {
       const data = await response.json();
       setSelectedUsers(data.assigned_users || []);
     } catch (error) {
-      console.error("Error fetching assigned users:", error);
       setFeedbackMessage({
         title: "Error",
         description:

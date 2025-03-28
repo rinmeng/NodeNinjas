@@ -181,7 +181,6 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
         });
       })
       .catch((err) => {
-        console.log(err);
         setFeedbackMessage({
           title: "Error",
           description: "Failed to delete task.",
@@ -214,7 +213,6 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
         });
       })
       .catch((err) => {
-        console.log(err);
         setFeedbackMessage({
           title: "Error",
           description: `Failed to ${isTaskLocked ? "unlock" : "lock"} task.`,

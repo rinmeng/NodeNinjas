@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Dot, HeartCrack } from "lucide-react";
+import { useToast } from "@/utils/ToastProvider";
 
 const formatTimeAgo = (date) => {
   const now = new Date();
@@ -71,6 +72,7 @@ const Message = ({ msg, user }) => {
 };
 
 const Chat = () => {
+  const { setFeedbackMessage } = useToast();
   const { user, socket, emitTyping, emitStopTyping } = useAuth();
   const scrollRef = useRef(null);
   const prevMessagesLengthRef = useRef(0);
@@ -204,10 +206,12 @@ const Chat = () => {
           (fetchedUser) => fetchedUser.id !== user.id
         );
         setFetchedUsers(filteredUsers);
-        console.log("Fetched users:", filteredUsers);
       })
       .catch((err) => {
-        console.error("Error fetching users:", err);
+        setFeedbackMessage({
+          title: "Error",
+          description: "Failed to fetch users",
+        });
         setFetchedUsers([]);
       });
   }, [user?.manager_id]);
@@ -243,7 +247,6 @@ const Chat = () => {
         setMessages(messageArray);
       })
       .catch((err) => {
-        console.error("Error fetching messages:", err);
         setMessages([]); // Reset to empty array on error
       })
       .finally(() => {
@@ -302,7 +305,10 @@ const Chat = () => {
       // Manually fetch messages after sending
       fetchMessages();
     } catch (error) {
-      console.error("Error sending message:", error);
+      setFeedbackMessage({
+        title: "Error",
+        description: "Failed to send message",
+      });
     }
   };
 

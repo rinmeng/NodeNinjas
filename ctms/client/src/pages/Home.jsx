@@ -132,7 +132,6 @@ const Home = ({
             : task
         )
       );
-      console.log(`Task Updated: ${updateTaskId}`);
     } else {
       // Add a new task
       const newTask = {
@@ -144,7 +143,6 @@ const Home = ({
         status: "Pending",
       };
       setTasks((prevTasks) => [...prevTasks, newTask]);
-      console.log("Task Added:", newTask);
     }
 
     const action = updateTaskId ? "updated" : "added";

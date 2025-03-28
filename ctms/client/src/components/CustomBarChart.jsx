@@ -14,10 +14,12 @@ import { ChartContainer, ChartTooltipContent } from "@/components/ui/chart";
 import { useEffect, useState } from "react";
 import proxy from "@/utils/proxy";
 import { useAuth } from "@/utils/AuthProvider";
+import { useToast } from "@/utils/ToastProvider";
 
 export function CustomBarChart({ height, width }) {
   const { user } = useAuth();
   const [chartData, setChartData] = useState([]);
+  const { setFeedbackMessage } = useToast();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -69,7 +71,10 @@ export function CustomBarChart({ height, width }) {
 
         setChartData(transformedData);
       } catch (error) {
-        console.error("Failed to fetch tasks:", error);
+        setFeedbackMessage({
+          type: "error",
+          description: "Failed to fetch task data",
+        });
       }
     };
     fetchData();
