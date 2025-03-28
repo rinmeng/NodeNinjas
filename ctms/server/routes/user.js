@@ -335,7 +335,7 @@ CREATE INDEX idx_users_role ON users(role);
 });
 
 // DELETE /user/delete/:id
-router.delete('/delete/:id', async (req, res) => {
+router.delete('/delete/:id', isAuthAsAdmin, async (req, res) => {
     const id = req.params.id;
 
     try {
@@ -398,7 +398,7 @@ router.post('/register', async (req, res) => {
 });
 
 // GET /user/id/:id
-router.get('/userid/:id', async (req, res) => {
+router.get('/userid/:id', isAuthenticated, async (req, res) => {
     const id = req.body.id || req.params.id;
     try {
         const data = await pool.query('SELECT * FROM users WHERE id = $1', [id]);
@@ -597,23 +597,23 @@ router.get('/under/:manager_id', async (req, res) => {
 
 
 //Put / change_manager_id/:id
-router.put('/change_manager_id/:id',isAuthAsAdmin,async(req,res)=>{
-    const id= req.params.id;
-    const{manager_id}=req.body;
-    if (!manager_id || !id){
-        return res.status(400).json({message:"Manager ID is required"});
+router.put('/change_manager_id/:id', isAuthAsAdmin, async (req, res) => {
+    const id = req.params.id;
+    const { manager_id } = req.body;
+    if (!manager_id || !id) {
+        return res.status(400).json({ message: "Manager ID is required" });
     }
-    try{
-        const user= await pool.query('SELECT * FROM users WHERE id =$1',[id]);
-        if (user.rowCount===0){
-            return res.status(404).json({message:"User not found"});
+    try {
+        const user = await pool.query('SELECT * FROM users WHERE id =$1', [id]);
+        if (user.rowCount === 0) {
+            return res.status(404).json({ message: "User not found" });
         }
-        const updatedUser= await pool.query('UPDATE users SET manager_id=$1 WHERE id=$2 RETURNING *',[manager_id,id]);
+        const updatedUser = await pool.query('UPDATE users SET manager_id=$1 WHERE id=$2 RETURNING *', [manager_id, id]);
         res.status(200).json(updatedUser.rows[0]);
     }
-    catch(error){
-        console.error("Error updating user role:",error);
-        res.status(500).json({message:"Something went wrong while updating user role"});
+    catch (error) {
+        console.error("Error updating user role:", error);
+        res.status(500).json({ message: "Something went wrong while updating user role" });
     }
 
 
