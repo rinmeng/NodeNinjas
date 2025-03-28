@@ -84,7 +84,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
         }
 
         const managerResponse = await fetch(
-          `${proxy}/user/username/${data.manager_username}`,
+          `${proxy}/user/isAdmin/${data.manager_username}`,
           {
             method: "GET",
             headers: {
@@ -106,7 +106,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
         const managerData = await managerResponse.json();
 
         // Verify that the found user is actually an admin
-        if (managerData.role !== "admin") {
+        if (!managerData.isAdmin) {
           setFeedbackMessage({
             title: "Invalid Manager",
             description:
