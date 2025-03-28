@@ -20,6 +20,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useToast } from "@/utils/ToastProvider";
 
 const ChatWidget = () => {
   const { user } = useAuth();
@@ -30,6 +31,7 @@ const ChatWidget = () => {
   const [newMessage, setNewMessage] = useState("");
   const chatRef = useRef(null);
   const toggleButtonRef = useRef(null);
+  const { setFeedbackMessage } = useToast();
 
   useEffect(() => {
     if (isOpen) {
@@ -41,11 +43,9 @@ const ChatWidget = () => {
           return res.json();
         })
         .then((data) => {
-          console.log("Users fetched:", data);
           setUsers(data);
         })
         .catch((err) => {
-          console.error("Error fetching users:", err);
           setUsers([]);
         });
     }
@@ -55,8 +55,7 @@ const ChatWidget = () => {
     if (selectedUser) {
       fetch(`${proxy}/message/${user.id}/${selectedUser.id}`)
         .then((res) => res.json())
-        .then((data) => setMessages(data))
-        .catch((err) => console.error("Error fetching messages:", err));
+        .then((data) => setMessages(data));
     }
   }, [selectedUser]);
 
@@ -84,7 +83,10 @@ const ChatWidget = () => {
       setMessages([...messages, newMsg]);
       setNewMessage("");
     } catch (err) {
-      console.error("Error sending message:", err);
+      setFeedbackMessage({
+        title: "Failed to Send Message",
+        description: err.message,
+      });
     }
   };
 

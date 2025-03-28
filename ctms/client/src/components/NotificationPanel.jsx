@@ -59,7 +59,10 @@ const NotificationPanel = ({
       });
       setNotificationsNeedRefetch(true);
     } catch (error) {
-      console.error(`Failed to mark notification as ${endpoint}:`, error);
+      setFeedbackMessage({
+        title: "Failed to update notification",
+        description: "Please try again later",
+      });
     }
   };
 
@@ -83,7 +86,6 @@ const NotificationPanel = ({
       });
     } catch (error) {
       setNotifications(initialNotifications);
-      console.error(`Failed to delete notification:`, error);
       setFeedbackMessage({
         title: "Failed to delete notification",
         description: "Please try again later",
