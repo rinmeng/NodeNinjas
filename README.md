@@ -55,9 +55,9 @@ Newly registered admins who have no tasks assigned and no users in their team ar
 ### Test Coverage Report Summary:
 
 
-Statements: 65.28%
+Statements: 65.76%
 
-Branches: 68.32%
+Branches: 69%
 
 Functions: 50%
 
