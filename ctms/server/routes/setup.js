@@ -1,12 +1,12 @@
-const express = require('express');
-const pool = require('../db');
+const express = require("express");
+const pool = require("../db");
 const router = express.Router();
 
-const { hashPassword, verifyPassword } = require('../utils/PasswordHasher');
+const { hashPassword, verifyPassword } = require("../utils/PasswordHasher");
 
 async function setupPgSession() {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             DROP TABLE IF EXISTS user_sessions CASCADE;
             CREATE TABLE user_sessions (
                 sid VARCHAR(100) PRIMARY KEY,
@@ -14,16 +14,16 @@ async function setupPgSession() {
                 expire TIMESTAMP(6) NOT NULL
             );
         `);
-        return { message: "Session table created successfully" };
-    } catch (err) {
-        console.error("Error setting up session table:", err.message);
-        throw new Error("Failed to create session table: " + err.message);
-    }
+    return { message: "Session table created successfully" };
+  } catch (err) {
+    console.error("Error setting up session table:", err.message);
+    throw new Error("Failed to create session table: " + err.message);
+  }
 }
 
 async function setupAssignedTo() {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             DROP TABLE IF EXISTS assignedto CASCADE;
             CREATE TABLE assignedto (
                 id SERIAL PRIMARY KEY,
@@ -79,9 +79,9 @@ async function setupAssignedTo() {
             (CURRENT_DATE, 6, 31);
         `);
 
-        // Generate notifications only for tasks assigned by admins
-        // In the setup data, all task owners (from Task table) are admins (users 1-5)
-        await pool.query(`
+    // Generate notifications only for tasks assigned by admins
+    // In the setup data, all task owners (from Task table) are admins (users 1-5)
+    await pool.query(`
             WITH task_assignments AS (
                 SELECT 
                     a.user_id, 
@@ -106,16 +106,19 @@ async function setupAssignedTo() {
                 task_assignments;
         `);
 
-        return { message: "assignedto table created successfully with admin-assigned notifications" };
-    } catch (err) {
-        console.error("Error setting up assignedto table:", err.message);
-        throw new Error("Failed to create assignedto table: " + err.message);
-    }
+    return {
+      message:
+        "assignedto table created successfully with admin-assigned notifications",
+    };
+  } catch (err) {
+    console.error("Error setting up assignedto table:", err.message);
+    throw new Error("Failed to create assignedto table: " + err.message);
+  }
 }
 
 async function setupTasks() {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             DROP TYPE IF EXISTS task_status CASCADE;
             DROP TYPE IF EXISTS task_priority CASCADE;
             CREATE TYPE task_status AS ENUM('pending', 'in_progress', 'completed');
@@ -185,16 +188,16 @@ async function setupTasks() {
             ('Incident Response', 'Update incident response plan', '2025-03-15', 'pending', 'high', 6);
             `);
 
-        return { message: "Task table created successfully" };
-    } catch (err) {
-        console.error("Error setting up task table:", err.message);
-        throw new Error("Failed to create Task table: " + err.message);
-    }
+    return { message: "Task table created successfully" };
+  } catch (err) {
+    console.error("Error setting up task table:", err.message);
+    throw new Error("Failed to create Task table: " + err.message);
+  }
 }
 
 async function setupNotifications() {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             DROP TABLE IF EXISTS notifications CASCADE;
             CREATE TABLE notifications (
                 id SERIAL PRIMARY KEY,
@@ -211,16 +214,16 @@ async function setupNotifications() {
             CREATE INDEX idx_notifications_status ON notifications (user_id, status);
         `);
 
-        return { message: "Notifications table created successfully" };
-    } catch (err) {
-        console.error("Error setting up notifications table:", err.message);
-        throw new Error("Failed to create Notifications table: " + err.message);
-    }
+    return { message: "Notifications table created successfully" };
+  } catch (err) {
+    console.error("Error setting up notifications table:", err.message);
+    throw new Error("Failed to create Notifications table: " + err.message);
+  }
 }
 
 async function setupMessages() {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             DROP TABLE IF EXISTS messages CASCADE;
             CREATE TABLE messages (
                 id SERIAL PRIMARY KEY, -- Unique message ID
@@ -241,16 +244,16 @@ async function setupMessages() {
             CREATE INDEX idx_messages_task_id ON messages (task_id);
         `);
 
-        return { message: "Messages table created successfully" };
-    } catch (err) {
-        console.error("Error setting up messages table:", err.message);
-        throw new Error("Failed to create Messages table: " + err.message);
-    }
+    return { message: "Messages table created successfully" };
+  } catch (err) {
+    console.error("Error setting up messages table:", err.message);
+    throw new Error("Failed to create Messages table: " + err.message);
+  }
 }
 
 async function setupUsers() {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             DROP TABLE IF EXISTS users CASCADE;
             DROP TYPE IF EXISTS user_role CASCADE;
             CREATE TYPE user_role AS ENUM('admin', 'team_member');
@@ -272,114 +275,163 @@ async function setupUsers() {
             CREATE INDEX idx_users_role ON users(role);
         `);
 
-        const adminUsers = [
-            {
-                username: 'rin',
-                email: 'rin@example.com',
-                password: await hashPassword('rin'),
-                display_name: 'Rin',
-                manager_id: 1
-            },
-            {
-                username: 'enock',
-                email: 'enock@example.com',
-                password: await hashPassword('enock'),
-                display_name: 'Enock',
-                manager_id: 2
-            },
-            {
-                username: 'keeran',
-                email: 'keeran@example.com',
-                password: await hashPassword('keeran'),
-                display_name: 'Keeran',
-                manager_id: 3
-            },
-            {
-                username: 'madiba',
-                email: 'madiba@example.com',
-                password: await hashPassword('madiba'),
-                display_name: 'Madiba',
-                manager_id: 4
-            },
-            {
-                username: 'mason',
-                email: 'mason@example.com',
-                password: await hashPassword('mason'),
-                display_name: 'Mason',
-                manager_id: 5
-            },
-        ];
+    const adminUsers = [
+      {
+        username: "rin",
+        email: "rin@example.com",
+        password: await hashPassword("rin"),
+        display_name: "Rin",
+        manager_id: 1,
+      },
+      {
+        username: "enock",
+        email: "enock@example.com",
+        password: await hashPassword("enock"),
+        display_name: "Enock",
+        manager_id: 2,
+      },
+      {
+        username: "keeran",
+        email: "keeran@example.com",
+        password: await hashPassword("keeran"),
+        display_name: "Keeran",
+        manager_id: 3,
+      },
+      {
+        username: "madiba",
+        email: "madiba@example.com",
+        password: await hashPassword("madiba"),
+        display_name: "Madiba",
+        manager_id: 4,
+      },
+      {
+        username: "mason",
+        email: "mason@example.com",
+        password: await hashPassword("mason"),
+        display_name: "Mason",
+        manager_id: 5,
+      },
+    ];
 
-        for (const user of adminUsers) {
-            await pool.query(`
+    for (const user of adminUsers) {
+      await pool.query(
+        `
                 INSERT INTO users(username, email, password_hash, role, display_name, manager_id)
                 VALUES($1, $2, $3, 'admin', $4, $5)`,
-                [user.username, user.email, user.password, user.display_name, user.manager_id]
-            );
-        }
+        [
+          user.username,
+          user.email,
+          user.password,
+          user.display_name,
+          user.manager_id,
+        ]
+      );
+    }
 
-        // Base team member arnold
-        await pool.query(`
+    // Base team member arnold
+    await pool.query(
+      `
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id)
             VALUES($1, $2, $3, 'team_member', $4, $5)`,
-            ['arnold', 'arnold@example.com', await hashPassword('arnold'), 'Arnold', 1]
-        );
+      [
+        "arnold",
+        "arnold@example.com",
+        await hashPassword("arnold"),
+        "Arnold",
+        1,
+      ]
+    );
 
-        // Rin's team members
-        await pool.query(`
+    // Rin's team members
+    await pool.query(
+      `
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
             ('sarah', 'sarah@example.com', $1, 'team_member', 'Sarah Chen', 1),
             ('james', 'james@example.com', $2, 'team_member', 'James Wilson', 1),
             ('luna', 'luna@example.com', $3, 'team_member', 'Luna Park', 1)
-        `, [await hashPassword('sarah'), await hashPassword('james'), await hashPassword('luna')]);
+        `,
+      [
+        await hashPassword("sarah"),
+        await hashPassword("james"),
+        await hashPassword("luna"),
+      ]
+    );
 
-        // Enock's team members
-        await pool.query(`
+    // Enock's team members
+    await pool.query(
+      `
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
             ('zara', 'zara@example.com', $1, 'team_member', 'Zara Ahmed', 2),
             ('marcus', 'marcus@example.com', $2, 'team_member', 'Marcus Jones', 2),
             ('priya', 'priya@example.com', $3, 'team_member', 'Priya Patel', 2)
-        `, [await hashPassword('zara'), await hashPassword('marcus'), await hashPassword('priya')]);
+        `,
+      [
+        await hashPassword("zara"),
+        await hashPassword("marcus"),
+        await hashPassword("priya"),
+      ]
+    );
 
-        // Keeran's team members
-        await pool.query(`
+    // Keeran's team members
+    await pool.query(
+      `
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
             ('diego', 'diego@example.com', $1, 'team_member', 'Diego Santos', 3),
             ('nina', 'nina@example.com', $2, 'team_member', 'Nina Chen', 3),
             ('alex', 'alex@example.com', $3, 'team_member', 'Alex Morgan', 3)
-        `, [await hashPassword('diego'), await hashPassword('nina'), await hashPassword('alex')]);
+        `,
+      [
+        await hashPassword("diego"),
+        await hashPassword("nina"),
+        await hashPassword("alex"),
+      ]
+    );
 
-        // Madiba's team members
-        await pool.query(`
+    // Madiba's team members
+    await pool.query(
+      `
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
             ('kai', 'kai@example.com', $1, 'team_member', 'Kai Wong', 4),
             ('sofia', 'sofia@example.com', $2, 'team_member', 'Sofia Rodriguez', 4),
             ('omar', 'omar@example.com', $3, 'team_member', 'Omar Hassan', 4)
-        `, [await hashPassword('omar'), await hashPassword('sofia'), await hashPassword('kai')]);
+        `,
+      [
+        await hashPassword("omar"),
+        await hashPassword("sofia"),
+        await hashPassword("kai"),
+      ]
+    );
 
-        // Mason's team members
-        await pool.query(`
+    // Mason's team members
+    await pool.query(
+      `
             INSERT INTO users(username, email, password_hash, role, display_name, manager_id) VALUES
             ('emma', 'emma@example.com', $1, 'team_member', 'Emma Thompson', 5),
             ('raj', 'raj@example.com', $2, 'team_member', 'Raj Kumar', 5),
             ('liam', 'liam@example.com', $3, 'team_member', 'Liam O''Connor', 5)
-        `, [await hashPassword('emma'), await hashPassword('raj'), await hashPassword('liam')]);
+        `,
+      [
+        await hashPassword("emma"),
+        await hashPassword("raj"),
+        await hashPassword("liam"),
+      ]
+    );
 
-        return { message: "Users table created and populated successfully" };
-    } catch (err) {
-        console.error("Error setting up users table:", err.message);
-        throw new Error("Failed to create Users table: " + err.message);
-    }
+    return { message: "Users table created and populated successfully" };
+  } catch (err) {
+    console.error("Error setting up users table:", err.message);
+    throw new Error("Failed to create Users table: " + err.message);
+  }
 }
 
 async function resetAllTables() {
-    try {
-        // Use a transaction to ensure all operations complete or none do
-        await pool.query('BEGIN');
+  try {
+    // Use a transaction to ensure all operations complete or none do
+    await pool.query("BEGIN");
 
-        try {
-            // Truncate all tables in correct order
-            await pool.query(`
+    try {
+      // Truncate all tables in correct order
+      await pool.query(`
                 -- First disable foreign key constraints
                 SET CONSTRAINTS ALL DEFERRED;
                 
@@ -390,22 +442,21 @@ async function resetAllTables() {
                 SET CONSTRAINTS ALL IMMEDIATE;
             `);
 
-            await pool.query('COMMIT');
-            return { message: "All tables cleared successfully" };
-
-        } catch (err) {
-            await pool.query('ROLLBACK');
-            throw err;
-        }
+      await pool.query("COMMIT");
+      return { message: "All tables cleared successfully" };
     } catch (err) {
-        console.error("Error clearing tables:", err.message);
-        throw new Error("Failed to clear tables: " + err.message);
+      await pool.query("ROLLBACK");
+      throw err;
     }
+  } catch (err) {
+    console.error("Error clearing tables:", err.message);
+    throw new Error("Failed to clear tables: " + err.message);
+  }
 }
 
 async function deleteAllTables() {
-    try {
-        await pool.query(`
+  try {
+    await pool.query(`
             DROP TABLE IF EXISTS notifications CASCADE;
             DROP TABLE IF EXISTS messages CASCADE;
             DROP TABLE IF EXISTS assignedto CASCADE;
@@ -417,106 +468,105 @@ async function deleteAllTables() {
             DROP TYPE IF EXISTS task_status CASCADE;
             DROP TYPE IF EXISTS task_priority CASCADE;
         `);
-        return { message: "All tables deleted successfully" };
-    } catch (err) {
-        console.error("Error deleting tables:", err.message);
-        throw new Error("Failed to delete tables: " + err.message);
-    }
+    return { message: "All tables deleted successfully" };
+  } catch (err) {
+    console.error("Error deleting tables:", err.message);
+    throw new Error("Failed to delete tables: " + err.message);
+  }
 }
 
 async function setupTeamMemberTasks() {
-    try {
-        // Get team members with role 'team_member' that have no tasks in assignedto
-        const resTeamMembers = await pool.query(`
+  try {
+    // Get team members with role 'team_member' that have no tasks in assignedto
+    const resTeamMembers = await pool.query(`
             SELECT id FROM users 
             WHERE role = 'team_member' 
               AND id NOT IN (SELECT DISTINCT user_id FROM assignedto)
         `);
-        const teamMembers = resTeamMembers.rows;
-        if (teamMembers.length === 0) {
-            return { message: "All team members already have tasks." };
-        }
+    const teamMembers = resTeamMembers.rows;
+    if (teamMembers.length === 0) {
+      return { message: "All team members already have tasks." };
+    }
 
-        // Get all task IDs from Task table
-        const resTasks = await pool.query(`SELECT id FROM Task`);
-        const taskIds = resTasks.rows.map(row => row.id);
-        if (taskIds.length === 0) {
-            throw new Error("No tasks available in Task table.");
-        }
+    // Get all task IDs from Task table
+    const resTasks = await pool.query(`SELECT id FROM Task`);
+    const taskIds = resTasks.rows.map((row) => row.id);
+    if (taskIds.length === 0) {
+      throw new Error("No tasks available in Task table.");
+    }
 
-        const currentDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
+    const currentDate = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
 
-        for (const member of teamMembers) {
-            // Get a random number between 3 and 5 (inclusive)
-            const numTasks = Math.floor(Math.random() * 3) + 3;
-            // Shuffle task IDs and pick the first numTasks
-            const shuffledTasks = [...taskIds].sort(() => 0.5 - Math.random());
-            const chosenTaskIds = shuffledTasks.slice(0, numTasks);
+    for (const member of teamMembers) {
+      // Get a random number between 3 and 5 (inclusive)
+      const numTasks = Math.floor(Math.random() * 3) + 3;
+      // Shuffle task IDs and pick the first numTasks
+      const shuffledTasks = [...taskIds].sort(() => 0.5 - Math.random());
+      const chosenTaskIds = shuffledTasks.slice(0, numTasks);
 
-            // Build multi-row insert
-            const values = chosenTaskIds
-                .map(taskId => `('${currentDate}', ${member.id}, ${taskId})`)
-                .join(',');
-            await pool.query(`
+      // Build multi-row insert
+      const values = chosenTaskIds
+        .map((taskId) => `('${currentDate}', ${member.id}, ${taskId})`)
+        .join(",");
+      await pool.query(`
                 INSERT INTO assignedto (assigned_date, user_id, task_id) VALUES ${values}
             `);
-        }
-
-        return { message: "Team member tasks assigned successfully" };
-    } catch (err) {
-        console.error("Error setting up team member tasks:", err.message);
-        throw new Error("Failed to assign tasks to team members: " + err.message);
     }
+
+    return { message: "Team member tasks assigned successfully" };
+  } catch (err) {
+    console.error("Error setting up team member tasks:", err.message);
+    throw new Error("Failed to assign tasks to team members: " + err.message);
+  }
 }
 
 // Setup all tables
-router.get('/', async (req, res) => {
-    try {
-        await deleteAllTables();
-        const session = await setupPgSession();
-        const users = await setupUsers();
-        const tasks = await setupTasks();
-        const messages = await setupMessages();
-        const notifications = await setupNotifications();
-        const assignedTo = await setupAssignedTo();
-        const teamMemberTasks = await setupTeamMemberTasks();
+router.get("/", async (req, res) => {
+  try {
+    await deleteAllTables();
+    const session = await setupPgSession();
+    const users = await setupUsers();
+    const tasks = await setupTasks();
+    const messages = await setupMessages();
+    const notifications = await setupNotifications();
+    const assignedTo = await setupAssignedTo();
+    const teamMemberTasks = await setupTeamMemberTasks();
 
-        res.status(200).json({
-            message: "All tables created successfully",
-            users,
-            session,
-            tasks,
-            messages,
-            notifications,
-            assignedTo,
-            teamMemberTasks
-        });
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ message: err.message });
-    }
+    res.status(200).json({
+      message: "All tables created successfully",
+      users,
+      session,
+      tasks,
+      messages,
+      notifications,
+      assignedTo,
+      teamMemberTasks,
+    });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: err.message });
+  }
 });
 
-router.get('/reset', async (req, res) => {
-    try {
-        const result = await resetAllTables();
-        res.status(200).json(result);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ message: err.message });
-    }
+router.get("/reset", async (req, res) => {
+  try {
+    const result = await resetAllTables();
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: err.message });
+  }
 });
-
 
 // Delete all tables
-router.get('/delete', async (req, res) => {
-    try {
-        const result = await deleteAllTables();
-        res.status(200).json(result);
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).json({ message: err.message });
-    }
+router.get("/delete", async (req, res) => {
+  try {
+    const result = await deleteAllTables();
+    res.status(200).json(result);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ message: err.message });
+  }
 });
 
 module.exports = router;
