@@ -43,8 +43,8 @@ router.post('/register', async (req, res) => {
     // Add validation for required fields
     if (!username || !email || !password_hash || !role || !display_name) {
         return res.status(400).json({ message: 'Required fields: username, email, password_hash, role, display_name' });
-
     }
+
     // check if user already exists
     const userExists = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
     // check if email already exists
@@ -59,10 +59,20 @@ router.post('/register', async (req, res) => {
 
     try {
         const hashedPassword = await hashPassword(password_hash);
-        const data = await pool.query(`
+
+        // Insert the user initially with provided manager_id
+        const insertResult = await pool.query(`
             INSERT INTO users (username, email, password_hash, role, display_name, manager_id)
             VALUES ($1, $2, $3, $4, $5, $6) RETURNING *`,
             [username, email, hashedPassword, role, display_name, manager_id]);
+
+        // If the user is an admin and manager_id is null, update them to be their own manager
+        if (role === 'admin' && !manager_id) {
+            const userId = insertResult.rows[0].id;
+            await pool.query('UPDATE users SET manager_id = $1 WHERE id = $2',
+                [userId, userId]);
+        }
+
         res.status(201).json({ message: "User registered successfully" });
     } catch (err) {
         console.error(err.message);

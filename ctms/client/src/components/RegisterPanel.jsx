@@ -69,22 +69,16 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
     try {
       let manager_id = null;
 
-      // If admin is registering, use their ID as manager_id
+      // Case 1: Admin is adding a team member - use admin's ID as manager_id
       if (isAdmin) {
         manager_id = user.id; // Current admin's ID
         data.role = "team_member"; // Force role to team_member
-      } else if (data.role === "team_member") {
-        // Only attempt to fetch manager if a username was provided
-        if (!data.manager_username) {
-          setFeedbackMessage({
-            title: "Manager Required",
-            description: "Please provide your admin's username.",
-          });
-          return;
-        }
-
+      }
+      // Case 2: User is registering as a team member - look up their manager's ID
+      else if (data.role === "team_member" && data.manager_username) {
+        // Get manager's user data from username
         const managerResponse = await fetch(
-          `${proxy}/user/isAdmin/${data.manager_username}`,
+          `${proxy}/user/username/${data.manager_username}`,
           {
             method: "GET",
             headers: {
@@ -94,7 +88,6 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           }
         );
 
-        // Check if the response is OK before trying to parse JSON
         if (!managerResponse.ok) {
           setFeedbackMessage({
             title: "Manager Not Found",
@@ -105,8 +98,8 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
 
         const managerData = await managerResponse.json();
 
-        // Verify that the found user is actually an admin
-        if (!managerData.isAdmin) {
+        // Verify the found user is actually an admin
+        if (managerData.role !== "admin") {
           setFeedbackMessage({
             title: "Invalid Manager",
             description:
@@ -117,6 +110,8 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
 
         manager_id = managerData.id;
       }
+      // Case 3: User is registering as an admin - manager_id remains null
+      // (this is handled by default since manager_id is initialized as null)
 
       const registerResponse = await fetch(`${proxy}/user/register`, {
         method: "POST",
@@ -129,14 +124,14 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           email: data.email,
           username: data.username,
           password_hash: data.password,
-          role: data.role, // Always set to team_member when admin is registering
-          manager_id, // This will be the admin's ID
+          role: data.role,
+          manager_id: manager_id, // This will be admin's ID, looked up ID, or null
         }),
       });
 
+      // Rest of the function remains the same
       const registerData = await registerResponse.json();
 
-      // Check if the registration was successful (not bad request)
       if (registerResponse.status !== 400) {
         setFeedbackMessage({
           title: "Registration Successful",
@@ -156,18 +151,18 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
 
         setOpen(false);
 
-        // If there's a callback for refreshing the users list in Admin panel
+        // Call the onUserAdded callback if it exists and we're in admin mode
         if (isAdmin && onUserAdded) {
           onUserAdded();
         }
       } else {
         setFeedbackMessage({
           title: "Registration Failed",
-          description:
-            registerData.message || "An error occurred during registration.",
+          description: registerData.message || "Failed to register user.",
         });
       }
     } catch (error) {
+      console.error("Registration error:", error);
       setFeedbackMessage({
         title: "Registration Failed",
         description: "An error occurred while trying to register.",
