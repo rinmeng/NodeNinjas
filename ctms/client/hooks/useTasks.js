@@ -42,22 +42,28 @@ function useTasks(user, devMode) {
     }
   }, [user, devMode]);
 
-  // Search tasks
+  // Search tasks - carefully implemented to avoid state interference
   const handleSearch = useCallback(
     (criteria) => {
-      setSearchCriteria(criteria);
+      // Don't modify searchCriteria here, just use it to filter tasks
+
+      // Apply search filter to allTasks
+      const tasksToFilter = Array.isArray(allTasks) ? [...allTasks] : [];
 
       if (!criteria) {
-        setTasks(allTasks);
+        // If no criteria, just set all tasks
+        setTasks(tasksToFilter);
         return;
       }
 
-      const tasksToFilter = Array.isArray(allTasks) ? allTasks : [];
+      // Filter tasks based on the criteria
       const filteredTasks = tasksToFilter.filter(
         (task) =>
           task.name.toLowerCase().includes(criteria.toLowerCase()) ||
           task.description.toLowerCase().includes(criteria.toLowerCase())
       );
+
+      // Update the filtered tasks list
       setTasks(filteredTasks);
     },
     [allTasks]
@@ -148,17 +154,18 @@ function useTasks(user, devMode) {
     fetchTasks();
   }, [fetchTasks]);
 
-  // Apply search
+  // Apply search - Separated from filter logic to prevent interference
   useEffect(() => {
+    // Only run handleSearch when searchCriteria changes
     handleSearch(searchCriteria);
   }, [searchCriteria, handleSearch]);
 
-  // Apply filters
+  // Apply filters - Separated from search logic to avoid interference
   useEffect(() => {
-    const sortTasks = () => {
+    const applyFilters = () => {
       let tasksToSort = Array.isArray(allTasks) ? [...allTasks] : [];
 
-      // Apply search filter
+      // Apply search filter first
       if (searchCriteria) {
         tasksToSort = tasksToSort.filter(
           (task) =>
@@ -221,7 +228,7 @@ function useTasks(user, devMode) {
       setTasks(tasksToSort);
     };
 
-    sortTasks();
+    applyFilters();
   }, [filterOptions, allTasks, searchCriteria]);
 
   return {

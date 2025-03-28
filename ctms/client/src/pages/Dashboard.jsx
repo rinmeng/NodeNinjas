@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect, useRef } from "react";
 import { Navigate } from "react-router-dom";
 import {
   CalendarIcon,
@@ -54,11 +54,72 @@ import {
 } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 
+// Create a standalone SearchInput component to better manage focus
+const SearchInput = ({ value, onChange, onClear }) => {
+  const inputRef = useRef(null);
+  const [isFocused, setIsFocused] = useState(false);
+  const isSearchActive = value.length > 0;
+
+  const handleChange = (e) => {
+    onChange(e.target.value);
+  };
+
+  const handleClear = () => {
+    onClear();
+    // Focus the input after clearing
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  };
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+  };
+
+  return (
+    <div className="w-1/2 mx-auto">
+      <form className="relative" onSubmit={handleSubmit}>
+        <div className="relative">
+          <Input
+            type="text"
+            value={value}
+            placeholder="Search for tasks by title or description..."
+            className={`pl-10 pr-12`}
+            onChange={handleChange}
+            ref={inputRef}
+            onFocus={() => setIsFocused(true)}
+            onBlur={() => setIsFocused(false)}
+            autoFocus
+          />
+          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
+            <Search
+              size={20}
+              className={`transition-colors duration-200 ${
+                isSearchActive || isFocused ? "text-blue-400" : "text-slate-400"
+              }`}
+            />
+          </div>
+          {value && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleClear}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
+            >
+              <X size={18} />
+            </Button>
+          )}
+        </div>
+      </form>
+    </div>
+  );
+};
+
 function Dashboard({ devMode }) {
   const { user } = useAuth();
   const { setFeedbackMessage } = useToast();
   const [isRefetching, setIsRefetching] = useState(false);
-  const [isSearchActive, setIsSearchActive] = useState(false);
 
   const {
     tasks: taskList,
@@ -72,23 +133,18 @@ function Dashboard({ devMode }) {
     triggerRefetch,
   } = useTasks(user, devMode);
 
-  // Handle search input change
-  const handleSearchChange = (e) => {
-    setSearchCriteria(e.target.value);
-    setIsSearchActive(e.target.value.length > 0);
-  };
-
-  // Handle search form submission
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    setIsSearchActive(searchCriteria.length > 0);
-  };
+  // Update the search criteria immediately, no debounce
+  const handleSearchChange = useCallback(
+    (value) => {
+      setSearchCriteria(value);
+    },
+    [setSearchCriteria]
+  );
 
   // Clear search
-  const handleClearSearch = () => {
+  const handleClearSearch = useCallback(() => {
     setSearchCriteria("");
-    setIsSearchActive(false);
-  };
+  }, [setSearchCriteria]);
 
   const refetchTaskClicked = () => {
     setIsRefetching(true);
@@ -116,42 +172,6 @@ function Dashboard({ devMode }) {
       </div>
     );
   }
-
-  // SearchBar Component
-  const SearchBar = () => (
-    <div className="w-1/2 mx-auto">
-      <form className="relative" onSubmit={handleSearchSubmit}>
-        <div className="relative">
-          <Input
-            type="text"
-            value={searchCriteria}
-            placeholder="Search for tasks by title or description..."
-            className={`pl-10 pr-12`}
-            onChange={handleSearchChange}
-          />
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2 flex items-center">
-            <Search
-              size={20}
-              className={`transition-colors duration-200 ${
-                isSearchActive ? "text-blue-400" : "text-slate-400"
-              }`}
-            />
-          </div>
-          {searchCriteria && (
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={handleClearSearch}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 h-8 w-8"
-            >
-              <X size={18} />
-            </Button>
-          )}
-        </div>
-      </form>
-    </div>
-  );
 
   // DateRangeSelector Component
   const DateRangeSelector = () => (
@@ -240,7 +260,11 @@ function Dashboard({ devMode }) {
     <Card className="container mx-auto w-full my-24 animate-fade-in">
       <CardHeader className={"space-y-4"}>
         {/* Search Section */}
-        <SearchBar />
+        <SearchInput
+          value={searchCriteria}
+          onChange={handleSearchChange}
+          onClear={handleClearSearch}
+        />
 
         {/* Filter Options Section */}
         <div className="flex justify-center items-center gap-3">
