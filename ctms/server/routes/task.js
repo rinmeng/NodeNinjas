@@ -6,7 +6,7 @@ const pgSession = require('connect-pg-simple')(session);
 const { isAuthenticated } = require('../auth');
 const { isAuthAsAdmin } = require('../auth');
 
-// GET /user (documentation)
+// GET / - Main task endpoint documentation
 router.get('/', (req, res) => {
     res.send(`<!DOCTYPE html>
 <html lang="en">
