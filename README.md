@@ -71,7 +71,7 @@ Tests: 77 passed, 77 total
 
 Snapshots: 0 total
 
-Time: 1.21 s
+Time: 0.944 s
 
   
 
