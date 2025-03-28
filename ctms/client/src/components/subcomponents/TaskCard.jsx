@@ -166,6 +166,7 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
   const handleDeleteTask = () => {
     fetch(`${proxy}/task/delete/:id`, {
       method: "DELETE",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -196,6 +197,7 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
 
     fetch(`${proxy}/task/${lockEndpoint}/:id`, {
       method: "PUT",
+      credentials: "include",
       headers: {
         "Content-Type": "application/json",
       },
@@ -204,7 +206,6 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
       .then((res) => res.json())
       .then((data) => {
         setIsTaskLocked(!isTaskLocked);
-        setNeedsRefetch(true);
         setFeedbackMessage({
           title: "Success",
           description: `Task ${
@@ -482,20 +483,15 @@ const TaskCard = ({ task, user, setNeedsRefetch, devMode }) => {
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              Would you like to delete task "{task.name}"? This action is irreversible!
+              Would you like to delete task "{task.name}"? This action is
+              irreversible!
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsDeleting(false)}
-            >
+            <Button variant="outline" onClick={() => setIsDeleting(false)}>
               Don't Delete
             </Button>
-            <Button
-              variant="destructive"
-              onClick={handleDeleteTask}
-            >
+            <Button variant="destructive" onClick={handleDeleteTask}>
               Delete Task
             </Button>
           </DialogFooter>
