@@ -86,7 +86,7 @@ router.get('/userid/:id', isAuthenticated, async (req, res) => {
 });
 
 // GET /user/username/:username
-router.get('/username/:username', isAuthenticated, async (req, res) => {
+router.get('/username/:username', async (req, res) => {
     const username = req.body.username || req.params.username;
     try {
         const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);

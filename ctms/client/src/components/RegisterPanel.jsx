@@ -1,6 +1,8 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
 import {
   Dialog,
   DialogContent,
@@ -38,8 +40,20 @@ import { useAuth } from "@/utils/AuthProvider"; // Add this to get current admin
 
 export function RegisterPanel({ isAdmin, onUserAdded }) {
   const [open, setOpen] = useState(false);
-  const { user } = useAuth(); // Add this to get current admin user
+  const { user } = useAuth();
+
+  // Define Zod schema for form validation
+  const formSchema = z.object({
+    username: z.string().min(3, "Username must be at least 3 characters"),
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    displayName: z.string().min(2, "Display name is required"),
+    email: z.string().email("Invalid email address"),
+    role: z.enum(["team_member", "admin"]),
+    manager_username: z.string().optional(),
+  });
+
   const registerForm = useForm({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       username: "",
       password: "",
@@ -60,6 +74,15 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
         manager_id = user.id; // Current admin's ID
         data.role = "team_member"; // Force role to team_member
       } else if (data.role === "team_member") {
+        // Only attempt to fetch manager if a username was provided
+        if (!data.manager_username) {
+          setFeedbackMessage({
+            title: "Manager Required",
+            description: "Please provide your admin's username.",
+          });
+          return;
+        }
+
         const managerResponse = await fetch(
           `${proxy}/user/username/${data.manager_username}`,
           {
@@ -71,12 +94,23 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           }
         );
 
-        const managerData = await managerResponse.json();
-
-        if (managerResponse.status !== 200) {
+        // Check if the response is OK before trying to parse JSON
+        if (!managerResponse.ok) {
           setFeedbackMessage({
             title: "Manager Not Found",
             description: "The provided manager username does not exist.",
+          });
+          return;
+        }
+
+        const managerData = await managerResponse.json();
+
+        // Verify that the found user is actually an admin
+        if (managerData.role !== "admin") {
+          setFeedbackMessage({
+            title: "Invalid Manager",
+            description:
+              "The provided username does not belong to an admin user.",
           });
           return;
         }
@@ -102,7 +136,8 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
 
       const registerData = await registerResponse.json();
 
-      if (registerResponse.status === 201) {
+      // Check if the registration was successful (not bad request)
+      if (registerResponse.status !== 400) {
         setFeedbackMessage({
           title: "Registration Successful",
           description: isAdmin
@@ -129,7 +164,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
         setFeedbackMessage({
           title: "Registration Failed",
           description:
-            registerData.message || "An error occurred while registering.",
+            registerData.message || "An error occurred during registration.",
         });
       }
     } catch (error) {
