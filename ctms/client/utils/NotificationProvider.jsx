@@ -14,6 +14,7 @@ export function NotificationProvider({ children }) {
   const [notificationsNeedRefetch, setNotificationsNeedRefetch] =
     useState(false);
   const [notificationToAdd, setNotificationToAdd] = useState("");
+  const [notificationSort, setNotificationSort] = useState([]);
 
   // Fetch notifications when user changes
   useEffect(() => {
@@ -26,10 +27,21 @@ export function NotificationProvider({ children }) {
 
   // Refetch notifications when needed
   useEffect(() => {
-    if (notificationsNeedRefetch) {
-      fetchNotifications();
+    if (notifications.length > 0) {
+      notificationSort = [...notifications].sort((a, b) => {
+        if (a.status === "unread" && b.status === "read") {
+          return -1;
+        }
+        if (a.status === "read" && b.status === "unread") {
+          return 1;
+        }
+        return new Date(b.created_at) - new Date(a.created_at);
+      });
+      setNotifications(notificationSort);
+    } else {
+      setNotifications([]);
     }
-  }, [notificationsNeedRefetch]);
+  }, [notifications]);
 
   // Send notification when notificationToAdd changes
   useEffect(() => {
