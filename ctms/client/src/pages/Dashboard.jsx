@@ -55,7 +55,7 @@ import {
 import { Calendar } from "@/components/ui/calendar";
 
 // Create a standalone SearchInput component to better manage focus
-const SearchInput = ({ value, onChange, onClear, onSubmit }) => {
+const SearchInput = ({ value, onChange, onClear }) => {
   const inputRef = useRef(null);
   const [isFocused, setIsFocused] = useState(false);
   const isSearchActive = value.length > 0;
@@ -74,15 +74,7 @@ const SearchInput = ({ value, onChange, onClear, onSubmit }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(value);
   };
-
-  // Force focus when component mounts
-  useEffect(() => {
-    if (inputRef.current) {
-      inputRef.current.focus();
-    }
-  }, []);
 
   return (
     <div className="w-1/2 mx-auto">
@@ -128,7 +120,6 @@ function Dashboard({ devMode }) {
   const { user } = useAuth();
   const { setFeedbackMessage } = useToast();
   const [isRefetching, setIsRefetching] = useState(false);
-  const [localSearchValue, setLocalSearchValue] = useState("");
 
   const {
     tasks: taskList,
@@ -142,27 +133,18 @@ function Dashboard({ devMode }) {
     triggerRefetch,
   } = useTasks(user, devMode);
 
-  // Handle search changes with debouncing
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      if (localSearchValue !== searchCriteria) {
-        setSearchCriteria(localSearchValue);
-      }
-    }, 300);
-
-    return () => clearTimeout(timer);
-  }, [localSearchValue, setSearchCriteria, searchCriteria]);
+  // Update the search criteria immediately, no debounce
+  const handleSearchChange = useCallback(
+    (value) => {
+      setSearchCriteria(value);
+    },
+    [setSearchCriteria]
+  );
 
   // Clear search
-  const handleClearSearch = () => {
-    setLocalSearchValue("");
+  const handleClearSearch = useCallback(() => {
     setSearchCriteria("");
-  };
-
-  // Handle search submission
-  const handleSearchSubmit = (value) => {
-    setSearchCriteria(value);
-  };
+  }, [setSearchCriteria]);
 
   const refetchTaskClicked = () => {
     setIsRefetching(true);
@@ -256,9 +238,9 @@ function Dashboard({ devMode }) {
       <ClipboardList size={48} className="mb-4" />
       <p className="text-lg">
         No tasks available matching<br></br>
-        {localSearchValue && `\"${localSearchValue}\"`}
+        {searchCriteria && `\"${searchCriteria}\"`}
       </p>
-      {!localSearchValue && (
+      {!searchCriteria && (
         <p className="text-sm mt-2">
           Click 'Create Task' to add your first task
         </p>
@@ -279,10 +261,9 @@ function Dashboard({ devMode }) {
       <CardHeader className={"space-y-4"}>
         {/* Search Section */}
         <SearchInput
-          value={localSearchValue}
-          onChange={setLocalSearchValue}
+          value={searchCriteria}
+          onChange={handleSearchChange}
           onClear={handleClearSearch}
-          onSubmit={handleSearchSubmit}
         />
 
         {/* Filter Options Section */}
