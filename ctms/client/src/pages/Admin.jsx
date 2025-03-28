@@ -95,7 +95,7 @@ const Admin = ({ devMode }) => {
           .filter((user) => user.role !== "admin")
           .map((user, index) => ({
             ...user,
-            orderId: index + 1
+            orderId: index + 1,
           }));
         setUsersList(filteredData);
         setInitialLoad(false);
@@ -175,14 +175,14 @@ const Admin = ({ devMode }) => {
         // Get the current page number and page size
         const pageIndex = table.getState().pagination.pageIndex;
         const pageSize = table.getState().pagination.pageSize;
-        
+
         // Calculate the ordered ID
         const orderId = pageIndex * pageSize + row.index + 1;
-        
+
         return <span className="font-mono text-xs">{orderId}</span>;
       },
     },
-    
+
     {
       accessorKey: "username",
       header: ({ column }) => {
@@ -328,7 +328,7 @@ const Admin = ({ devMode }) => {
           .filter((user) => user.role !== "admin")
           .map((user, index) => ({
             ...user,
-            orderId: index + 1
+            orderId: index + 1,
           }));
         setUsersList(filteredData);
         setSortDirection("none"); // Reset sort direction when fetching new data
@@ -493,7 +493,6 @@ const Admin = ({ devMode }) => {
             </DialogContent>
           </Dialog>
           <RegisterPanel isAdmin={true} onUserAdded={handleUserAdded} />
-          <Button className="w-full md:w-auto">To Be Added</Button>
         </CardContent>
       </Card>
 
