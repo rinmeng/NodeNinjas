@@ -56,38 +56,40 @@ function useUserManagement(currentUser, devMode) {
     setIsLoading(true);
     setIsRefetching(true);
 
-    fetch(`${proxy}/user/under/${currentUser.id}`, { credentials: "include" })
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((error) => {
-            throw new Error(error.message || "The users can't be loaded");
+    setTimeout(() => {
+      fetch(`${proxy}/user/under/${currentUser.id}`, { credentials: "include" })
+        .then((res) => {
+          if (!res.ok) {
+            return res.json().then((error) => {
+              throw new Error(error.message || "The users can't be loaded");
+            });
+          }
+          return res.json();
+        })
+        .then((data) => {
+          // Filter out admin users and add ordered IDs
+          const filteredData = data
+            .filter((user) => user.role !== "admin")
+            .map((user, index) => ({
+              ...user,
+              orderId: index + 1,
+            }));
+          setUsersList(filteredData);
+          setSortDirection("none"); // Reset sort direction when fetching new data
+        })
+        .catch((error) => {
+          console.error("Error fetching data:", error);
+          setFeedbackMessage({
+            title: "Error",
+            description: "Failed to load users",
           });
-        }
-        return res.json();
-      })
-      .then((data) => {
-        // Filter out admin users and add ordered IDs
-        const filteredData = data
-          .filter((user) => user.role !== "admin")
-          .map((user, index) => ({
-            ...user,
-            orderId: index + 1,
-          }));
-        setUsersList(filteredData);
-        setSortDirection("none"); // Reset sort direction when fetching new data
-      })
-      .catch((error) => {
-        console.error("Error fetching data:", error);
-        setFeedbackMessage({
-          title: "Error",
-          description: "Failed to load users",
+          setUsersList([]);
+        })
+        .finally(() => {
+          setIsLoading(false);
+          setIsRefetching(false);
         });
-        setUsersList([]);
-      })
-      .finally(() => {
-        setIsLoading(false);
-        setIsRefetching(false);
-      });
+    }, 1000);
   }, [currentUser, devMode, setFeedbackMessage]);
 
   // Sort users based on current sort direction

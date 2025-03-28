@@ -97,7 +97,7 @@ function UserManagementDialog({
               <Button
                 variant="default"
                 size="sm"
-                onClick={fetchUsers}
+                onClick={() => fetchUsers()}
                 disabled={isLoading}
               >
                 <RefreshCw
