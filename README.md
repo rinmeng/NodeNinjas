@@ -29,3 +29,6 @@
 - Visit the [tutorial](tutorial.md) for more information.
 
 - Or pull the [Docker Image](https://hub.docker.com/r/rinmeng/nodeninjas-ctms/tags) from Docker Hub and run it locally with the [`docker-compose.yml`](./ctms/docker-compose.yml) file.
+
+- Test Coverage
+  ![Test Coverage](Test%20coverage%20reports.png)
