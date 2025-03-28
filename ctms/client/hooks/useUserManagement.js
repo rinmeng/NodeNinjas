@@ -1,14 +1,18 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import proxy from "@/utils/proxy";
 import { useToast } from "@/utils/ToastProvider";
 
 function useUserManagement(currentUser, devMode) {
   const { setFeedbackMessage } = useToast();
   const [usersList, setUsersList] = useState([]);
+  const [deleteUser, setDeleteUser] = useState(null);
+  const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isRefetching, setIsRefetching] = useState(false);
   const [sortDirection, setSortDirection] = useState("none");
   const [initialLoad, setInitialLoad] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const tableRef = useRef(null);
 
   // Load users initially without visual feedback
   const loadUsersInitially = useCallback(async () => {
@@ -25,15 +29,25 @@ function useUserManagement(currentUser, devMode) {
       }
 
       let data = await res.json();
-      data = data.filter((user) => user.role !== "admin");
-      setUsersList(data);
+      // Filter out admin users and add ordered IDs
+      const filteredData = data
+        .filter((user) => user.role !== "admin")
+        .map((user, index) => ({
+          ...user,
+          orderId: index + 1,
+        }));
+      setUsersList(filteredData);
     } catch (error) {
       console.error("Error fetching data:", error);
+      setFeedbackMessage({
+        title: "Error",
+        description: "Failed to load users",
+      });
       setUsersList([]);
     } finally {
       setInitialLoad(false);
     }
-  }, [currentUser, devMode]);
+  }, [currentUser, devMode, setFeedbackMessage]);
 
   // Fetch users with loading indicators
   const fetchUsers = useCallback(() => {
@@ -52,8 +66,14 @@ function useUserManagement(currentUser, devMode) {
         return res.json();
       })
       .then((data) => {
-        data = data.filter((user) => user.role !== "admin");
-        setUsersList(data);
+        // Filter out admin users and add ordered IDs
+        const filteredData = data
+          .filter((user) => user.role !== "admin")
+          .map((user, index) => ({
+            ...user,
+            orderId: index + 1,
+          }));
+        setUsersList(filteredData);
         setSortDirection("none"); // Reset sort direction when fetching new data
       })
       .catch((error) => {
@@ -100,9 +120,10 @@ function useUserManagement(currentUser, devMode) {
           title: "Error",
           description: "No users are selected!",
         });
-        return;
+        return false;
       }
 
+      setIsDeleting(true);
       const validDeletions = [];
 
       try {
@@ -118,20 +139,29 @@ function useUserManagement(currentUser, devMode) {
 
             if (!res.ok) {
               const errorData = await res.json();
-              console.error(`Failed to delete user ${userId}:`, errorData);
+              setFeedbackMessage({
+                title: "Error",
+                description: `Failed to delete user ${userId}: ${errorData.message}`,
+              });
               continue;
             }
 
             await res.json();
             validDeletions.push(userId);
           } catch (error) {
-            console.error(`Error deleting user ${userId}:`, error);
+            setFeedbackMessage({
+              title: "Error",
+              description: `Failed to delete user ${userId}: ${error.message}`,
+            });
           }
         }
 
         if (validDeletions.length > 0) {
           setUsersList((prev) =>
             prev.filter((user) => !validDeletions.includes(user.id))
+          );
+          setChosenUserIds((prev) =>
+            prev.filter((id) => !validDeletions.includes(id))
           );
           setFeedbackMessage({
             title: "Success",
@@ -154,10 +184,20 @@ function useUserManagement(currentUser, devMode) {
           description: "An unexpected error occurred while deleting users",
         });
         return false;
+      } finally {
+        setIsDeleting(false);
       }
     },
     [fetchUsers, setFeedbackMessage]
   );
+
+  // Reset selection
+  const resetSelection = useCallback(() => {
+    setChosenUserIds([]);
+    if (tableRef.current) {
+      tableRef.current.resetRowSelection();
+    }
+  }, []);
 
   // Update user role
   const updateUserRole = useCallback(
@@ -166,7 +206,7 @@ function useUserManagement(currentUser, devMode) {
       const userToUpdate = usersList.find((user) => user.id === userId);
 
       // Check if the user is an admin
-      if (userToUpdate.role === "admin") {
+      if (userToUpdate?.role === "admin") {
         setFeedbackMessage({
           title: "Error",
           description: "Cannot change the role of an admin user.",
@@ -211,11 +251,13 @@ function useUserManagement(currentUser, devMode) {
             title: "Error",
             description: "Failed to update role: " + error.message,
           });
-          setUsersList((prev) =>
-            prev.map((user) =>
-              user.id === userId ? { ...user, role: userToUpdate.role } : user
-            )
-          );
+          if (userToUpdate) {
+            setUsersList((prev) =>
+              prev.map((user) =>
+                user.id === userId ? { ...user, role: userToUpdate.role } : user
+              )
+            );
+          }
         })
         .finally(() => {
           setIsRefetching(false);
@@ -252,9 +294,17 @@ function useUserManagement(currentUser, devMode) {
     isLoading,
     isRefetching,
     sortDirection,
+    deleteUser,
+    setDeleteUser,
+    chosenUserIds,
+    setChosenUserIds,
+    isDeleting,
+    setIsDeleting,
+    tableRef,
     fetchUsers,
     sortUsers,
     deleteUsers,
+    resetSelection,
     updateUserRole,
   };
 }

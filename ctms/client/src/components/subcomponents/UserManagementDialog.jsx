@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState } from "react";
 import { RefreshCw, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,14 +17,18 @@ function UserManagementDialog({
   usersList,
   isLoading,
   isRefetching,
+  isDeleting,
+  setIsDeleting,
   fetchUsers,
   sortUsers,
+  sortDirection,
   onDeleteUsers,
+  onRoleChange,
 }) {
-  const [chosenUserIds, setChosenUserIds] = useState([]);
   const [isOpen, setIsOpen] = useState(false);
-  const [isConfirmDeleteOpen, setIsConfirmDeleteOpen] = useState(false);
-  const tableRef = useRef(null);
+  const [deleteUser, setDeleteUser] = useState(null);
+  const [chosenUserIds, setChosenUserIds] = useState([]);
+  const [tableRef, setTableRef] = useState({ current: null });
 
   const handleOpenChange = (open) => {
     setIsOpen(open);
@@ -42,28 +46,40 @@ function UserManagementDialog({
 
   const handleDelete = () => {
     if (chosenUserIds.length === 0) return;
-    setIsConfirmDeleteOpen(true);
+    setIsDeleting(true);
   };
 
   const confirmDelete = async () => {
-    const success = await onDeleteUsers(chosenUserIds);
+    const success = await onDeleteUsers(
+      deleteUser ? [deleteUser.id] : chosenUserIds
+    );
     if (success) {
       resetSelection();
     }
-    setIsConfirmDeleteOpen(false);
+    setIsDeleting(false);
+    setDeleteUser(null);
+  };
+
+  const cancelDelete = () => {
+    setIsDeleting(false);
+    setDeleteUser(null);
+    setChosenUserIds([]);
+    if (tableRef.current) {
+      tableRef.current.resetRowSelection();
+    }
   };
 
   const usersColumns = createUserColumns(
+    sortDirection,
     sortUsers,
     (userId, newRole) => {
-      // This will be handled by the parent component
       if (onRoleChange) {
         onRoleChange(userId, newRole);
       }
     },
     (user) => {
-      setChosenUserIds([user.id]);
-      setIsConfirmDeleteOpen(true);
+      setDeleteUser(user);
+      setIsDeleting(true);
     }
   );
 
@@ -103,7 +119,7 @@ function UserManagementDialog({
             loading={isLoading}
             initialPageSize={5}
             onSelectionChange={setChosenUserIds}
-            tableRef={tableRef}
+            tableRef={setTableRef}
           />
 
           <DialogFooter>
@@ -113,6 +129,7 @@ function UserManagementDialog({
                   variant="destructive"
                   size="sm"
                   onClick={handleDelete}
+                  disabled={isDeleting}
                   className="flex items-center"
                 >
                   <Trash2 className="h-4 w-4 mr-1" />
@@ -128,21 +145,26 @@ function UserManagementDialog({
       </Dialog>
 
       {/* Confirmation Dialog */}
-      <Dialog open={isConfirmDeleteOpen} onOpenChange={setIsConfirmDeleteOpen}>
+      <Dialog
+        open={isDeleting}
+        onOpenChange={(open) => {
+          if (!open) cancelDelete();
+        }}
+      >
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Confirm Deletion</DialogTitle>
             <DialogDescription>
-              You are about to delete {chosenUserIds.length} user(s). This
-              action is irreversible!
+              {deleteUser
+                ? `Would you like to delete ${
+                    deleteUser.display_name || deleteUser.username
+                  }? This action is irreversible!`
+                : `You are about to delete these ${chosenUserIds.length} users. This action is irreversible!`}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setIsConfirmDeleteOpen(false)}
-            >
-              Cancel
+            <Button variant="outline" onClick={cancelDelete}>
+              Don't Delete
             </Button>
             <Button variant="destructive" onClick={confirmDelete}>
               Delete Selected User(s)

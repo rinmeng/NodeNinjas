@@ -11,7 +11,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-export function createUserColumns(onSort, onRoleChange, onDeleteRequest) {
+export function createUserColumns(
+  sortDirection,
+  onSort,
+  onRoleChange,
+  onDeleteRequest
+) {
   return [
     {
       id: "select",
@@ -36,19 +41,35 @@ export function createUserColumns(onSort, onRoleChange, onDeleteRequest) {
       enableHiding: false,
     },
     {
-      header: "ID",
-      accessorKey: "id",
-      cell: ({ row }) => (
-        <span className="font-mono text-xs">{row.getValue("id")}</span>
-      ),
+      header: "Number",
+      accessorKey: "orderId",
+      cell: ({ row, table }) => {
+        // Get the current page number and page size
+        const pageIndex = table.getState().pagination.pageIndex;
+        const pageSize = table.getState().pagination.pageSize;
+
+        // Calculate the ordered ID
+        const orderId = pageIndex * pageSize + row.index + 1;
+
+        return <span className="font-mono text-xs">{orderId}</span>;
+      },
     },
     {
       accessorKey: "username",
       header: ({ column }) => {
         return (
-          <Button variant="ghost" onClick={onSort}>
+          <Button
+            variant="ghost"
+            onClick={onSort}
+            className="flex items-center gap-2"
+          >
             Username
-            <ArrowUpDown className="ml-2 h-4 w-4" />
+            <ArrowUpDown
+              size={16}
+              className={
+                sortDirection !== "none" ? "text-blue-500" : "text-gray-400"
+              }
+            />
           </Button>
         );
       },
