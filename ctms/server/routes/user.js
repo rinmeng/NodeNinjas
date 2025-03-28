@@ -89,7 +89,7 @@ router.get('/userid/:id', isAuthenticated, async (req, res) => {
 router.get('/username/:username', async (req, res) => {
     const username = req.body.username || req.params.username;
     try {
-        const data = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+        const data = await pool.query('SELECT username FROM users WHERE username = $1', [username]);
         if (data.rowCount === 0) {
             return res.status(404).json({ message: "User not found" });
         }

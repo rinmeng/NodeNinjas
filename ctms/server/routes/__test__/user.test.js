@@ -105,43 +105,7 @@ describe('User Routes', () => {
         });
     });
 
-    describe('GET /user/username/:username', () => {
-        it('returns user when valid username is provided', async () => {
-            pool.query.mockResolvedValueOnce({
-                rows: [sampleUser],
-                rowCount: 1
-            });
 
-            const response = await request(app)
-                .get('/user/username/testuser');
-
-            expect(response.statusCode).toBe(200);
-            expect(response.body).toEqual(sampleUser);
-        });
-
-        it('returns 404 when username is not found', async () => {
-            pool.query.mockResolvedValueOnce({
-                rows: [],
-                rowCount: 0
-            });
-
-            const response = await request(app)
-                .get('/user/username/nonexistent');
-
-            expect(response.statusCode).toBe(404);
-            expect(response.body).toEqual({ message: 'User not found' });
-        });
-
-        it('returns 500 on database error', async () => {
-            pool.query.mockRejectedValueOnce(new Error('Database error'));
-
-            const response = await request(app)
-                .get('/user/username/testuser');
-
-            expect(response.statusCode).toBe(500);
-            expect(response.body).toEqual({ message: 'Error searching up username.' });
-        });
-    });
 
     describe('DELETE /user/delete/:id', () => {
         it('successfully deletes existing user', async () => {
@@ -204,6 +168,45 @@ describe('User Routes', () => {
 
             expect(response.statusCode).toBe(500);
             expect(response.body).toEqual({ message: 'Internal Server Error: Is database loaded yet?' });
+        });
+    });
+
+
+    describe('GET /user/username/:username', () => {
+        it('returns user when valid username is provided', async () => {
+            pool.query.mockResolvedValueOnce({
+                rows: [{ username: 'testuser' }],
+                rowCount: 1
+            });
+
+            const response = await request(app)
+                .get('/user/username/testuser');
+
+            expect(response.statusCode).toBe(200);
+            expect(response.body).toEqual({ username: 'testuser' });
+        });
+
+        it('returns 404 when username is not found', async () => {
+            pool.query.mockResolvedValueOnce({
+                rows: [],
+                rowCount: 0
+            });
+
+            const response = await request(app)
+                .get('/user/username/nonexistent');
+
+            expect(response.statusCode).toBe(404);
+            expect(response.body).toEqual({ message: 'User not found' });
+        });
+
+        it('returns 500 on database error', async () => {
+            pool.query.mockRejectedValueOnce(new Error('Database error'));
+
+            const response = await request(app)
+                .get('/user/username/testuser');
+
+            expect(response.statusCode).toBe(500);
+            expect(response.body).toEqual({ message: 'Error searching up username.' });
         });
     });
 
@@ -560,6 +563,7 @@ describe('User Routes', () => {
             expect(response.statusCode).toBe(500);
             expect(response.body).toEqual({ message: 'Something went wrong while updating user role' });
         });
+
     });
 
 
