@@ -89,7 +89,7 @@ function useUserManagement(currentUser, devMode) {
           setIsLoading(false);
           setIsRefetching(false);
         });
-    }, 1000);
+    }, 500);
   }, [currentUser, devMode, setFeedbackMessage]);
 
   // Sort users based on current sort direction
