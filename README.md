@@ -52,15 +52,27 @@ Newly registered admins who have no tasks assigned and no users in their team ar
   
 <img width="1009" alt="Screenshot 2025-03-28 at 4 20 05 PM" src="https://github.com/user-attachments/assets/3938e18f-1790-4746-b9ad-ea50491f6657" />
 
+### Test Coverage Report Summary:
 
-  server.js : 59.64%
-  message.js:
-  notification.js: 100%
 
-  Test Suites: 4 passed, 4 total
-  Tests: 73 passed, 73 total
-  Snapshots: 0 total
-  Time: 1.535 s
+Statements: 65.28%
+
+Branches: 68.32%
+
+Functions: 49.27%
+
+Lines: 65.67%
+
+## <ul>
+
+Test Suites: 4 passed, 4 total
+
+Tests: 77 passed, 77 total
+
+Snapshots: 0 total
+
+Time: 1.21 s
+
   
 
 
