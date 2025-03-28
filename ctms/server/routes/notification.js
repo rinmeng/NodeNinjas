@@ -259,7 +259,7 @@ router.put('/unread/:id', isAuthenticated, async (req, res) => {
     }
 }
 );
-//delete a notification back-end
+// DELETE /notification/delete/:id
 router.delete('/delete/:id', isAuthenticated, async (req, res) => {
     const id = req.params.id;
     try {
