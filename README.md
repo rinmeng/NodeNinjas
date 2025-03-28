@@ -61,7 +61,7 @@ Branches: 68.32%
 
 Functions: 50%
 
-Lines: 65.67%
+Lines: 66.15%
 
 ## <ul>
 
