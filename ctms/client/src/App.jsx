@@ -13,7 +13,6 @@ import Login from "@/src/pages/Login";
 import NotFound from "@/src/pages/NotFound";
 import Dashboard from "@/src/pages/Dashboard";
 import { ThemeProvider } from "@/contexts/ThemeProvider";
-
 import { ToastProvider } from "@/utils/ToastProvider";
 import Docs from "@/src/pages/Docs";
 
