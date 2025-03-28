@@ -10,6 +10,7 @@ import {
   Menu,
   Moon,
   Sun,
+  Book,
 } from "lucide-react";
 import {
   Sheet,
@@ -50,6 +51,12 @@ function Navbar({ devMode }) {
   const getLinks = () => {
     const links = [];
 
+    links.push({
+      label: "Docs",
+      route: "/docs",
+      icon: Book,
+    });
+
     if (user || devMode) {
       links.push({ label: "Dashboard", route: "/", icon: LayoutDashboard });
       if (user?.role === "admin" || devMode) {
@@ -67,12 +74,6 @@ function Navbar({ devMode }) {
       label: user ? user.username : "Login",
       route: "/login",
       icon: User,
-    });
-
-    links.push({
-      label: "Docs",
-      route: "/docs",
-      icon: MessageSquare,
     });
 
     return links;
