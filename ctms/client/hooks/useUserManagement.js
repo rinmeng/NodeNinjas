@@ -234,16 +234,20 @@ function useUserManagement(currentUser, devMode) {
           }
           return res.json();
         })
-        .then(() => {
+        .then((updatedUser) => {
           setFeedbackMessage({
             title: "Success",
             description: "Role updated successfully",
           });
 
-          // Update local state with the new role
+          // Update local state with the new role and possibly updated manager_id
           setUsersList((prev) =>
             prev.map((user) =>
-              user.id === userId ? { ...user, role: newRole } : user
+              user.id === userId ? {
+                ...user,
+                role: updatedUser.role,
+                manager_id: updatedUser.manager_id
+              } : user
             )
           );
         })
