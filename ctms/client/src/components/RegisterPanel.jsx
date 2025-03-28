@@ -45,7 +45,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
       password: "",
       displayName: "",
       email: "",
-      role: isAdmin ? "team_member" : undefined,
+      role:  "team_member",
       manager_username: "",
     }
   });
@@ -95,7 +95,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           email: data.email,
           username: data.username,
           password_hash: data.password,
-          role: "team_member", // Always set to team_member when admin is registering
+          role: data.role,// Always set to team_member when admin is registering
           manager_id, // This will be the admin's ID
         }),
       });
@@ -115,7 +115,7 @@ export function RegisterPanel({ isAdmin, onUserAdded }) {
           password: "",
           displayName: "",
           email: "",
-          role: isAdmin ? "team_member" : undefined,
+          role: "team_member",
           manager_username: "",
         });
 
