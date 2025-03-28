@@ -55,13 +55,21 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Install Vercel CLI
-        run: npm install -g vercel
+        run: |
+          cd ctms/client
+          npm install -g vercel
 
       - name: Pull Vercel Environment Variables
-        run: vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          cd ctms/client
+          vercel pull --yes --environment=production --token ${{ secrets.VERCEL_TOKEN }}
 
       - name: Build Project
-        run: vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          cd ctms/client
+          vercel build --prod --token ${{ secrets.VERCEL_TOKEN }}
 
       - name: Deploy to Vercel
-        run: vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }}
+        run: |
+          cd ctms/client
+          vercel deploy --prod --token ${{ secrets.VERCEL_TOKEN }}
