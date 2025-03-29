@@ -52,13 +52,13 @@ Data of newly registered team-members under newly registered admins aren’t dis
 
 ![coverage](mar28coverage.png)
 
-### Note that we can't really test the socket.io functionality, so we are not testing the real-time messaging feature, also setup.js is not being tested because that is the beg
+### Note that we can't really test the socket.io functionality, so we are not testing the real-time messaging feature, also setup.js is not being tested because that is the beggining of the app and we are not testing the beginning of the app, we are testing the functionality of the app.
 
-### Test Coverage Report Summary:
+### Test Coverage Report Summary
 
-Statements:
+Statements: 81.79%
 
-Branches: 81.79%
+Branches: 83.99%
 
 Functions: 100%
 
