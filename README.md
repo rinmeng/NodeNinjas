@@ -28,11 +28,9 @@ The register feature is currently broken for team members when they submit the r
 
 When all notifications are marked as read, toggling any of them back to unread causes them to appear at the bottom of the list instead of moving to the top, as expected This breaks the intended sorting behaviour where unread notifications should be prioritized and displayed first. The issue was observed while testing commit [#183](https://github.com/rinmeng/NodeNinjas/pull/183). It affects the notification component, specifically the logic responsible for sorting and rendering unread vs. read states. While this does not block core functionality, it leads to a confusing user experience and may cause important unread items to be overlooked. This issue is considered moderate severity. Solved with PR: [#248](https://github.com/rinmeng/NodeNinjas/pull/248)
 
-
 ### Admin’s with newly registered users in their team don't have user and task data displayed in Admin Page.
 
 Data of newly registered team-members under newly registered admins aren’t displayed on the graphs for the Admin Page when the newly registered admin is logged in. This results in a confusing or empty view with no actionable content. The issue was identified while testing commit [#164](https://github.com/rinmeng/NodeNinjas/pull/164). It affects the admin access control logic and the rendering conditions for the Admin Page. Since this can lead to unnecessary UI exposure and may confuse users who shouldn't see the page, the severity of this issue is low to moderate. Solved with PR: [#247](https://github.com/rinmeng/NodeNinjas/pull/247)
-
 
 ## How to login?
 
@@ -54,15 +52,17 @@ Data of newly registered team-members under newly registered admins aren’t dis
 
 ![coverage](mar28coverage.png)
 
+### Note that we can't really test the socket.io functionality, so we are not testing the real-time messaging feature, also setup.js is not being tested because that is the beg
+
 ### Test Coverage Report Summary:
 
-Statements: 65.76%
+Statements:
 
-Branches: 69%
+Branches: 81.79%
 
-Functions: 50%
+Functions: 100%
 
-Lines: 66.15%
+Lines: 82.09%
 
 Test Suites: 6 passed, 6 total
 
