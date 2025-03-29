@@ -27,7 +27,7 @@ const Docs = () => {
   const [activeTab, setActiveTab] = useState("message");
 
   return (
-    <div className="container py-24 mx-auto">
+    <div className="container py-24 mx-auto animate-fade-in">
       <h1 className="mb-8 text-4xl font-bold tracking-tight">
         API Documentation
       </h1>
