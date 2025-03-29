@@ -12,7 +12,7 @@
 
 - All technical requirements met (99%)
 
-- 5% from each requirements are to be met in the future, we are covering minor edge cases, bug fixes (visual/backend) and code refactoring.
+- 1% from each requirements are for minor bugs, and edge case.
 
 ## Known Bugs
 
