@@ -62,12 +62,6 @@ Functions: 50%
 
 Lines: 66.15%
 
-## <ul>
+Test Suites: 6 passed, 6 total
 
-Test Suites: 4 passed, 4 total
-
-Tests: 77 passed, 77 total
-
-Snapshots: 0 total
-
-Time: 0.944 s
+Tests: 91 passed, 91 total
