@@ -96,12 +96,11 @@ function UserManagementDialog({
               Manage Users
               <Button
                 variant="default"
-                size="sm"
                 onClick={() => fetchUsers()}
                 disabled={isLoading}
               >
                 <RefreshCw
-                  className={`h-4 w-4 mr-1 ${
+                  className={`${
                     isLoading || isRefetching ? "animate-spin" : ""
                   }`}
                 />
@@ -127,15 +126,14 @@ function UserManagementDialog({
               <div className="flex items-center gap-2 mb-4">
                 <Button
                   variant="destructive"
-                  size="sm"
                   onClick={handleDelete}
                   disabled={isDeleting}
                   className="flex items-center"
                 >
-                  <Trash2 className="h-4 w-4 mr-1" />
+                  <Trash2 />
                   Delete Selected ({chosenUserIds.length})
                 </Button>
-                <Button variant="outline" size="sm" onClick={resetSelection}>
+                <Button variant="outline" onClick={resetSelection}>
                   Clear Selection
                 </Button>
               </div>
