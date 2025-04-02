@@ -38,6 +38,8 @@ ctms> docker-compose up -d --build
 
 This command will build the images and start the containers in the background, and you can access the frontend at `http://localhost:13000` and the backend at `http://localhost:15000`.
 
+If you are on WindowsOS, live changes like HMR from Vite may not work. you'd have to run `npm run dev` in the client directory.
+
 ## To setup the database
 
 Visit `http://localhost:15000` and click on "Setup Endpoint", this will forward you to `http://localhost:15000/setup`. Or you create/initialize the database by visiting the link itself.
