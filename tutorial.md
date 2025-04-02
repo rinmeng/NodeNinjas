@@ -42,4 +42,4 @@ If you are on WindowsOS, live changes like HMR from Vite may not work. you'd hav
 
 ## To setup the database
 
-Visit `http://localhost:15000` and click on "Setup Endpoint", this will forward you to `http://localhost:15000/setup`. Or you create/initialize the database by visiting the link itself.
+Visit `http://localhost:15000` and this will forward you to `http://localhost:15000/setup` which will setup the DB. Or you create/initialize the database by visiting the link itself.
