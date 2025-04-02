@@ -6,13 +6,11 @@
 
 ## Current status of the project:
 
-- All functional requirements met (99%)
+- All functional requirements met (100%)
 
-- All non-functional requirements met (99%)
+- All non-functional requirements met (100%)
 
-- All technical requirements met (99%)
-
-- 1% from each requirements are for minor bugs, and edge case.
+- All technical requirements met (100%)
 
 ## Known Bugs
 
