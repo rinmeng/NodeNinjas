@@ -20,11 +20,13 @@ ctms> cd client
 ctms\client> npm install
 ```
 
-There might be an error due to `react-day-picker` package. If you encounter this error, run the following command:
+There might be an error due to `react-day-picker` package being outdated. If you encounter this error, run the following command:
 
 ```shell
 ctms\client> npm install react-day-picker@latest
 ```
+
+If there are errors like peer-deps issues, please run `npm install --force` in the location that caused it (most likely `client`).
 
 ## Backend & Frontend Setups
 
